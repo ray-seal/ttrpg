@@ -44,7 +44,7 @@ const App: React.FC = () => {
             if (newExp >= prev.level * 100) {
                 newLevel += 1;
             }
-            return { ...prev, expeerience: newExp, level: newLevel };
+            return { ...prev, experience: newExp, level: newLevel };
         });
     }
 
