@@ -113,7 +113,7 @@ const App: React.FC = () => {
                     <input
                     id="reset-input"
                     type="text"
-                    value="{resetInput"
+                    value={resetInput}
                     onChange={e => setResetInput(e.target.value)}
                     style={{ padding: "0.5rem", fontSize: "1rem", marginRight: "1rem" }}
                     autoComplete="off"
