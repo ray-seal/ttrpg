@@ -70,7 +70,7 @@ const CharacterCreation: React.FC<{ onCreate: (c: Character) => void }> = ({ onC
     <br />
     <button onClick={() => onCreate(character)}>Create Character</button>
     </div>
-);
+    );
 };
 
 export default CharacterCreation;
