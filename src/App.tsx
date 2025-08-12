@@ -1,12 +1,41 @@
-import React, { useState } from "react";
-import CharacterCreation, { Character } from './pages/CharacterCreation';
+import React, { useState, useEffect } from "react";
+import CharacterCreation from './pages/CharacterCreation';
 import { houseThemes, House } from "./themes";
+import { Character } from "./types";
 
+const CHARACTER_KEY = "character";
+
+function loadCharacter(): Character | null {
+    const saved = localStorage.getItem(CHARACTER_KEY);
+    return saved ? JSON.parse(saved) : null;
+}
+
+function saveCharacter(char: Character) {
+    localStorage.setItem(CHARACTER_KEY, JSON.stringify(char));
+
+}
 const App: React.FC = () => {
-    const [character, setCharacter] = useState<Character | null>(null);
+    const [character, setCharacter] = useState<Character | null>(loadCharacter());
+
+    useEffect(() => {
+        if (character) saveCharacter(character);
+    }, [character]);
 
     const currentHouse = character?.house as House | undefined;
     const theme = currentHouse ? houseThemes[currentHouse] : houseThemes.Gryffindor;
+
+    function addExperience(points: number) {
+        setCharacter(prev => {
+            if (!prev) return prev;
+            const newExp = prev.experience + points;
+            let newLevel = prev.level;
+            // level up for every 100xp
+            if (newExp >= prev.level * 100) {
+                newLevel += 1;
+            }
+            return { ...prev, expeerience: newExp, level: newLevel };
+        });
+    }
 
     return (
     <div style={{

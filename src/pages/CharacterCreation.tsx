@@ -1,17 +1,8 @@
 import React, { useState } from 'react';
 import { House } from '../themes';
+import { Character } from "../types";
 
-export type Character = {
-    name: string;
-    house: string;
-    magic: number;
-    knowledge: number;
-    courage: number;
-    agility: number;
-    charisma: number;
-};
-
-const houses: House[] = ["Gryffindor", "Hufflepuff", "Ravenclaw", "Slytherin"];
+const houses: House[] = ["Gryffindor", "Slytherin", "Ravenclaw", "Hufflepuff"];
 
 const defaultStats = {
     magic: 5,
@@ -26,6 +17,8 @@ const CharacterCreation: React.FC<{ onCreate: (c: Character) => void }> = ({ onC
         name: "",
         house: houses[0],
         ...defaultStats,
+        level: 1,
+        experience: 0,
     });
 
     const statNames = Object.keys(defaultStats) as (keyof typeof defaultStats)[];
