@@ -3,6 +3,7 @@ import CharacterCreation from './pages/CharacterCreation';
 import CharacterSheet from "./pages/CharacterSheet";
 import { houseThemes, House } from "./themes";
 import { Character } from "./types";
+import DiceButton from "./components/DiceButton";
 
 const CHARACTER_KEY = "character";
 
@@ -13,8 +14,16 @@ function loadCharacter(): Character | null {
 
 function saveCharacter(char: Character) {
     localStorage.setItem(CHARACTER_KEY, JSON.stringify(char));
-
 }
+
+function getAllowedDice(character: Character | null): number[] {
+    if (!character) return [4, 6, 8, 10, 12, 20];
+    if (character.magic <= 6) return [4, 6];
+    if (character.magic <= 8) return [4, 6, 8];
+    if (character.magic >= 10) return [4, 6, 8, 10, 12, 20];
+    return [4, 6, 8, 10, 12, 20];
+}
+
 const App: React.FC = () => {
     const [character, setCharacter] = useState<Character | null>(loadCharacter());
 
@@ -74,6 +83,7 @@ const App: React.FC = () => {
         )}
         </div>
     );
+<DiceButton allowedDice={getAllowedDice(character)} />
 };
 
 export default App;
