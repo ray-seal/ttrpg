@@ -100,7 +100,7 @@ const App: React.FC = () => {
                 </>
         )}
         </div>
-    );
+    
 <DiceButton allowedDice={getAllowedDice(character)} />
 </div>
     );
