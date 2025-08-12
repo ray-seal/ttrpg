@@ -4,6 +4,7 @@ import CharacterSheet from "./pages/CharacterSheet";
 import { houseThemes, House } from "./themes";
 import { Character } from "./types";
 import DiceButton from "./components/DiceButton";
+import HouseShield from "./components/HouseShield";
 
 const CHARACTER_KEY = "character";
 
@@ -48,14 +49,31 @@ const App: React.FC = () => {
     }
 
     return (
-    <div style={{
+    <div 
+    style={{
+        minHeight: "100vh",
+        position: "relative",
         background: theme.background,
         color: theme.primary,
-        minHeight: '100vh',
-        fontFamily: 'monospace',
-        transition: 'background 0.3s, color 0.3s'
-    }}>
-        <h1 style={{ color: theme.primary }}>Harry Potter TTRPG
+        overflow: "hidden",
+        fontFamily: "monospace",
+    }}
+    >
+
+        {currentHouse && <HouseShield house={currentHouse} />}
+
+        <div
+        style={{
+            minHeight: "100vh",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            position: "relative",
+            zIndex: 1,
+        }}
+        >
+        <h1 style={{ color: theme.primary, textAlign: "center" }}>Harry Potter TTRPG
         </h1>
         {!character && <CharacterCreation onCreate={setCharacter} />}
         {character && (
@@ -84,6 +102,8 @@ const App: React.FC = () => {
         </div>
     );
 <DiceButton allowedDice={getAllowedDice(character)} />
+</div>
+    );
 };
 
 export default App;
