@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import CharacterCreation from './pages/CharacterCreation';
+import CharacterSheet from "./pages/CharacterSheet";
 import { houseThemes, House } from "./themes";
 import { Character } from "./types";
 
@@ -45,16 +46,34 @@ const App: React.FC = () => {
         fontFamily: 'monospace',
         transition: 'background 0.3s, color 0.3s'
     }}>
-        <h1 style={{ color: theme.primary }}>Harry Potter TTRPG</h1>
-        <CharacterCreation onCreate={setCharacter} />
+        <h1 style={{ color: theme.primary }}>Harry Potter TTRPG
+        </h1>
+        {!character && <CharacterCreation onCreate={setCharacter} />}
         {character && (
-            <div style={{ marginTop: "2rem", border: '2px solid ${theme.secondary}', padding: "1rem" }}>
-                <h2 style={{ color: theme.secondary }}>Your Character</h2>
-                <pre>{JSON.stringify(character, null, 2)}</pre>
+            <>
+            <CharacterSheet character={character} />
+            <div style={{ textAlign: "center" }}>
+                <button
+                onClick={() => addExperience(50)}
+                style={{
+                    background: theme.secondary,
+                    color: theme.primary,
+                    border: "none",
+                    borderRadius: "8px",
+                    padding: "0.75rem 1.5rem",
+                    marginTop: "1rem",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                    fontSize: "1rem",
+                }}
+                >
+                    Earn 50 XP
+                </button>
                 </div>
+                </>
         )}
         </div>
-        );
-    };
+    );
+};
 
 export default App;
