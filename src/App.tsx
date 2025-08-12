@@ -7,6 +7,7 @@ import DiceButton from "./components/DiceButton";
 import HouseShield from "./components/HouseShield";
 
 const CHARACTER_KEY = "character";
+const RESET_PHRASE = "reset-my-game";
 
 function loadCharacter(): Character | null {
     const saved = localStorage.getItem(CHARACTER_KEY);
@@ -27,6 +28,7 @@ function getAllowedDice(character: Character | null): number[] {
 
 const App: React.FC = () => {
     const [character, setCharacter] = useState<Character | null>(loadCharacter());
+    const [resetInput, setResetInput] = useState<string>("");
 
     useEffect(() => {
         if (character) saveCharacter(character);
@@ -46,6 +48,12 @@ const App: React.FC = () => {
             }
             return { ...prev, experience: newExp, level: newLevel };
         });
+    }
+
+    function handleReset() {
+        localStorage.clear();
+        setCharacter(null);
+        setResetInput("");
     }
 
     return (
@@ -97,10 +105,38 @@ const App: React.FC = () => {
                     Earn 50 XP
                 </button>
                 </div>
+                
+                <div style={{ marginTop: "2rem", textAlign: "center" }}>
+                    <label htmlFor="reset-input" style={{ marginRight: "1rem" }}>
+                        Type "<b>{RESET_PHRASE}</b>" to reset your game:
+                    </label>
+                    <input
+                    id="reset-input"
+                    type="text"
+                    value="{resetInput"
+                    onChange={e => setResetInput(e.target.value)}
+                    style={{ padding: "0.5rem", fontSize: "1rem", marginRight: "1rem" }}
+                    autoComplete="off"
+                    />
+                    <button
+                    onClick={handleReset}
+                    disabled={resetInput !== RESET_PHRASE}
+                    style={{
+                        background: resetInput === RESET_PHRASE ? "#b71c1c" : "#e0e0e0",
+                        color: resetInput === RESET_PHRASE ? "#fff" : "#888",
+                        border: "none",
+                        borderRadius: "8px",
+                        padding: "0.5rem 1rem",
+                        cursor: resetInput === RESET_PHRASE ? "pointer" : "not-allowed",
+                        fontWeight: "bold",
+                    }}
+                    >
+                        Reset Game
+                    </button>
+                </div>
                 </>
         )}
         </div>
-    
 <DiceButton allowedDice={getAllowedDice(character)} />
 </div>
     );
