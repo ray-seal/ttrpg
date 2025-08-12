@@ -8,7 +8,7 @@ interface HouseShieldProps {
 const HouseShield: React.FC<HouseShieldProps> = ({ house }) => {
     const shieldFilename = houseThemes[house].shield;
 
-    const shieldSrc = '/assets/shields/${shieldFilename}';
+    const shieldSrc = `/assets/shields/${shieldFilename}`;
 
     return (
         <img
