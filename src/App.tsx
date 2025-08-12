@@ -1,24 +1,31 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import CharacterCreation from './pages/CharacterCreation';
+import React, { useState } from "react";
+import CharacterCreation, { Character } from './pages/CharacterCreation';
+import { houseThemes, House } from "./themes";
 
 const App: React.FC = () => {
+    const [character, setCharacter] = useState<Character | null>(null);
+
+    const currentHouse = character?.house as House | undefined;
+    const theme = currentHouse ? houseThemes[currentHouse] : houseThemes.Gryffindor;
+
     return (
-        <Router>
-            <nav>
-                <Link to="/">Home</Link> | <Link to="/character">Character Creation</Link>
-            </nav>
-            <Routes>
-                <Route path="/" element={
-                    <div style={{ padding: '2rem', fontFamily: 'monospace' }}>
-                        <h1>Harry Potter TTRPG Starter</h1>
-                        <p>Welcome to the magical world!</p>
-                        </div>
-                } />
-                <Route path="/character" element={<CharacterCreation />} />
-                </Routes>
-                </Router>
-    );
-};
+    <div style={{
+        background: theme.background,
+        color: theme.primary,
+        minHeight: '100vh',
+        fontFamily: 'monospace',
+        transition: 'background 0.3s, color 0.3s'
+    }}>
+        <h1 style={{ color: theme.primary }}>Harry Potter TTRPG</h1>
+        <CharacterCreation onCreate={setCharacter} />
+        {character && (
+            <div style={{ marginTop: "2rem", border: '2px solid ${theme.secondary}', padding: "1rem" }}>
+                <h2 style={{ color: theme.secondary }}>Your Character</h2>
+                <pre>{JSON.stringify(character, null, 2)}</pre>
+                </div>
+        )}
+        </div>
+        );
+    };
 
 export default App;

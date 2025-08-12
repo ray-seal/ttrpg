@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { House } from '../themes';
 
 export type Character = {
     name: string;
@@ -10,7 +11,7 @@ export type Character = {
     charisma: number;
 };
 
-const houses = ["Gryffindor", "Hufflepuff", "Ravenclaw", "Slytherin"];
+const houses: House[] = ["Gryffindor", "Hufflepuff", "Ravenclaw", "Slytherin"];
 
 const defaultStats = {
     magic: 5,
@@ -20,14 +21,13 @@ const defaultStats = {
     charisma: 5,
 };
 
-const CharacterCreation: React.FC = () => {
+const CharacterCreation: React.FC<{ onCreate: (c: Character) => void }> = ({ onCreate }) => {
     const [character, setCharacter] = useState<Character>({
         name: "",
         house: houses[0],
         ...defaultStats,
     });
 
-    // Simple points allocation for demonstration
     const statNames = Object.keys(defaultStats) as (keyof typeof defaultStats)[];
 
     const handleChange = (field: keyof Character, value: string | number) => {
@@ -75,7 +75,7 @@ const CharacterCreation: React.FC = () => {
             </div>
     ))}
     <br />
-    <pre>{JSON.stringify(character, null, 2)}</pre>
+    <button onClick={() => onCreate(character)}>Create Character</button>
     </div>
 );
 };
