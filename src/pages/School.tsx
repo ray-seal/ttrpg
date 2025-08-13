@@ -18,7 +18,7 @@ const School: React.FC = () => (
     </p>
     <div style={{ margin: "1.5rem 0" }}>
         <Link
-        to="./school/alohomora-lesson"
+        to="/school/alohomora-lesson"
         style={{
             display: "inline-block",
             background: "#7B2D26",
