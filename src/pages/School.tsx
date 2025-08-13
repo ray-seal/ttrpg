@@ -79,6 +79,22 @@ const School: React.FC = () => (
       textAlign: "center",
     }}
   >
+    <Link
+      to="/"
+      style={{
+        display: "inline-block",
+        marginBottom: "1.2rem",
+        background: "#4287f5",
+        color: "#fff",
+        padding: "0.7rem 1.3rem",
+        borderRadius: "8px",
+        textDecoration: "none",
+        fontWeight: "bold",
+        fontSize: "1rem",
+      }}
+    >
+      Back to Home
+    </Link>
     <h2>Hogwarts School Lessons</h2>
     <div style={{
       padding: "1.6rem",
