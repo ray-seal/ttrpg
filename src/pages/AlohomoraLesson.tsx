@@ -20,12 +20,11 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
         setRollResult(roll);
         if (roll >= 12) {
             setSuccess(true);
-
             if (!character.unlockedSpells?.includes(ALOHOMORA)) {
                 setCharacter({
                     ...character,
                     unlockedSpells: [...(character.unlockedSpells ?? []), ALOHOMORA],
-                    experience: character.experience + 10                    
+                    experience: character.experience + 10,                    
                 });
             }
         } else {
@@ -39,8 +38,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
         }
 
         return (
-            <div
-            style={{
+            <div style={{
                 background: "#f4efe8",
                 color: "#222",
                 padding: "2rem",
@@ -50,8 +48,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
                 boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
                 fontFamily: "serif",
                 textAlign: "center",
-            }}
-            >
+            }}>
                 <h2>First Lesson: Alohomora!</h2>
                 {step === 0 && (
                     <>
@@ -72,9 +69,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
                             marginTop: "1.5rem"
                         }}
                         onClick={() => setStep(1)}
-                        >
-                            Try to recall the spell!
-                            </button>
+                        >Try to recall the spell!</button>
                     </>
                 )}
                 {step === 1 && (
@@ -94,9 +89,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
                             marginTop: "1.5rem"
                         }}
                         onClick={handleRoll}
-                     >
-                        Roll!
-                        </button>
+                     >Roll!</button>
                         </>
                     )}
                 {step === 2 && (
