@@ -1,40 +1,169 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+// List of all spells used by the end of Book 1, grouped by lesson
+const yearOneLessons = [
+  {
+    title: "Alohomora",
+    path: "/school/alohomora-lesson",
+    desc: "Unlocking Charm",
+  },
+  {
+    title: "Lumos",
+    path: "#",
+    desc: "Wand-Lighting Charm",
+  },
+  {
+    title: "Wingardium Leviosa",
+    path: "#",
+    desc: "Levitation Charm",
+  },
+  {
+    title: "Petrificus Totalus",
+    path: "#",
+    desc: "Full Body-Bind Curse",
+  },
+  {
+    title: "Incendio",
+    path: "#",
+    desc: "Fire-Making Spell",
+  },
+  {
+    title: "Nox",
+    path: "#",
+    desc: "Wand-Extinguishing Charm",
+  },
+  {
+    title: "Finite Incantatem",
+    path: "#",
+    desc: "General Counter-Spell",
+  },
+  {
+    title: "Expelliarmus",
+    path: "#",
+    desc: "Disarming Charm",
+  },
+  {
+    title: "Devil's Snare Escape",
+    path: "#",
+    desc: "Plant-repelling technique",
+  },
+  {
+    title: "Obliviate",
+    path: "#",
+    desc: "Memory Charm",
+  },
+  {
+    title: "Locomotor Mortis",
+    path: "#",
+    desc: "Leg-Locker Curse",
+  },
+  {
+    title: "Ennervate",
+    path: "#",
+    desc: "Reviving Spell",
+  },
+];
+
 const School: React.FC = () => (
+  <div
+    style={{
+      background: "#f4efe8",
+      color: "#222",
+      padding: "2rem",
+      borderRadius: "16px",
+      maxWidth: "540px",
+      margin: "3rem auto",
+      boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
+      fontFamily: "serif",
+      textAlign: "center",
+    }}
+  >
+    <h2>Hogwarts School Lessons</h2>
     <div style={{
-        background: "#f4efe8",
-        color: "#222",
-        padding: "2rem",
-        borderRadius: "16px",
-        maxWidth: "500px",
-        margin: "3rem auto",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
-        fontFamily: "serif",
-        textAlign: "center",
+      padding: "1.6rem",
+      background: "#ece6da",
+      borderRadius: "12px",
+      margin: "2rem 0",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.07)",
     }}>
-        <h2>Hogwarts School Lessons</h2>
-        <p>Select a lesson to begin:
-    </p>
-    <div style={{ margin: "1.5rem 0" }}>
-        <Link
-        to="/school/alohomora-lesson"
-        style={{
-            display: "inline-block",
-            background: "#7B2D26",
-            color: "#fff",
-            padding: "1rem 2rem",
-            borderRadius: "8px",
-            fontWeight: "bold",
-            fontSize: "1.1rem",
-            textDecoration: "none",
-            margin: "0.5rem"
-        }}
-        >
-            First Lesson: Alohomora
-        </Link>
+      <h3 style={{ marginBottom: "1.1rem", color: "#865c2c" }}>Year 1</h3>
+      <div style={{
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        gap: "1rem",
+      }}>
+        {yearOneLessons.map(lesson => (
+          lesson.path !== "#" ? (
+            <Link
+              key={lesson.title}
+              to={lesson.path}
+              style={{
+                background: "#7B2D26",
+                color: "#fff",
+                padding: "1rem 1.4rem",
+                borderRadius: "8px",
+                fontWeight: "bold",
+                fontSize: "1.1rem",
+                textDecoration: "none",
+                minWidth: "175px",
+                marginBottom: "0.5rem",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.07)",
+                transition: "background .15s",
+              }}
+            >
+              {lesson.title}
+              <div style={{
+                fontWeight: "normal",
+                fontSize: "0.95em",
+                marginTop: "0.3em",
+                color: "#ecd7c6"
+              }}>
+                {lesson.desc}
+              </div>
+            </Link>
+          ) : (
+            <button
+              key={lesson.title}
+              disabled
+              style={{
+                background: "#d3c3a3",
+                color: "#fff",
+                padding: "1rem 1.4rem",
+                borderRadius: "8px",
+                fontWeight: "bold",
+                fontSize: "1.1rem",
+                minWidth: "175px",
+                marginBottom: "0.5rem",
+                border: "none",
+                opacity: 0.7,
+                cursor: "not-allowed",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+              }}
+            >
+              {lesson.title}
+              <div style={{
+                fontWeight: "normal",
+                fontSize: "0.95em",
+                marginTop: "0.3em",
+                color: "#b7a684"
+              }}>
+                {lesson.desc}
+              </div>
+            </button>
+          )
+        ))}
+      </div>
+      <div style={{
+        marginTop: "1.4rem",
+        color: "#7a6341",
+        fontSize: "0.95em"
+      }}>
+        (More years coming soon!)
+      </div>
     </div>
-    </div>
+  </div>
 );
 
 export default School;
