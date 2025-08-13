@@ -31,6 +31,24 @@ function getAllowedDice(character: Character | null): number[] {
 
 const RESET_PHRASE = "reset-my-game";
 
+// Returns total XP required to reach the given level (level 1 = 0 XP, level 2 = 100 XP, level 3 = 300 XP, ...)
+function getTotalXpForLevel(level: number): number {
+  let xp = 0;
+  for (let l = 1; l < level; l++) {
+    xp += l * 100;
+  }
+  return xp;
+}
+
+// Calculates the character's level based on total XP
+function getLevelForExperience(exp: number): number {
+  let level = 1;
+  while (exp >= getTotalXpForLevel(level + 1)) {
+    level += 1;
+  }
+  return level;
+}
+
 const App: React.FC = () => {
   const [character, setCharacter] = useState<Character | null>(loadCharacter());
   const [resetInput, setResetInput] = useState("");
@@ -45,17 +63,9 @@ const App: React.FC = () => {
   function addExperience(points: number) {
     setCharacter((prev) => {
       if (!prev) return prev;
-      let newExp = prev.experience + points;
-      let newLevel = prev.level;
-
-      let nextLevelExp = 0;
-      while (newExp >= nextLevelExp + newLevel * 100) {
-        nextLevelExp += newLevel * 100;
-        newLevel += 1;
-      }
-      return { ...prev,
-        experience: newExp, level:
-        newLevel };
+      const newExp = prev.experience + points;
+      const newLevel = getLevelForExperience(newExp);
+      return { ...prev, experience: newExp, level: newLevel };
     });
   }
 
