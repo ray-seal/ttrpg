@@ -79,6 +79,8 @@ const App: React.FC = () => {
 
   return (
     <Routes>
+      <Route path="/school"
+      element={<School />} />
       <Route
       path="/school/alohomora-lesson"
       element={
