@@ -51,6 +51,16 @@ const CharacterSheet: React.FC<Props> = ({ character }) => {
         <div>
             <strong>Charisma:</strong> {character.charisma}
             </div>
+            <hr style={{ margin: "1rem 0", borderColor: theme.accent }} />
+            <div>
+                <strong>Spell Slots:</strong> {character.spellSlots ?? 0}
+            </div>
+            <div>
+                <strong>Unlocked Spells:</strong> {character.unlockedSpells?.length
+                ? character.unlockedSpells.join(", ")
+            : "None"
+            }
+            </div>
             </div>
     );
 };

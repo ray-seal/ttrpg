@@ -10,4 +10,6 @@ export interface Character {
     charisma: number;
     level: number;
     experience: number;
-};
+    spellSlots: number;
+    unlockedSpells: string[];
+}
