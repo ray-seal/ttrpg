@@ -52,6 +52,23 @@ interface HomePageProps {
                     </Link>
                 )}
                 <Link
+                to="/school"
+                style={{
+                    background: "#7b2d26",
+                    color: "#333",
+                    padding: "1rem",
+                    borderRadius: "8px",
+                    textAlign: "center",
+                    textDecoration: "none",
+                    fontWeight: "bold",
+                    fontSize: "1.1rem",
+                    opacity: 0.6,
+                    pointerEvents: "none"
+                }}
+                >
+                    School (Coming Soon)
+                </Link>
+                <Link
                 to="/campaign"
                 style={{
                     background: "#d3c56b",
