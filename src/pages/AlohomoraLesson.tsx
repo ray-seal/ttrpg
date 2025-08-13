@@ -155,4 +155,4 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
     );
 };
 
-    export default AlohomoraLesson
+    export default AlohomoraLesson;
