@@ -177,7 +177,7 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
             </li>
           </ul>
           <p>
-            When your name is called, you walk forward, sit gingerly in the stool and the hat slips over your eyes.
+            When your name is called, you walk forward, sit gingerly on the stool and the hat slips over your eyes.
             <br />
             <em>
               "Ah, I see a huge amount of <b>{attrLabel}</b> in here... I know what to do with you... better be <b>{sortedHouse}</b>!"
