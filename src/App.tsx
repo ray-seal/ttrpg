@@ -10,6 +10,7 @@ import HouseShield from "./components/HouseShield";
 import AlohomoraLesson from "./pages/AlohomoraLesson";
 import School from "./pages/School";
 import ThemedLayout from "./components/ThemedLayout";
+import SpellBook from "./pages/SpellBook";
 
 // If you use BrowserRouter, wrap App in BrowserRouter in main.tsx, not here!
 
@@ -102,7 +103,7 @@ const App: React.FC = () => {
               <h1 style={{ color: "inherit", textAlign: "center" }}>
                 Harry Potter TTRPG
               </h1>
-              <CharacterSheet character={character} />
+              <CharacterSheet character={character} setCharacter={setCharacter} />
               {/* Reset game section */}
               <div style={{ marginTop: "2rem", textAlign: "center" }}>
                 <label htmlFor="reset-input" style={{ marginRight: "1rem" }}>
@@ -141,6 +142,18 @@ const App: React.FC = () => {
                 </button>
               </div>
               <DiceButton allowedDice={getAllowedDice(character)} />
+            </ThemedLayout>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/spellbook"
+        element={
+          character ? (
+            <ThemedLayout character={character}>
+              <SpellBook character={character} setCharacter={setCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
