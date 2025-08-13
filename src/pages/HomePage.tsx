@@ -13,7 +13,7 @@ interface HomePageProps {
             justifyContent: "center",
             alignItems: "center",
             background: `url("/assets/shields/Hogwarts-Crest.png") center/350px no-repeat, #f7f7f7`,
-            fontFamily: "monospace"
+            fontFamily: "monospace",
             position: "relative",
         }}
         >
