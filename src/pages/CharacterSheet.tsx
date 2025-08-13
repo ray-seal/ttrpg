@@ -1,26 +1,31 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { Character } from "../types";
 import { houseThemes } from "../themes";
+
+// You can use your own book image, or a simple SVG as below:
+const BookIcon = () => (
+  <svg
+    width={64}
+    height={64}
+    viewBox="0 0 64 64"
+    aria-hidden="true"
+    focusable="false"
+    style={{ display: "block" }}
+  >
+    <rect x="8" y="12" width="48" height="40" rx="6" fill="#e6ddb8" stroke="#865c2c" strokeWidth={3}/>
+    <rect x="16" y="18" width="32" height="28" rx="2" fill="#fffbe9" />
+    <path d="M32 18 v28" stroke="#c5ae86" strokeWidth={2}/>
+    <text x="32" y="54" fontSize="10" fontWeight="bold" textAnchor="middle" fill="#865c2c">Book</text>
+  </svg>
+);
 
 interface Props {
     character: Character;
 }
 
-const MAX_EQUIPPED = 4;
-
 const CharacterSheet: React.FC<Props> = ({ character }) => {
     const theme = houseThemes[character.house];
-    const knownSpells = character.unlockedSpells ?? [];
-    const [equipped, setEquipped] = useState<string[]>(knownSpells.slice(0, MAX_EQUIPPED));
-
-    function toggleEquip(spell: string) {
-        if (equipped.includes(spell)) {
-            setEquipped(equipped.filter(s => s !== spell));
-        } else if (equipped.length < MAX_EQUIPPED) {
-            setEquipped([...equipped, spell]);
-        }
-    }
 
     return (
         <div
@@ -78,49 +83,34 @@ const CharacterSheet: React.FC<Props> = ({ character }) => {
             <div>
                 <strong>Charisma:</strong> {character.charisma}
             </div>
-            <hr style={{ margin: "1rem 0", borderColor: theme.accent, opacity: 0.3 }} />
-            <div style={{ marginBottom: "1rem" }}>
-                <strong>Spell Slots:</strong> {equipped.length} / {MAX_EQUIPPED}
-                <div style={{ fontSize: "0.95em", marginTop: "0.5em", color: theme.secondary }}>
-                    {equipped.length === 0 ? "No spells equipped" : equipped.join(", ")}
-                </div>
-                {knownSpells.length > 0 &&
-                    <div style={{ marginTop: "0.75em" }}>
-                        <div style={{ fontWeight: "bold", marginBottom: "0.5em", color: "#333" }}>Equip Spells:</div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5em" }}>
-                            {knownSpells.map(spell => (
-                                <button
-                                    key={spell}
-                                    onClick={() => toggleEquip(spell)}
-                                    style={{
-                                        padding: "0.5em 1.2em",
-                                        borderRadius: "8px",
-                                        border: equipped.includes(spell) ? `2px solid ${theme.secondary}` : "1px solid #aaa",
-                                        background: equipped.includes(spell) ? theme.secondary : "#f7f7f7",
-                                        color: equipped.includes(spell) ? "#fff" : "#333",
-                                        cursor: "pointer",
-                                        fontWeight: equipped.includes(spell) ? "bold" : "normal",
-                                        opacity: equipped.includes(spell) ? 1 : 0.8
-                                    }}
-                                    disabled={!equipped.includes(spell) && equipped.length >= MAX_EQUIPPED}
-                                    title={equipped.includes(spell) ? "Unequip" : "Equip"}
-                                >
-                                    {spell}
-                                </button>
-                            ))}
-                        </div>
-                        <div style={{ fontSize: "0.80em", marginTop: "0.5em", color: "#666" }}>
-                            Click to equip/unequip (max {MAX_EQUIPPED}).
-                        </div>
-                    </div>
-                }
-            </div>
-            <div>
-                <strong>Unlocked Spells:</strong> {knownSpells.length > 0
-                    ? knownSpells.join(", ")
-                    : "None"
-                }
-            </div>
+            {/* Floating Spellbook button */}
+            <Link
+                to="/spellbook"
+                style={{
+                    position: "fixed",
+                    left: "2rem",
+                    bottom: "2rem",
+                    zIndex: 2000,
+                    width: "64px",
+                    height: "64px",
+                    border: "none",
+                    background: "none",
+                    cursor: "pointer",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    textDecoration: "none"
+                }}
+                aria-label="Open Spellbook"
+            >
+                <BookIcon />
+                <span style={{
+                    fontSize: "0.95rem",
+                    color: "#865c2c",
+                    fontWeight: "bold",
+                    marginTop: "0.2em"
+                }}>Spellbook</span>
+            </Link>
         </div>
     );
 };
