@@ -12,10 +12,16 @@ interface HomePageProps {
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            background: "#f7f7f7",
+            background: `url("/assets/shields/Hogwarts-Crest.png") center/350px no-repeat, #f7f7f7`,
             fontFamily: "monospace"
-        }}>
-            <h1 style={{ marginBottom: "2rem" }}>Harry Potter TTRPG</h1>
+            position: "relative",
+        }}
+        >
+            <h1 style={{ marginBottom: "2rem",
+                background: "rgba(255,255,255,0.7)",
+                borderRadius: "12px",
+                padding: "0.5rem"
+             }}>Harry Potter TTRPG</h1>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem", minWidth: "220px" }}>
                 {hasCharacter && (
                     <Link
