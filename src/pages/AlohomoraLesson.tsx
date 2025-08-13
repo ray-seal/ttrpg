@@ -24,7 +24,8 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
             if (!character.unlockedSpells?.includes(ALOHOMORA)) {
                 setCharacter({
                     ...character,
-                    unlockedSpells: [...(character.unlockedSpells ?? []), ALOHOMORA],                    
+                    unlockedSpells: [...(character.unlockedSpells ?? []), ALOHOMORA],
+                    experience: character.experience + 10                    
                 });
             }
         } else {
