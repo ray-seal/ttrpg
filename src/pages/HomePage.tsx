@@ -58,19 +58,20 @@ interface HomePageProps {
                     </Link>
                 )}
                 <Link
-                to="/school"
+                to="/school/alohomora-lesson"
                 style={{
                     background: "#7b2d26",
-                    color: "#333",
+                    color: "#fff",
                     padding: "1rem",
                     borderRadius: "8px",
                     textAlign: "center",
                     textDecoration: "none",
                     fontWeight: "bold",
-                    fontSize: "1.1rem"
+                    fontSize: "1.1rem",
+                    marginTop: "1rem"
                 }}
                 >
-                    School (Coming Soon)
+                    First Lesson: Unlock Alohomora
                 </Link>
                 <Link
                 to="/campaign"

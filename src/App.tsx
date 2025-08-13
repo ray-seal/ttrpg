@@ -78,6 +78,19 @@ const App: React.FC = () => {
   return (
     <Routes>
       <Route
+      path="/school/alohomora-lesson"
+      element={
+        character ? (
+          <AlohomoraLesson
+          character={character}
+          setCharacter={setCharacter} />
+        ) : (
+          <Navigate to="/" replace
+          />
+        )
+      }
+      />
+        <Route
         path="/"
         element={<HomePage hasCharacter={!!character} />}
       />
