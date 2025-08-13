@@ -1,124 +1,316 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Character, House } from "../types";
 
 const DEFAULT_ATTRIBUTE = 5;
 const STARTING_POINTS = 5;
-
-interface CharacterCreationProps {
-    onCreate: (character: Character) => void;
-}
+const BONUS = 1;
 
 const houseOptions: House[] = ["Gryffindor", "Hufflepuff", "Ravenclaw", "Slytherin"];
+const houseByChoice: Record<string, House> = {
+  success: "Hufflepuff",
+  courage: "Gryffindor",
+  intelligence: "Ravenclaw",
+  power: "Slytherin",
+};
+const attributeByHouse: Record<House, keyof Character> = {
+  Gryffindor: "courage",
+  Hufflepuff: "charisma",
+  Ravenclaw: "knowledge",
+  Slytherin: "magic",
+};
+
+interface CharacterCreationProps {
+  onCreate: (character: Character) => void;
+}
+
+const placeholderStudents = [
+  { name: "Susan Bones", house: "Hufflepuff" },
+  { name: "Terry Boot", house: "Ravenclaw" },
+  { name: "Blaise Zabini", house: "Slytherin" },
+  { name: "Lavender Brown", house: "Gryffindor" }
+];
 
 const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
-    const [name, setName] = useState("");
-    const [house, setHouse] = useState<House | "">("");
-    const [attributes, setAttributes] = useState({
-        magic: DEFAULT_ATTRIBUTE,
-        knowledge: DEFAULT_ATTRIBUTE,
-        courage: DEFAULT_ATTRIBUTE,
-        agility: DEFAULT_ATTRIBUTE,
-        charisma: DEFAULT_ATTRIBUTE,
-    });
-    const [pointsLeft, setPointsLeft] = useState(STARTING_POINTS);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [name, setName] = useState("");
+  const [chosenWord, setChosenWord] = useState<"success" | "courage" | "intelligence" | "power" | null>(null);
+  const [house, setHouse] = useState<House | "">("");
+  const [attributes, setAttributes] = useState({
+    magic: DEFAULT_ATTRIBUTE,
+    knowledge: DEFAULT_ATTRIBUTE,
+    courage: DEFAULT_ATTRIBUTE,
+    agility: DEFAULT_ATTRIBUTE,
+    charisma: DEFAULT_ATTRIBUTE,
+  });
+  const [pointsLeft, setPointsLeft] = useState(STARTING_POINTS);
 
-    const handleAttributeChange = (attr: keyof typeof attributes, delta: number) => {
-        if (delta > 0 && pointsLeft === 0) return;
-        if (delta < 0 && attributes[attr] <= DEFAULT_ATTRIBUTE) return;
+  // When house is set, apply bonus point once!
+  React.useEffect(() => {
+    if (house && step === 3) {
+      const attr = attributeByHouse[house as House];
+      setAttributes(prev => ({
+        ...prev,
+        [attr]: prev[attr] + BONUS,
+      }));
+    }
+    // eslint-disable-next-line
+  }, [house, step]);
 
-        setAttributes(prev => ({
-            ...prev,
-            [attr]: prev[attr] + delta,
-        }));
-        setPointsLeft(prev => prev - delta);
-    };
+  // Step 1: Enter name
+  if (step === 1) {
+    return (
+      <div style={{
+        background: "#f7f7f7",
+        padding: "2rem",
+        borderRadius: "12px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+        minWidth: "320px",
+        margin: "2rem auto"
+      }}>
+        <h2 style={{ textAlign: "center" }}>Create Your Character</h2>
+        <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
+          <input
+            type="text"
+            placeholder="Enter your name"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            style={{
+              padding: "0.75rem",
+              fontSize: "1.1rem",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              width: "80%",
+              marginBottom: "1rem"
+            }}
+            onKeyDown={e => { if (e.key === "Enter" && name.trim()) setStep(2); }}
+          />
+        </div>
+        <button
+          onClick={() => setStep(2)}
+          disabled={!name.trim()}
+          style={{
+            width: "100%",
+            padding: "0.75rem",
+            fontSize: "1.1rem",
+            background: name.trim() ? "#4287f5" : "#eee",
+            color: name.trim() ? "#fff" : "#999",
+            border: "none",
+            borderRadius: "8px",
+            fontWeight: "bold",
+            cursor: name.trim() ? "pointer" : "not-allowed"
+          }}
+        >
+          Continue
+        </button>
+      </div>
+    );
+  }
 
-    const handleCreate = () => {
-        if (!name || !house || pointsLeft !== 0) return;
-        onCreate({
-            name,
-            house: house as House,
-            magic: attributes.magic,
-            knowledge: attributes.knowledge,
-            courage: attributes.courage,
-            agility: attributes.agility,
-            charisma: attributes.charisma,
-            level: 1,
-            experience: 0,
-        });
-    };
+  // Step 2: Sorting Hat Poem
+  if (step === 2) {
+    return (
+      <div style={{
+        background: "#fcf6e6",
+        padding: "2rem",
+        borderRadius: "12px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.07)",
+        minWidth: "320px",
+        margin: "2rem auto",
+        fontFamily: "serif"
+      }}>
+        <div style={{ fontSize: "1.18rem", marginBottom: "1.8rem" }}>
+          <p>
+            Professor McGonagall enters the hall with a three legged stool and places a dusty old hat on top of it. The hem opens and a voice erupts from the hat:
+          </p>
+          <p style={{ fontStyle: "italic", lineHeight: 1.7 }}>
+            "Come forth young wizards, come forth young witches. I will tell you the house that will take you to educational riches. Do you seek{" "}
+            <TappableWord word="success" onSelect={w => { setChosenWord(w); setTimeout(() => setStep(3), 600); }} />
+            {" "}or{" "}
+            <TappableWord word="courage" onSelect={w => { setChosenWord(w); setTimeout(() => setStep(3), 600); }} />
+            {" "}or{" "}
+            <TappableWord word="intelligence" onSelect={w => { setChosenWord(w); setTimeout(() => setStep(3), 600); }} />
+            {" "}or{" "}
+            <TappableWord word="power" onSelect={w => { setChosenWord(w); setTimeout(() => setStep(3), 600); }} />
+            {" "}when I touch your head, you shall know in the hour."
+          </p>
+          <p style={{ fontSize: "0.95em", color: "#888", marginTop: "1.2em" }}>
+            (Tap a word to answer)
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 3: Sorting Ceremony + story
+  if (step === 3 && chosenWord && name) {
+    // Determine house by choice
+    const sortedHouse = houseByChoice[chosenWord];
+    if (house !== sortedHouse) setHouse(sortedHouse);
+
+    const attrLabel = {
+      success: "charisma",
+      courage: "courage",
+      intelligence: "knowledge",
+      power: "magic"
+    }[chosenWord];
 
     return (
-        <div style={{
-            background: "#f7f7f7",
-            padding: "2rem",
-            borderRadius: "12px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-            minWidth: "300px",
-            margin: "2rem auto"
-        }}>
-        <h2 style={{ textAlign: "center" }}>Create Your Character</h2>
-        <div style={{ marginBottom: "1rem" }}>
-        <input
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={e => setName(e.target.value)}
-        />
-        <select
-            value={house}
-            onChange={e => setHouse(e.target.value as House)}
-            style={{ padding: "0.5rem", fontSize: "1rem", width: "100%" }}
-            >
-                <option value="">Select House</option>
-                {houseOptions.map(h => (
-                    <option key={h}>{h}</option>
-                ))}
-                </select>
-                </div>
-                <div style={{ margin: "1rem 0", textAlign: "center" }}>
-                    <div style={{ marginBottom: "0.5rem" }}>
-            <p>Distribute {pointsLeft} points</p>
-            </div>
-            {(["magic", "knowledge", "courage", "agility", "charisma"] as const).map(attr => (
-                <div key={attr} style={{ margin: "0.5rem 0", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ width: "110px", textTransform: "capitalize" }}>
-                        {attr}: <b>{attributes[attr]}</b>
-                        </span>
-                    <button
-                    onClick={() => handleAttributeChange(attr, 1)}
-                    disabled={pointsLeft === 0}
-                    style={{
-                        margin: "0 0.5rem", padding: "0.25rem 0.75rem", fontWeight: "bold",
-                        borderRadius: "4px", border: "1px solid #ccc", background: pointsLeft === 0 ? "#eee" : "#dff0d8", cursor: pointsLeft === 0 ? "not-allowed" : "pointer"
-                    }}
-                    >+</button>
-                    <button
-                    onClick={() => handleAttributeChange(attr, -1)}
-                    disabled={attributes[attr] === DEFAULT_ATTRIBUTE}
-                    style={{
-                        margin: "0 0.5rem", padding: "0.25rem 0.75rem", fontWeight: "bold",
-                        borderRadius: "4px", border: "1px solid #ccc", background: attributes[attr] === DEFAULT_ATTRIBUTE ? "#eee" : "#f2dede", cursor: attributes[attr] === DEFAULT_ATTRIBUTE ? "not-allowed" : "pointer"
-                    }}
-                    >-</button>
-                    </div>
-            ))}
+      <div style={{
+        background: "#f7f7f7",
+        padding: "2rem",
+        borderRadius: "12px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.07)",
+        minWidth: "340px",
+        margin: "2rem auto",
+        fontFamily: "serif"
+      }}>
+        <div>
+          <p>
+            Professor McGonagall pulls out her scroll. "When I call your name, step forward..."
+          </p>
+          <ul style={{ marginLeft: "1.2em", marginBottom: "1.2em" }}>
+            {placeholderStudents.map((s, i) =>
+              <li key={i}><b>{s.name}</b>: Sorted into <b>{s.house}</b></li>
+            )}
+            <li>
+              <b>{name}</b>: <span style={{ color: "#888" }}>[...]</span>
+            </li>
+          </ul>
+          <p>
+            When your name is called, you walk forward, sit gingerly in the stool and the hat slips over your eyes.
+            <br />
+            <em>
+              "Ah, I see a huge amount of <b>{attrLabel}</b> in here... I know what to do with you... better be <b>{sortedHouse}</b>!"
+            </em>
+          </p>
+          <p>
+            A round of applause, louder than all the rest, echoes from the table of <b>{sortedHouse}</b> as you make your way over and take your seat. Your wizarding journey begins now...
+          </p>
         </div>
-    <button 
-    onClick={handleCreate}
-    disabled={!name || !house || pointsLeft !== 0}
-    style={{
-        width: "100%", padding: "0.75rem", fontSize: "1.1rem", marginTop: "1rem",
-        background: (!name || !house || pointsLeft !== 0) ? "#eee" : "#4287f5",
-        color: (!name || !house || pointsLeft !== 0) ? "#999" : "#fff",
-        border: "none", borderRadius: "8px", fontWeight: "bold",
-        cursor: (!name || !house || pointsLeft !== 0) ? "not-allowed" : "pointer"
-    }}
-    >
-        Create Character
+        <button
+          onClick={() => setStep(4)}
+          style={{
+            marginTop: "2rem",
+            width: "100%",
+            padding: "0.75rem",
+            fontSize: "1.1rem",
+            background: "#4287f5",
+            color: "#fff",
+            border: "none",
+            borderRadius: "8px",
+            fontWeight: "bold",
+            cursor: "pointer"
+          }}
+        >
+          Continue to Attributes
         </button>
-        </div>
+      </div>
     );
+  }
+
+  // Step 4: Distribute Attribute Points (+1 bonus already applied)
+  if (step === 4 && house) {
+    return (
+      <div style={{
+        background: "#f7f7f7",
+        padding: "2rem",
+        borderRadius: "12px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+        minWidth: "330px",
+        margin: "2rem auto"
+      }}>
+        <h2 style={{ textAlign: "center" }}>Distribute Your Attributes</h2>
+        <div style={{ marginBottom: "0.5rem", color: "#666", fontSize: "0.98em" }}>
+          <b>House:</b> {house} &mdash; <span>+1 to <b>{attributeByHouse[house]}</b></span>
+        </div>
+        <div style={{ margin: "1rem 0", textAlign: "center" }}>
+          <div style={{ marginBottom: "0.5rem" }}>
+            <p>Distribute {pointsLeft} point{pointsLeft !== 1 ? "s" : ""}</p>
+          </div>
+          {(["magic", "knowledge", "courage", "agility", "charisma"] as const).map(attr => (
+            <div key={attr} style={{ margin: "0.5rem 0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ width: "110px", textTransform: "capitalize" }}>
+                {attr}: <b>{attributes[attr]}</b>
+              </span>
+              <button
+                onClick={() => { if (pointsLeft > 0) { setAttributes(prev => ({ ...prev, [attr]: prev[attr] + 1 })); setPointsLeft(pointsLeft - 1); } }}
+                disabled={pointsLeft === 0}
+                style={{
+                  margin: "0 0.5rem", padding: "0.25rem 0.75rem", fontWeight: "bold",
+                  borderRadius: "4px", border: "1px solid #ccc", background: pointsLeft === 0 ? "#eee" : "#dff0d8", cursor: pointsLeft === 0 ? "not-allowed" : "pointer"
+                }}
+              >+</button>
+              <button
+                onClick={() => {
+                  // Prevent going below default, but allow subtracting bonus if over default+bonus
+                  const min = DEFAULT_ATTRIBUTE + ((attributeByHouse[house] === attr) ? BONUS : 0);
+                  if (attributes[attr] > min) {
+                    setAttributes(prev => ({ ...prev, [attr]: prev[attr] - 1 }));
+                    setPointsLeft(pointsLeft + 1);
+                  }
+                }}
+                disabled={attributes[attr] === DEFAULT_ATTRIBUTE + ((attributeByHouse[house] === attr) ? BONUS : 0)}
+                style={{
+                  margin: "0 0.5rem", padding: "0.25rem 0.75rem", fontWeight: "bold",
+                  borderRadius: "4px", border: "1px solid #ccc",
+                  background: attributes[attr] === DEFAULT_ATTRIBUTE + ((attributeByHouse[house] === attr) ? BONUS : 0) ? "#eee" : "#f2dede",
+                  cursor: attributes[attr] === DEFAULT_ATTRIBUTE + ((attributeByHouse[house] === attr) ? BONUS : 0) ? "not-allowed" : "pointer"
+                }}
+              >-</button>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={() => {
+            onCreate({
+              name,
+              house: house as House,
+              magic: attributes.magic,
+              knowledge: attributes.knowledge,
+              courage: attributes.courage,
+              agility: attributes.agility,
+              charisma: attributes.charisma,
+              level: 1,
+              experience: 0,
+            });
+          }}
+          disabled={pointsLeft !== 0}
+          style={{
+            width: "100%", padding: "0.75rem", fontSize: "1.1rem", marginTop: "1rem",
+            background: pointsLeft === 0 ? "#4287f5" : "#eee",
+            color: pointsLeft === 0 ? "#fff" : "#999",
+            border: "none", borderRadius: "8px", fontWeight: "bold",
+            cursor: pointsLeft === 0 ? "pointer" : "not-allowed"
+          }}
+        >
+          Create Character
+        </button>
+      </div>
+    );
+  }
+
+  return null;
 };
+
+// Helper for tappable word in the hat poem
+const TappableWord: React.FC<{ word: "success" | "courage" | "intelligence" | "power"; onSelect: (w: any) => void }> = ({ word, onSelect }) => (
+  <span
+    onClick={() => onSelect(word)}
+    style={{
+      cursor: "pointer",
+      fontWeight: "bold",
+      color: "#b06f21",
+      textDecoration: "underline",
+      margin: "0 2px",
+      transition: "color 0.15s"
+    }}
+    tabIndex={0}
+    onKeyDown={e => { if (e.key === "Enter" || e.key === " ") onSelect(word); }}
+    role="button"
+    aria-label={`Choose ${word}`}
+  >
+    {word}
+  </span>
+);
 
 export default CharacterCreation;
