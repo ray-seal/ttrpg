@@ -45,13 +45,17 @@ const App: React.FC = () => {
   function addExperience(points: number) {
     setCharacter((prev) => {
       if (!prev) return prev;
-      const newExp = prev.experience + points;
+      let newExp = prev.experience + points;
       let newLevel = prev.level;
-      // level up for every 100xp
-      if (newExp >= prev.level * 100) {
+
+      let nextLevelExp = 0;
+      while (newExp >= nextLevelExp + newLevel * 100) {
+        nextLevelExp += newLevel * 100;
         newLevel += 1;
       }
-      return { ...prev, experience: newExp, level: newLevel };
+      return { ...prev,
+        experience: newExp, level:
+        newLevel };
     });
   }
 
