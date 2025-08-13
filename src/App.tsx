@@ -82,19 +82,18 @@ const App: React.FC = () => {
       <Route path="/school"
       element={<School />} />
       <Route
-      path="/school/alohomora-lesson"
-      element={
-        character ? (
-          <AlohomoraLesson
-          character={character}
-          setCharacter={setCharacter} />
-        ) : (
-          <Navigate to="/" replace
-          />
-        )
-      }
+        path="/school/alohomora-lesson"
+        element={
+          character ? (
+            <AlohomoraLesson
+              character={character}
+              setCharacter={setCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
       />
-        <Route
+      <Route
         path="/"
         element={<HomePage hasCharacter={!!character} />}
       />
@@ -138,24 +137,6 @@ const App: React.FC = () => {
                   Harry Potter TTRPG
                 </h1>
                 <CharacterSheet character={character} />
-                <div style={{ textAlign: "center" }}>
-                  <button
-                    onClick={() => addExperience(50)}
-                    style={{
-                      background: theme.secondary,
-                      color: theme.primary,
-                      border: "none",
-                      borderRadius: "8px",
-                      padding: "0.75rem 1.5rem",
-                      marginTop: "1rem",
-                      cursor: "pointer",
-                      fontWeight: "bold",
-                      fontSize: "1rem",
-                    }}
-                  >
-                    Earn 50 XP
-                  </button>
-                </div>
                 {/* Reset game section */}
                 <div style={{ marginTop: "2rem", textAlign: "center" }}>
                   <label htmlFor="reset-input" style={{ marginRight: "1rem" }}>
