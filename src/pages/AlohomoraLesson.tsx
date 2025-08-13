@@ -18,7 +18,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
     const navigate = useNavigate();
 
     function handleDiceRoll(result: number, sides: number) {
-        if (sides !== 20) return; // Only allow d20 rolls here
+        if (sides !== 20) return; // Only allow d20
         const total = result + character.knowledge;
         setRollResult(total);
         if (total >= 12) {
@@ -82,25 +82,32 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
                     <p>
                         <strong>Rolling d20 + Knowledge ({character.knowledge})...</strong>
                     </p>
-                    <button
-                        style={{
-                            background: "#d3c56b",
-                            color: "#222",
-                            padding: "1rem 2rem",
-                            borderRadius: "8px",
-                            fontWeight: "bold",
-                            fontSize: "1.1rem",
-                            cursor: "pointer",
-                            marginTop: "1.5rem"
-                        }}
-                        onClick={() => setDiceModalOpen(true)}
-                    >Roll!</button>
-                    {/* Only allow d20 for this lesson */}
+                    <p>
+                        Click the <span role="img" aria-label="dice">🎲</span> dice button in the corner to roll!
+                    </p>
+                    {/* This DiceButton is ONLY for lesson roll: only d20, controlled by showModal */}
                     <DiceButton
                         allowedDice={[20]}
                         showModal={diceModalOpen}
                         onRoll={handleDiceRoll}
                         onClose={() => setDiceModalOpen(false)}
+                    />
+                    {/* Overlay a transparent button over the dice icon to open for this lesson */}
+                    <button
+                        style={{
+                            position: "fixed",
+                            bottom: "2rem",
+                            right: "2rem",
+                            width: "64px",
+                            height: "64px",
+                            background: "transparent",
+                            border: "none",
+                            zIndex: 1500,
+                            cursor: "pointer",
+                        }}
+                        aria-label="Open dice roller for lesson"
+                        onClick={() => setDiceModalOpen(true)}
+                        tabIndex={0}
                     />
                 </>
             )}
