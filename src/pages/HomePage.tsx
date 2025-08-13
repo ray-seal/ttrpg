@@ -67,9 +67,7 @@ interface HomePageProps {
                     textAlign: "center",
                     textDecoration: "none",
                     fontWeight: "bold",
-                    fontSize: "1.1rem",
-                    opacity: 0.6,
-                    pointerEvents: "none"
+                    fontSize: "1.1rem"
                 }}
                 >
                     School (Coming Soon)
@@ -84,9 +82,7 @@ interface HomePageProps {
                     textAlign: "center",
                     textDecoration: "none",
                     fontWeight: "bold",
-                    fontSize: "1.1rem",
-                    opacity: 0.6,
-                    pointerEvents: "none"
+                    fontSize: "1.1rem"
                 }}
                 >
                     Campaign (Coming Soon)
@@ -101,9 +97,7 @@ interface HomePageProps {
                     textAlign: "center",
                     textDecoration: "none",
                     fontWeight: "bold",
-                    fontSize: "1.1rem",
-                    opacity: 0.6,
-                    pointerEvents: "none"
+                    fontSize: "1.1rem"
                 }}
                 >
                     Help (Coming Soon)
