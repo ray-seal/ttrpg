@@ -7,6 +7,7 @@ import { houseThemes, House } from "./themes";
 import { Character } from "./types";
 import DiceButton from "./components/DiceButton";
 import HouseShield from "./components/HouseShield";
+import AlohomoraLesson from "./pages/AlohomoraLesson";
 
 // If you use BrowserRouter, wrap App in BrowserRouter in main.tsx, not here!
 

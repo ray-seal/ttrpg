@@ -9,10 +9,10 @@ interface Props {
 
 const ALOHOMORA = "Alohomora";
 
-export const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
+const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
     const [step, setStep] = useState(0);
     const [rollResult, setRollResult] = useState<number | null>(null);
-    const [success, setSuccess] = useState<boolean>(false);
+    const [success, setSuccess] = useState<boolean | null>(null);
     const navigate = useNavigate();
 
     function handleRoll() {
@@ -20,6 +20,7 @@ export const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) =>
         setRollResult(roll);
         if (roll >= 12) {
             setSuccess(true);
+
             if (!character.unlockedSpells?.includes(ALOHOMORA)) {
                 setCharacter({
                     ...character,
@@ -29,13 +30,16 @@ export const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) =>
         } else {
             setSuccess(false);
         }
+        setStep(2);
+    }
 
         function handleContinue() {
             navigate("/character-sheet");
         }
 
         return (
-            <div style={{
+            <div
+            style={{
                 background: "#f4efe8",
                 color: "#222",
                 padding: "2rem",
@@ -45,7 +49,8 @@ export const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) =>
                 boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
                 fontFamily: "serif",
                 textAlign: "center",
-            }}>
+            }}
+            >
                 <h2>First Lesson: Alohomora!</h2>
                 {step === 0 && (
                     <>
@@ -66,15 +71,17 @@ export const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) =>
                             marginTop: "1.5rem"
                         }}
                         onClick={() => setStep(1)}
-                        >Try to recall the spell!</button>
-                            </>
+                        >
+                            Try to recall the spell!
+                            </button>
+                    </>
                 )}
                 {step === 1 && (
                     <>
                     <p>
                         <strong>Rolling D20 + Knowledge ({character.knowledge})...</strong>
                         </p>
-                        </button
+                        <button
                         style={{
                             background: "#d3c56b",
                             color: "#222",
@@ -86,7 +93,9 @@ export const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) =>
                             marginTop: "1.5rem"
                         }}
                         onClick={handleRoll}
-                     >Roll!</button>
+                     >
+                        Roll!
+                        </button>
                         </>
                     )}
                 {step === 2 && (
@@ -94,6 +103,12 @@ export const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) =>
                         <p>
                             <strong>Your roll:</strong> {rollResult}
                             </p>
+                            {success ? (
+                                <>
+                                <p>
+                                    <span style={{ color: "#1b5e20", fontWeight: "bold" }}>Success!</span>
+                                    {" "}You recall "Alohomora" and the door unlocks. You learned the spell!
+                                </p>
                             <button
                             style={{
                                 background: "#7B2D26",
@@ -106,13 +121,15 @@ export const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) =>
                                 marginTop: "1.5rem"
                             }}
                             onClick={handleContinue}
-                            >Return to Character Sheet</button>
+                            >
+                                Return to Character Sheet
+                                </button>
                             </>
                     ) : (
                         <>
                         <p>
                             <span style={{ color: "#b71c1c", fontWeight: "bold" }}>Failure!</span>
-                            You forget the spell. Try again next lesson.
+                            {" "}You forget the spell. Try again next lesson.
                             </p>
                             <button
                             style={{
@@ -126,12 +143,14 @@ export const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) =>
                                 marginTop: "1.5rem"
                             }}
                             onClick={handleContinue}
-                            >Return to Character Sheet</button>
+                            >
+                                Return to Character Sheet
+                                </button>
                             </>
                     )}
-                    </>
+                </>
         )}
-        </div>
+       </div>
     );
 };
 
