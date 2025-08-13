@@ -1,6 +1,6 @@
-import { House } from "./themes";
+export type House = "Gryffindor" | "Hufflepuff" | "Ravenclaw" | "Slytherin";
 
-export type Character = {
+export interface Character {
     name: string;
     house: House;
     magic: number;
