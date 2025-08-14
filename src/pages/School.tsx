@@ -1,7 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { Character } from "../types";
+import { houseThemes } from "../themes";
 
-// List of all spells used by the end of Book 1, grouped by lesson
 const yearOneLessons = [
   {
     title: "Alohomora",
@@ -65,121 +66,129 @@ const yearOneLessons = [
   },
 ];
 
-const School: React.FC = () => (
-  <div
-    style={{
-      background: "#f4efe8",
-      color: "#222",
-      padding: "2rem",
-      borderRadius: "16px",
-      maxWidth: "540px",
-      margin: "3rem auto",
-      boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
-      fontFamily: "serif",
-      textAlign: "center",
-    }}
-  >
-    <Link
-      to="/"
+interface Props {
+  character: Character;
+}
+
+const School: React.FC<Props> = ({ character }) => {
+  const theme = houseThemes[character.house];
+  return (
+    <div
       style={{
-        display: "inline-block",
-        marginBottom: "1.2rem",
-        background: "#4287f5",
-        color: "#fff",
-        padding: "0.7rem 1.3rem",
-        borderRadius: "8px",
-        textDecoration: "none",
-        fontWeight: "bold",
-        fontSize: "1rem",
+        background: theme.background,
+        color: theme.primary,
+        border: `2px solid ${theme.secondary}`,
+        padding: "2rem",
+        borderRadius: "16px",
+        maxWidth: "540px",
+        margin: "3rem auto",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
+        fontFamily: "serif",
+        textAlign: "center",
       }}
     >
-      Back to Home
-    </Link>
-    <h2>Hogwarts School Lessons</h2>
-    <div style={{
-      padding: "1.6rem",
-      background: "#ece6da",
-      borderRadius: "12px",
-      margin: "2rem 0",
-      boxShadow: "0 2px 6px rgba(0,0,0,0.07)",
-    }}>
-      <h3 style={{ marginBottom: "1.1rem", color: "#865c2c" }}>Year 1</h3>
+      <Link
+        to="/"
+        style={{
+          display: "inline-block",
+          marginBottom: "1.2rem",
+          background: theme.secondary,
+          color: "#fff",
+          padding: "0.7rem 1.3rem",
+          borderRadius: "8px",
+          textDecoration: "none",
+          fontWeight: "bold",
+          fontSize: "1rem",
+        }}
+      >
+        Back to Home
+      </Link>
+      <h2>Hogwarts School Lessons</h2>
       <div style={{
-        display: "flex",
-        flexWrap: "wrap",
-        justifyContent: "center",
-        gap: "1rem",
+        padding: "1.6rem",
+        background: "#ece6da",
+        borderRadius: "12px",
+        margin: "2rem 0",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.07)",
       }}>
-        {yearOneLessons.map(lesson => (
-          lesson.path !== "#" ? (
-            <Link
-              key={lesson.title}
-              to={lesson.path}
-              style={{
-                background: "#7B2D26",
-                color: "#fff",
-                padding: "1rem 1.4rem",
-                borderRadius: "8px",
-                fontWeight: "bold",
-                fontSize: "1.1rem",
-                textDecoration: "none",
-                minWidth: "175px",
-                marginBottom: "0.5rem",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.07)",
-                transition: "background .15s",
-              }}
-            >
-              {lesson.title}
-              <div style={{
-                fontWeight: "normal",
-                fontSize: "0.95em",
-                marginTop: "0.3em",
-                color: "#ecd7c6"
-              }}>
-                {lesson.desc}
-              </div>
-            </Link>
-          ) : (
-            <button
-              key={lesson.title}
-              disabled
-              style={{
-                background: "#d3c3a3",
-                color: "#fff",
-                padding: "1rem 1.4rem",
-                borderRadius: "8px",
-                fontWeight: "bold",
-                fontSize: "1.1rem",
-                minWidth: "175px",
-                marginBottom: "0.5rem",
-                border: "none",
-                opacity: 0.7,
-                cursor: "not-allowed",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
-              }}
-            >
-              {lesson.title}
-              <div style={{
-                fontWeight: "normal",
-                fontSize: "0.95em",
-                marginTop: "0.3em",
-                color: "#b7a684"
-              }}>
-                {lesson.desc}
-              </div>
-            </button>
-          )
-        ))}
-      </div>
-      <div style={{
-        marginTop: "1.4rem",
-        color: "#7a6341",
-        fontSize: "0.95em"
-      }}>
-        (More years coming soon!)
+        <h3 style={{ marginBottom: "1.1rem", color: theme.secondary }}>Year 1</h3>
+        <div style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: "1rem",
+        }}>
+          {yearOneLessons.map(lesson => (
+            lesson.path !== "#" ? (
+              <Link
+                key={lesson.title}
+                to={lesson.path}
+                style={{
+                  background: theme.primary,
+                  color: "#fff",
+                  padding: "1rem 1.4rem",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  fontSize: "1.1rem",
+                  textDecoration: "none",
+                  minWidth: "175px",
+                  marginBottom: "0.5rem",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.07)",
+                  transition: "background .15s",
+                }}
+              >
+                {lesson.title}
+                <div style={{
+                  fontWeight: "normal",
+                  fontSize: "0.95em",
+                  marginTop: "0.3em",
+                  color: theme.accent
+                }}>
+                  {lesson.desc}
+                </div>
+              </Link>
+            ) : (
+              <button
+                key={lesson.title}
+                disabled
+                style={{
+                  background: theme.accent,
+                  color: "#fff",
+                  padding: "1rem 1.4rem",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  fontSize: "1.1rem",
+                  minWidth: "175px",
+                  marginBottom: "0.5rem",
+                  border: "none",
+                  opacity: 0.7,
+                  cursor: "not-allowed",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+                }}
+              >
+                {lesson.title}
+                <div style={{
+                  fontWeight: "normal",
+                  fontSize: "0.95em",
+                  marginTop: "0.3em",
+                  color: theme.secondary
+                }}>
+                  {lesson.desc}
+                </div>
+              </button>
+            )
+          ))}
+        </div>
+        <div style={{
+          marginTop: "1.4rem",
+          color: theme.secondary,
+          fontSize: "0.95em"
+        }}>
+          (More years coming soon!)
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default School;
