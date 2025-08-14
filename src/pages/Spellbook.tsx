@@ -1,43 +1,95 @@
-import React, { useState } from "react";
+import React from "react";
 import { Character } from "../types";
+import { houseThemes } from "../themes";
 import { Link } from "react-router-dom";
 
-// Example spell data -- you may want to move this to a separate file!
+// Example spell data: group by book and year 1 only for now
 const SPELLS = [
   {
     name: "Lumos",
     book: "Standard Book of Spells Grade 1",
+    year: 1,
     description: "Creates light at the wand tip.",
   },
   {
     name: "Alohomora",
     book: "Standard Book of Spells Grade 1",
+    year: 1,
     description: "Unlocks doors and objects.",
-  },
-  {
-    name: "Expelliarmus",
-    book: "Standard Book of Spells Grade 2",
-    description: "Disarms your opponent.",
   },
   {
     name: "Wingardium Leviosa",
     book: "Standard Book of Spells Grade 1",
+    year: 1,
     description: "Makes objects fly.",
   },
-  // Add more spells here as you wish
+  {
+    name: "Petrificus Totalus",
+    book: "First Year Curses",
+    year: 1,
+    description: "Full-body bind curse.",
+  },
+  {
+    name: "Incendio",
+    book: "Standard Book of Spells Grade 1",
+    year: 1,
+    description: "Creates fire.",
+  },
+  {
+    name: "Nox",
+    book: "Standard Book of Spells Grade 1",
+    year: 1,
+    description: "Extinguishes Lumos light.",
+  },
+  {
+    name: "Finite Incantatem",
+    book: "First Year General Spells",
+    year: 1,
+    description: "Cancels spell effects.",
+  },
+  {
+    name: "Expelliarmus",
+    book: "First Year Duels",
+    year: 1,
+    description: "Disarms your opponent.",
+  },
+  {
+    name: "Devil's Snare Escape",
+    book: "Magical Plants 1",
+    year: 1,
+    description: "Resist magical plants.",
+  },
+  {
+    name: "Obliviate",
+    book: "First Year Charms",
+    year: 1,
+    description: "Erases memories.",
+  },
+  {
+    name: "Locomotor Mortis",
+    book: "First Year Curses",
+    year: 1,
+    description: "Leg-locker curse.",
+  },
+  {
+    name: "Ennervate",
+    book: "First Year Charms",
+    year: 1,
+    description: "Revives a stunned person.",
+  },
 ];
 
-// Group spells by book
-function groupSpellsByBook() {
+const MAX_SLOTS = 4;
+
+// Group spells by book for a given year
+function groupSpellsByBook(year: number) {
   const grouped: Record<string, typeof SPELLS> = {};
-  SPELLS.forEach(spell => {
+  SPELLS.filter(s => s.year === year).forEach(spell => {
     if (!grouped[spell.book]) grouped[spell.book] = [];
     grouped[spell.book].push(spell);
   });
   return grouped;
 }
-
-const MAX_SLOTS = 4;
 
 interface SpellBookProps {
   character: Character;
@@ -45,7 +97,7 @@ interface SpellBookProps {
 }
 
 const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
-  const groupedSpells = groupSpellsByBook();
+  const theme = houseThemes[character.house];
   const unlockedSpells = character.unlockedSpells ?? [];
   const equipped = character.equippedSpells ?? [];
 
@@ -64,17 +116,20 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
     }
   }
 
+  const groupedSpells = groupSpellsByBook(1);
+
   return (
     <div
       style={{
-        background: "rgba(255,255,255,0.75)",
+        background: theme.background,
+        color: theme.primary,
+        border: `2px solid ${theme.secondary}`,
         borderRadius: "16px",
         maxWidth: "600px",
         margin: "2rem auto",
         padding: "2rem",
         boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
         fontFamily: "serif",
-        color: "#222",
       }}
     >
       <Link
@@ -82,7 +137,7 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
         style={{
           display: "inline-block",
           marginBottom: "1.2rem",
-          background: "#4287f5",
+          background: theme.secondary,
           color: "#fff",
           padding: "0.7rem 1.3rem",
           borderRadius: "8px",
@@ -96,7 +151,7 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
       <h2 style={{ textAlign: "center", marginBottom: "1.2rem" }}>Your Spellbook</h2>
       <div style={{ textAlign: "center", marginBottom: "1.1rem" }}>
         <b>Spell Slots:</b> {equipped.length} / {MAX_SLOTS}
-        <div style={{ fontSize: "0.97em", color: "#4287f5", marginTop: "0.2em" }}>
+        <div style={{ fontSize: "0.97em", color: theme.secondary, marginTop: "0.2em" }}>
           {equipped.length === 0
             ? "No spells equipped"
             : equipped.join(", ")}
@@ -107,13 +162,13 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
       </div>
       {Object.entries(groupedSpells).map(([book, spells]) => (
         <div key={book} style={{
-          background: "#ece6da",
+          background: theme.accent,
           borderRadius: "10px",
           padding: "1rem",
           marginBottom: "1.5rem",
           boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
         }}>
-          <h3 style={{ marginBottom: "0.7em", color: "#865c2c" }}>{book}</h3>
+          <h3 style={{ marginBottom: "0.7em", color: theme.primary }}>{book}</h3>
           {spells.map(spell => {
             const isUnlocked = unlockedSpells.includes(spell.name);
             const isEquipped = equipped.includes(spell.name);
@@ -126,7 +181,7 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
                   justifyContent: "space-between",
                   marginBottom: "0.8em",
                   padding: "0.5em 0.3em",
-                  borderBottom: "1px dashed #cabca7",
+                  borderBottom: `1px dashed ${theme.secondary}`,
                   opacity: isUnlocked ? 1 : 0.65,
                 }}
               >
@@ -134,14 +189,14 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
                   <span style={{
                     fontWeight: isUnlocked ? "bold" : "normal",
                     fontFamily: "serif",
-                    color: isUnlocked ? "#222" : "#aaa",
+                    color: isUnlocked ? theme.primary : "#aaa",
                   }}>
                     {isUnlocked ? spell.name : "???"}
                   </span>
                   {isUnlocked && (
                     <span style={{
                       fontSize: "0.92em",
-                      color: "#7a6341",
+                      color: theme.secondary,
                       marginLeft: "0.5em"
                     }}>
                       ({spell.description})
@@ -153,9 +208,9 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
                     onClick={() => toggleEquip(spell.name)}
                     disabled={!isEquipped && equipped.length >= MAX_SLOTS}
                     style={{
-                      background: isEquipped ? "#865c2c" : "#eee",
-                      color: isEquipped ? "#fff" : "#865c2c",
-                      border: "none",
+                      background: isEquipped ? theme.primary : "#f7f7f7",
+                      color: isEquipped ? "#fff" : theme.primary,
+                      border: isEquipped ? `2px solid ${theme.secondary}` : `1px solid ${theme.primary}`,
                       borderRadius: "8px",
                       padding: "0.35em 1.2em",
                       fontWeight: isEquipped ? "bold" : "normal",
@@ -172,7 +227,7 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
           })}
         </div>
       ))}
-      <div style={{ textAlign: "center", color: "#a88132", marginTop: "1.5rem", fontSize: "0.95em" }}>
+      <div style={{ textAlign: "center", color: theme.secondary, marginTop: "1.5rem", fontSize: "0.95em" }}>
         Locked spells will reveal themselves as you progress!
       </div>
     </div>
