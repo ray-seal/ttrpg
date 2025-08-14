@@ -10,7 +10,7 @@ import HouseShield from "./components/HouseShield";
 import AlohomoraLesson from "./pages/AlohomoraLesson";
 import School from "./pages/School";
 import ThemedLayout from "./components/ThemedLayout";
-import SpellBook from "./pages/Spellbook";
+import SpellBook from "./pages/SpellBook";
 
 // If you use BrowserRouter, wrap App in BrowserRouter in main.tsx, not here!
 
@@ -165,7 +165,7 @@ const App: React.FC = () => {
         element={
           character ? (
             <ThemedLayout character={character}>
-              <School />
+              <School character={character} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
