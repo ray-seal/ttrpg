@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Character } from "../types";
 import DiceButton from "../components/DiceButton";
+import { houseThemes } from "../themes";
 
 interface Props {
     character: Character;
@@ -20,6 +21,7 @@ const SPELLS = [
 ];
 
 const WINGARDIUM_LEVIOSA = "Wingardium Leviosa";
+const ALLOWED_DICE = [4, 6, 8, 10, 12];
 
 const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) => {
     const [step, setStep] = useState<0 | 1 | 2 | 3>(0); // 0: spell select, 1: feather roll, 2: cushion roll, 3: finish
@@ -32,6 +34,7 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
     const [cushionSuccess, setCushionSuccess] = useState<boolean | null>(null);
 
     const navigate = useNavigate();
+    const theme = houseThemes[character.house];
 
     // Clickable spellbook
     function handleSpellSelect(spell: string) {
@@ -103,8 +106,9 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
 
     return (
         <div style={{
-            background: "#f4efe8",
-            color: "#222",
+            background: theme.background,
+            color: theme.primary,
+            border: `2px solid ${theme.secondary}`,
             padding: "2rem",
             borderRadius: "16px",
             maxWidth: "540px",
@@ -176,11 +180,10 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
                 <>
                     <p>
                         You step up, wand at the ready.<br />
-                        <b>Roll any die</b> (d4, d6, d8, d10, d12, d20) and add your Knowledge (<b>{character.knowledge}</b>).<br />
-                        
+                        <b>Roll any die</b> (d4, d6, d8, d10, d12) and add your Knowledge (<b>{character.knowledge}</b>).<br />
                     </p>
                     <DiceButton
-                        allowedDice={[4, 6, 8, 10, 12, 20]}
+                        allowedDice={ALLOWED_DICE}
                         showModal={diceModalOpen}
                         onRoll={handleFeatherRoll}
                         onClose={() => setDiceModalOpen(false)}
@@ -242,10 +245,9 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
                     <p>
                         <b>Final Challenge:</b> Move your cushion from the desk into the box using Wingardium Leviosa.<br />
                         Roll any die and add your Knowledge (<b>{character.knowledge}</b>).<br />
-                        
                     </p>
                     <DiceButton
-                        allowedDice={[4, 6, 8, 10, 12, 20]}
+                        allowedDice={ALLOWED_DICE}
                         showModal={diceModalOpen}
                         onRoll={handleCushionRoll}
                         onClose={() => setDiceModalOpen(false)}
