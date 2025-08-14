@@ -10,7 +10,7 @@ interface Props {
 
 const WINGARDIUMLEVIOSA = "WingardiumLeviosa";
 
-const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
+const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) => {
     const [step, setStep] = useState(0);
     const [rollResult, setRollResult] = useState<number | null>(null);
     const [success, setSuccess] = useState<boolean | null>(null);
@@ -54,13 +54,15 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
             textAlign: "center",
             position: "relative"
         }}>
-            <h2>First Lesson: Alohomora!</h2>
+            <h2>Second Lesson: Wingardium Leviosa!</h2>
             {step === 0 && (
                 <>
                     <p>
-                        Professor Flitwick leads you to a locked door. "Who can open it?" he asks.
+                        You enter Professor Flitwicks classroom to find feathers and pillows 
+                        lining the desks. "Today students, we will be learning to make items float. 
+                        Remember your swish and flick and say the spell Wingardium Leviosa!"
                         <br />
-                        <strong>Your Task:</strong> Remember the unlocking charm and pass a Knowledge check!
+                        <strong>Your Task:</strong> Make the feather float and move the cusion into the basket!
                     </p>
                     <button
                         style={{
@@ -74,7 +76,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
                             marginTop: "1.5rem"
                         }}
                         onClick={() => setStep(1)}
-                    >Try to recall the spell!</button>
+                    >Swish and Flick!</button>
                 </>
             )}
             {step === 1 && (
