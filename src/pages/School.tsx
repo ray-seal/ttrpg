@@ -16,7 +16,7 @@ const yearOneLessons = [
   },
   {
     title: "Wingardium Leviosa",
-    path: "#",
+    path: "/school/wingardium-leviosa",
     desc: "Levitation Charm",
   },
   {
