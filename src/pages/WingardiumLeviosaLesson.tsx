@@ -122,7 +122,7 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
                         <>
                             <p>
                                 <span style={{ color: "#1b5e20", fontWeight: "bold" }}>Success!</span>
-                                {" "}You recall "Alohomora" and the door unlocks. You learned the spell!
+                                {" "}Your feather floats six inches above the desk. "Good work {character.name}", now try to move your cushion!"
                             </p>
                             <button
                                 style={{
@@ -144,7 +144,7 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
                         <>
                             <p>
                                 <span style={{ color: "#b71c1c", fontWeight: "bold" }}>Failure!</span>
-                                {" "}You forget the spell. Try again next lesson.
+                                {" "}You're saying it all wrong. It's leviOsa, not leviosAR!
                             </p>
                             <button
                                 style={{
