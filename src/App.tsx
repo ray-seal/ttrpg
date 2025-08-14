@@ -186,6 +186,18 @@ const App: React.FC = () => {
         }
       />
       <Route
+  path="/school/wingardium-leviosa-lesson"
+  element={
+    character ? (
+      <ThemedLayout character={character}>
+        <WingardiumLeviosaLesson character={character} setCharacter={setCharacter} />
+      </ThemedLayout>
+    ) : (
+      <Navigate to="/" replace />
+    )
+  }
+/>
+      <Route
         path="/campaign"
         element={
           character ? (
