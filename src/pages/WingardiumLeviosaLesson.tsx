@@ -18,7 +18,7 @@ const SPELLS = [
     "Expelliarmus"
 ];
 
-const WINGARDIUMLEVIOSA = "Wingardium Leviosa";
+const WINGARDIUM_LEVIOSA = "Wingardium Leviosa";
 
 const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) => {
     const [step, setStep] = useState(0);
@@ -35,7 +35,7 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
     // Step 0: Choose the spell
     function handleSpellSelect(spell: string) {
         setSelectedSpell(spell);
-        if (spell === WINGARDIUMLEVIOSA) {
+        if (spell === WINGARDIUM_LEVIOSA) {
             setWrongSpell(false);
             setStep(1);
         } else {
@@ -54,7 +54,7 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
                 setStep(2);
                 setRollResult(null);
                 setSuccess(null);
-            }, 1100);
+            }, 900);
         } else {
             setSuccess(false);
         }
@@ -67,10 +67,10 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
         if (total > 15) {
             setCushionSuccess(true);
             // Unlock spell if not already unlocked
-            if (!character.unlockedSpells?.includes(WINGARDIUMLEVIOSA)) {
+            if (!character.unlockedSpells?.includes(WINGARDIUM_LEVIOSA)) {
                 setCharacter({
                     ...character,
-                    unlockedSpells: [...(character.unlockedSpells ?? []), WINGARDIUMLEVIOSA],
+                    unlockedSpells: [...(character.unlockedSpells ?? []), WINGARDIUM_LEVIOSA],
                     experience: character.experience + 10,
                 });
             }
@@ -134,8 +134,8 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
                             <button
                                 key={spell}
                                 style={{
-                                    background: spell === WINGARDIUMLEVIOSA ? "#7B2D26" : "#b7e4c7",
-                                    color: spell === WINGARDIUMLEVIOSA ? "#fff" : "#222",
+                                    background: spell === WINGARDIUM_LEVIOSA ? "#7B2D26" : "#b7e4c7",
+                                    color: spell === WINGARDIUM_LEVIOSA ? "#fff" : "#222",
                                     padding: "0.8rem 1.2rem",
                                     borderRadius: "8px",
                                     fontWeight: "bold",
@@ -166,7 +166,6 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
                     <p>
                         <strong>Correct!</strong> Now, let's see if you can make the feather float.<br />
                         Roll any die (d4, d6, d8, d10, d12, d20) and add your Knowledge ({character.knowledge}).<br />
-                        <b>You need more than 12 to succeed.</b>
                     </p>
                     <DiceButton
                         allowedDice={[4, 6, 8, 10, 12, 20]}
@@ -174,7 +173,6 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
                         onRoll={handleFeatherRoll}
                         onClose={() => setDiceModalOpen(false)}
                     />
-                    {/* Overlay a transparent button over the dice icon to open for this lesson */}
                     <button
                         style={{
                             position: "fixed",
@@ -204,7 +202,7 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
                             ) : (
                                 <>
                                     <div style={{ color: "#b71c1c", fontWeight: "bold" }}>
-                                        Failure! The feather refuses to budge. Try again!
+                                        You're saying it all wrong! It's leviOsa, not leviosAR. Try again!
                                     </div>
                                     <button
                                         style={{
@@ -232,7 +230,6 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
                     <p>
                         <strong>Final Challenge:</strong> Move your cushion from the desk into the box using Wingardium Leviosa.<br />
                         Roll any die and add your Knowledge ({character.knowledge}).<br />
-                        <b>You need more than 15 to succeed.</b>
                     </p>
                     <DiceButton
                         allowedDice={[4, 6, 8, 10, 12, 20]}
