@@ -85,6 +85,9 @@ interface Props {
 const School: React.FC<Props> = ({ character }) => {
   const theme = houseThemes[character.house];
   const completedLessons = character.completedLessons || [];
+  // Accept either a flag or a direct property for Peeves Pests unlock
+  const peevesUnlocked = !!character.unlockedPeevesPests || !!(character.flags && character.flags.peevesPest);
+
   return (
     <div
       style={{
@@ -98,6 +101,7 @@ const School: React.FC<Props> = ({ character }) => {
         boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
         fontFamily: "serif",
         textAlign: "center",
+        opacity: 0.6
       }}
     >
       <Link
@@ -236,6 +240,26 @@ const School: React.FC<Props> = ({ character }) => {
           (More years coming soon!)
         </div>
       </div>
+      {peevesUnlocked && (
+        <Link
+          to="/peeves-pests"
+          style={{
+            display: "inline-block",
+            marginTop: "1.5rem",
+            background: "#af1e8c",
+            color: "#fff",
+            padding: "1rem 2rem",
+            borderRadius: "10px",
+            fontWeight: "bold",
+            fontSize: "1.15rem",
+            textDecoration: "none",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+            letterSpacing: "0.04em"
+          }}
+        >
+          🧨 Peeves Pests Side Quests
+        </Link>
+      )}
     </div>
   );
 };
