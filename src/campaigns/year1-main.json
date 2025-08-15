@@ -41,7 +41,7 @@
     },
     {
       "id": "breakfast",
-      "text": "You enjoy a hearty breakfast and chat with some classmates. Peeves is gesturing to you to go talk to him away from your table.",
+      "text": "You enjoy a hearty breakfast and chat with some classmates. Peeves the poltergeist is gesturing to you to go talk to him away from your table.",
       "choices": [
         { "text": "Go to class", "next": "goto_school" },
         { "text": "Talk to Peeves.", "next": "talkto_peeves" }
