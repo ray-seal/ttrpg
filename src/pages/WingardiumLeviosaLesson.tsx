@@ -1,81 +1,37 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Character } from "../types";
 import { houseThemes } from "../themes";
 
-const yearOneLessons = [
-  {
-    title: "Alohomora",
-    path: "/school/alohomora-lesson",
-    desc: "Unlocking Charm",
-  },
-  {
-    title: "Lumos",
-    path: "#",
-    desc: "Wand-Lighting Charm",
-  },
-  {
-    title: "Wingardium Leviosa",
-    path: "/school/wingardium-leviosa-lesson",
-    desc: "Levitation Charm",
-  },
-  {
-    title: "Petrificus Totalus",
-    path: "#",
-    desc: "Full Body-Bind Curse",
-  },
-  {
-    title: "Incendio",
-    path: "#",
-    desc: "Fire-Making Spell",
-  },
-  {
-    title: "Nox",
-    path: "#",
-    desc: "Wand-Extinguishing Charm",
-  },
-  {
-    title: "Finite Incantatem",
-    path: "#",
-    desc: "General Counter-Spell",
-  },
-  {
-    title: "Expelliarmus",
-    path: "#",
-    desc: "Disarming Charm",
-  },
-  {
-    title: "Devil's Snare Escape",
-    path: "#",
-    desc: "Plant-repelling technique",
-  },
-  {
-    title: "Obliviate",
-    path: "#",
-    desc: "Memory Charm",
-  },
-  {
-    title: "Locomotor Mortis",
-    path: "#",
-    desc: "Leg-Locker Curse",
-  },
-  {
-    title: "Ennervate",
-    path: "#",
-    desc: "Reviving Spell",
-  },
-];
-
 interface Props {
   character: Character;
+  setCharacter: (c: Character) => void;
 }
 
-const School: React.FC<Props> = ({ character }) => {
+const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) => {
   const theme = houseThemes[character.house];
+  const [completed, setCompleted] = useState(
+    (character.completedLessons || []).includes("Wingardium Leviosa")
+  );
+  const navigate = useNavigate();
+
+  function handleComplete() {
+    if (!completed) {
+      setCompleted(true);
+      setCharacter({
+        ...character,
+        completedLessons: [
+          ...(character.completedLessons || []),
+          "Wingardium Leviosa"
+        ],
+      });
+    }
+  }
+
   return (
     <div
       style={{
-        background: "rgba(255,255,255,0.60)", // more transparent so shield is visible
+        background: theme.background,
         color: theme.primary,
         border: `2px solid ${theme.secondary}`,
         padding: "2rem",
@@ -88,7 +44,7 @@ const School: React.FC<Props> = ({ character }) => {
       }}
     >
       <Link
-        to="/"
+        to="/school"
         style={{
           display: "inline-block",
           marginBottom: "1.2rem",
@@ -101,94 +57,63 @@ const School: React.FC<Props> = ({ character }) => {
           fontSize: "1rem",
         }}
       >
-        Back to Home
+        Back to School
       </Link>
-      <h2>Hogwarts School Lessons</h2>
-      <div style={{
-        padding: "1.6rem",
-        background: "#ece6da",
-        borderRadius: "12px",
-        margin: "2rem 0",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.07)",
-      }}>
-        <h3 style={{ marginBottom: "1.1rem", color: theme.secondary }}>Year 1</h3>
-        <div style={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          gap: "1rem",
-        }}>
-          {yearOneLessons.map(lesson => (
-            lesson.path !== "#" ? (
-              <Link
-                key={lesson.title}
-                to={lesson.path}
-                style={{
-                  background: theme.primary,
-                  color: "#fff",
-                  padding: "1rem 1.4rem",
-                  borderRadius: "8px",
-                  fontWeight: "bold",
-                  fontSize: "1.1rem",
-                  textDecoration: "none",
-                  minWidth: "175px",
-                  marginBottom: "0.5rem",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.07)",
-                  transition: "background .15s",
-                }}
-              >
-                {lesson.title}
-                <div style={{
-                  fontWeight: "normal",
-                  fontSize: "0.95em",
-                  marginTop: "0.3em",
-                  color: theme.accent
-                }}>
-                  {lesson.desc}
-                </div>
-              </Link>
-            ) : (
-              <button
-                key={lesson.title}
-                disabled
-                style={{
-                  background: theme.accent,
-                  color: "#fff",
-                  padding: "1rem 1.4rem",
-                  borderRadius: "8px",
-                  fontWeight: "bold",
-                  fontSize: "1.1rem",
-                  minWidth: "175px",
-                  marginBottom: "0.5rem",
-                  border: "none",
-                  opacity: 0.7,
-                  cursor: "not-allowed",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
-                }}
-              >
-                {lesson.title}
-                <div style={{
-                  fontWeight: "normal",
-                  fontSize: "0.95em",
-                  marginTop: "0.3em",
-                  color: theme.secondary
-                }}>
-                  {lesson.desc}
-                </div>
-              </button>
-            )
-          ))}
-        </div>
-        <div style={{
-          marginTop: "1.4rem",
-          color: theme.secondary,
-          fontSize: "0.95em"
-        }}>
-          (More years coming soon!)
-        </div>
-      </div>
+      <h2>Wingardium Leviosa Lesson</h2>
+      {!completed ? (
+        <>
+          <div style={{ margin: "2rem 0", fontSize: "1.15em" }}>
+            <p>
+              Welcome to your Levitation Charm lesson! Today, you'll learn <b>Wingardium Leviosa</b>.
+            </p>
+            <p>
+              Practice the wand movement: <i>swish and flick</i>. Say the incantation clearly: <b>Wingardium Leviosa!</b>
+            </p>
+          </div>
+          <button
+            style={{
+              background: theme.primary,
+              color: "#fff",
+              padding: "1rem 1.5rem",
+              borderRadius: "8px",
+              fontWeight: "bold",
+              fontSize: "1.1rem",
+              border: "none",
+              cursor: "pointer",
+              marginBottom: "1.5rem",
+            }}
+            onClick={handleComplete}
+          >
+            Complete Lesson
+          </button>
+        </>
+      ) : (
+        <>
+          <div style={{ margin: "2rem 0", fontSize: "1.15em", color: theme.secondary }}>
+            <p>
+              Congratulations! You've learned <b>Wingardium Leviosa</b>. Objects can now fly at your command!
+            </p>
+          </div>
+          <button
+            style={{
+              background: theme.primary,
+              color: "#fff",
+              padding: "1rem 1.5rem",
+              borderRadius: "8px",
+              fontWeight: "bold",
+              fontSize: "1.1rem",
+              border: "none",
+              cursor: "pointer",
+              marginBottom: "1.5rem",
+            }}
+            onClick={() => navigate("/school")}
+          >
+            Return to School
+          </button>
+        </>
+      )}
     </div>
   );
 };
 
-export default School;
+export default WingardiumLeviosaLesson;
