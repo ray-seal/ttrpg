@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Character } from "../types";
 import { houseThemes } from "../themes";
@@ -26,10 +26,19 @@ interface Props {
   setCharacter?: (char: Character) => void;
 }
 
+const getHouseKey = (house: string) => {
+  // Use lowercased house name for character fields; adjust as needed for your data shape
+  return house.toLowerCase();
+};
+
 const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
   const theme = houseThemes[character.house];
   const flags = character.flags || {};
   const unlockedSpells = character.unlockedSpells || [];
+  const [activeQuest, setActiveQuest] = useState<string | null>(null);
+  const [questStep, setQuestStep] = useState<"intro" | "rolling" | "result" | null>(null);
+  const [roll, setRoll] = useState<number | null>(null);
+  const [questResult, setQuestResult] = useState<"success" | "fail" | null>(null);
 
   // Quests are visible if the requiredSpell is unlocked, requiredFlag (if any) is set, and completedFlag is not set
   const visibleQuests = quests.filter(q => {
@@ -39,20 +48,183 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
     return true;
   });
 
-  function handleResult(q: typeof quests[0], passed: boolean) {
-    if (!setCharacter) return;
-    const newFlags = { ...flags, [q.completedFlag]: true };
-    let newChar = { ...character, flags: newFlags };
-    if (passed) {
-      newChar = { ...newChar, experience: (newChar.experience || 0) + (q.rewardXP || 0) };
-      alert(`You succeed! Peeves is delighted. (+${q.rewardXP} XP)`);
-    } else {
-      // Optionally mark a detention flag here for future logic
-      // newFlags.detention = true;
-      alert("You failed! Professor Snape gives you detention!");
-    }
-    setCharacter(newChar);
+  function startQuest(qid: string) {
+    setActiveQuest(qid);
+    setQuestStep("intro");
+    setRoll(null);
+    setQuestResult(null);
   }
+
+  function rollForAgility() {
+    const d12 = Math.ceil(Math.random() * 12);
+    const total = d12 + (character.agility || 0);
+    setRoll(total);
+    setQuestStep("result");
+    if (total >= 13) {
+      setQuestResult("success");
+      // Complete quest, give XP
+      if (setCharacter) {
+        setCharacter({
+          ...character,
+          experience: (character.experience || 0) + 25,
+          flags: { ...flags, peevesWorthyQuestDone: true }
+        });
+      }
+    } else {
+      setQuestResult("fail");
+      // Complete quest, give detention and subtract house points
+      if (setCharacter) {
+        const houseKey = getHouseKey(character.house);
+        // Subtract 10 from the correct house, clamp at 0
+        const newPoints = Math.max(0, (character[houseKey] || 0) - 10);
+        setCharacter({
+          ...character,
+          [houseKey]: newPoints,
+          flags: { ...flags, peevesWorthyQuestDone: true, detention: true }
+        });
+      }
+    }
+  }
+
+  function closeQuestModal() {
+    setActiveQuest(null);
+    setQuestStep(null);
+    setRoll(null);
+    setQuestResult(null);
+  }
+
+  // Modal/dialogue for the "worthy" quest
+  const worthyQuestModal = (
+    <div
+      style={{
+        position: "fixed", left: 0, top: 0, width: "100vw", height: "100vh",
+        zIndex: 4000, background: "rgba(0,0,0,0.18)",
+        display: "flex", alignItems: "center", justifyContent: "center"
+      }}
+      onClick={closeQuestModal}
+    >
+      <div
+        style={{
+          background: "#fffbe9",
+          border: `3px solid ${theme.secondary}`,
+          borderRadius: "16px",
+          minWidth: 300,
+          maxWidth: 420,
+          padding: "2rem",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.14)",
+          fontFamily: "serif",
+          position: "relative"
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Dialogue steps */}
+        {questStep === "intro" && (
+          <>
+            <div style={{ fontWeight: "bold", color: theme.secondary, fontSize: "1.1em", marginBottom: "1em" }}>
+              Prove You're Worthy
+            </div>
+            <div style={{ marginBottom: "1.2em", lineHeight: 1.5 }}>
+              You take your seat in the Great Hall. Food appears with a flourish. The teachers all start conversing—now is your chance.<br /><br />
+              You clear your throat and, with a swish and a flick, the jug floats over the staff table, completely unnoticed by Professor Snape. It tips slowly, soaking his robes.<br /><br />
+              The students burst into uproarious laughter. Professor Snape is fuming. Now it is time to make your exit!
+            </div>
+            <button
+              style={{
+                background: theme.secondary,
+                color: "#fff",
+                border: "none",
+                borderRadius: "8px",
+                padding: "0.7em 1.5em",
+                fontWeight: "bold",
+                fontSize: "1.02em",
+                cursor: "pointer",
+                marginTop: "1.2em"
+              }}
+              onClick={() => setQuestStep("rolling")}
+            >
+              Roll for Agility!
+            </button>
+          </>
+        )}
+        {questStep === "rolling" && (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ marginBottom: "1.1em" }}>
+              <b>Roll a d12 and add your Agility ({character.agility || 0})</b>
+              <br />
+              <span style={{ color: "#865c2c" }}>13 or higher: You make your escape!</span>
+            </div>
+            <button
+              style={{
+                background: theme.primary,
+                color: "#fff",
+                border: "none",
+                borderRadius: "8px",
+                padding: "0.7em 1.5em",
+                fontWeight: "bold",
+                fontSize: "1.02em",
+                cursor: "pointer",
+                marginTop: "1.2em"
+              }}
+              onClick={rollForAgility}
+            >
+              Roll!
+            </button>
+          </div>
+        )}
+        {questStep === "result" && (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontWeight: "bold", marginBottom: "1em" }}>
+              d12 + Agility = <span style={{ color: theme.secondary }}>{roll}</span>
+            </div>
+            {questResult === "success" ? (
+              <>
+                <div style={{ color: "#388e3c", marginBottom: "0.9em", fontWeight: "bold" }}>
+                  You slip into the entrance hall where Peeves is waiting. He is ecstatic!
+                  <br />+25 XP
+                </div>
+                <button
+                  style={{
+                    background: theme.secondary,
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "8px",
+                    padding: "0.7em 1.5em",
+                    fontWeight: "bold",
+                    fontSize: "1.02em",
+                    cursor: "pointer",
+                    marginTop: "1em"
+                  }}
+                  onClick={closeQuestModal}
+                >Continue</button>
+              </>
+            ) : (
+              <>
+                <div style={{ color: "#b71c1c", marginBottom: "0.9em", fontWeight: "bold" }}>
+                  Professor Snape catches you!<br />
+                  He gives you a detention and takes 10 points from {character.house}.<br />
+                  (Peeves is disappointed, but you'll get another chance for mayhem!)
+                </div>
+                <button
+                  style={{
+                    background: theme.secondary,
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "8px",
+                    padding: "0.7em 1.5em",
+                    fontWeight: "bold",
+                    fontSize: "1.02em",
+                    cursor: "pointer",
+                    marginTop: "1em"
+                  }}
+                  onClick={closeQuestModal}
+                >Continue</button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div
@@ -114,53 +286,27 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
                   padding: "1em",
                   boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
                   borderLeft: `4px solid ${theme.secondary}`,
-                  textAlign: "left"
+                  textAlign: "left",
+                  cursor: "pointer",
+                  transition: "background .13s"
                 }}
+                onClick={() => startQuest(q.id)}
+                tabIndex={0}
+                aria-label={`Start quest: ${q.title}`}
+                title="Click to start quest"
               >
                 <div style={{ fontWeight: "bold", fontSize: "1.10em", color: theme.secondary }}>{q.title}</div>
                 <div style={{ fontStyle: "italic", color: "#af1e8c", margin: "0.45em 0 0.7em 0" }}>
                   {q.description}
                 </div>
-                {setCharacter && (
-                  <div style={{ marginTop: 6 }}>
-                    <button
-                      style={{
-                        background: "#43a047",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "6px",
-                        padding: "0.5em 1.2em",
-                        fontWeight: "bold",
-                        cursor: "pointer",
-                        fontSize: "1em",
-                        marginRight: 8,
-                      }}
-                      onClick={() => handleResult(q, true)}
-                    >
-                      Succeed
-                    </button>
-                    <button
-                      style={{
-                        background: "#b71c1c",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "6px",
-                        padding: "0.5em 1.2em",
-                        fontWeight: "bold",
-                        cursor: "pointer",
-                        fontSize: "1em"
-                      }}
-                      onClick={() => handleResult(q, false)}
-                    >
-                      Fail
-                    </button>
-                  </div>
-                )}
+                <div style={{ color: "#888", fontSize: "0.95em" }}>(Click to begin)</div>
               </div>
             ))
           )}
         </div>
       </div>
+      {/* Quest modal/dialog */}
+      {(activeQuest === "worthy") && worthyQuestModal}
     </div>
   );
 };
