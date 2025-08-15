@@ -16,6 +16,7 @@ interface Props {
 const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
   const theme = houseThemes[character.house];
   const navigate = useNavigate();
+  const completed = (character.completedLessons ?? []).includes("Alohomora");
   const [step, setStep] = useState(0); // 0=intro, 1=spellbook, 2=dice, 3=result
   const [diceModalOpen, setDiceModalOpen] = useState(false);
   const [rollResult, setRollResult] = useState<number | null>(null);
@@ -26,18 +27,23 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
   }
 
   function handleDiceRoll(result: number, sides: number) {
-    if (sides !== 20) return;
-    const total = result + character.knowledge;
+    if (sides !== 12) return;
+    const total = result + character.magic;
     setRollResult(total);
     const passed = total >= 12;
     setSuccess(passed);
-    if (passed) {
-      // Unlock spell and lesson progress
+    // Only grant XP/spell unlock on first clear
+    if (passed && !completed) {
       setCharacter({
         ...character,
         unlockedSpells: Array.from(new Set([...(character.unlockedSpells ?? []), ALOHOMORA])),
         completedLessons: Array.from(new Set([...(character.completedLessons ?? []), "Alohomora"])),
         experience: character.experience + 10,
+      });
+    } else if (passed && completed) {
+      setCharacter({
+        ...character,
+        unlockedSpells: Array.from(new Set([...(character.unlockedSpells ?? []), ALOHOMORA])),
       });
     }
     setStep(3);
@@ -69,7 +75,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
           <p>
             Professor Flitwick stands atop a stack of books, beaming at the class.<br />
             <b>
-              "Welcome! Today you'll learn <i>Alohomora</i>, the unlocking charm. We'll also practice using your spellbook and rolling for magical success!"
+              "Welcome! Today you'll learn <i>Alohomora</i>, the unlocking charm. Open your books to <i>Standard Book of Spells, Grade 1</i> and find the correct spell."
             </b>
           </p>
           <button
@@ -85,7 +91,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
             }}
             onClick={() => setStep(1)}
           >
-            Begin Lesson
+            Open Spellbook
           </button>
         </>
       )}
@@ -93,7 +99,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
       {step === 1 && (
         <>
           <p>
-            <b>Professor Flitwick:</b> "Open your <i>Standard Book of Spells, Grade 1</i> and select the spell for unlocking."
+            <b>Professor Flitwick:</b> "Now, select the unlocking charm from your spellbook."
           </p>
           <div
             style={{
@@ -114,7 +120,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
             />
           </div>
           <p style={{ marginTop: "4em", color: theme.accent }}>
-            (Only <b>Alohomora</b> can be selected for this lesson)
+            (Alohomora is highlighted for this lesson)
           </p>
         </>
       )}
@@ -122,8 +128,8 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
       {step === 2 && (
         <>
           <p>
-            <b>Professor Flitwick:</b> "Excellent! Now, let's see if you can cast <i>Alohomora</i>.<br />
-            Roll a <b>d20</b> and add your <b>Knowledge ({character.knowledge})</b>. You need 12 or more to succeed!"
+            <b>Professor Flitwick:</b> "Now, let's see if you can cast <i>Alohomora</i>.<br />
+            Roll a <b>d12</b> and add your <b>Magic ({character.magic})</b>. You need 12 or more to succeed!"
           </p>
           <div
             style={{
@@ -134,8 +140,8 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
             }}
           >
             <DiceButton
-              allowedDice={[20]}
-              highlightDice={20}
+              allowedDice={[12]}
+              highlightDice={12}
               showModal={diceModalOpen}
               onRoll={handleDiceRoll}
               onClose={() => setDiceModalOpen(false)}
@@ -158,7 +164,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
             />
           </div>
           <p style={{ marginTop: "5em", color: theme.accent }}>
-            (Only the d20 is available for this lesson)
+            (Only the d12 is available for this lesson)
           </p>
         </>
       )}
@@ -174,7 +180,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
                 Success! The door unlocks and the class applauds.
               </p>
               <p>
-                <b>Professor Flitwick:</b> "Excellent work! You have learned <i>Alohomora</i> and gained 10 experience."
+                <b>Professor Flitwick:</b> "Excellent work! {completed ? "" : "You have learned"} <i>Alohomora</i>{completed ? "" : " and gained 10 experience."}"
               </p>
               <button
                 style={{
