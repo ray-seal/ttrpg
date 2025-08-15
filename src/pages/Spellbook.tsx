@@ -82,9 +82,9 @@ const SPELLS = [
 const MAX_SLOTS = 4;
 
 // Group spells by book for a given year
-function groupSpellsByBook(year: number) {
+function groupSpellsByBook(year: number, filterBook?: string) {
   const grouped: Record<string, typeof SPELLS> = {};
-  SPELLS.filter(s => s.year === year).forEach(spell => {
+  SPELLS.filter(s => s.year === year && (!filterBook || s.book === filterBook)).forEach(spell => {
     if (!grouped[spell.book]) grouped[spell.book] = [];
     grouped[spell.book].push(spell);
   });
@@ -94,15 +94,30 @@ function groupSpellsByBook(year: number) {
 interface SpellBookProps {
   character: Character;
   setCharacter: (c: Character) => void;
+  // LESSON MODE PROPS:
+  lessonBook?: string;              // If set, only show this book
+  highlightSpell?: string;          // If set, visually highlight this spell
+  selectOnly?: boolean;             // If true, disables equip/unequip, allows only selection
+  onSelectSpell?: (spell: string) => void;  // Called when a spell is picked (for lessons)
+  disabledEquip?: boolean;          // If true, disables all equip/unequip buttons
 }
 
-const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
+const SpellBook: React.FC<SpellBookProps> = ({
+  character,
+  setCharacter,
+  lessonBook,
+  highlightSpell,
+  selectOnly,
+  onSelectSpell,
+  disabledEquip,
+}) => {
   const theme = houseThemes[character.house];
   const unlockedSpells = character.unlockedSpells ?? [];
   const equipped = character.equippedSpells ?? [];
 
   // For add/remove equip
   function toggleEquip(spell: string) {
+    if (selectOnly) return; // Do nothing in select-only mode
     if (equipped.includes(spell)) {
       setCharacter({
         ...character,
@@ -116,7 +131,7 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
     }
   }
 
-  const groupedSpells = groupSpellsByBook(1);
+  const groupedSpells = groupSpellsByBook(1, lessonBook);
 
   return (
     <div
@@ -132,34 +147,40 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
         fontFamily: "serif",
       }}
     >
-      <Link
-        to="/character-sheet"
-        style={{
-          display: "inline-block",
-          marginBottom: "1.2rem",
-          background: theme.secondary,
-          color: "#fff",
-          padding: "0.7rem 1.3rem",
-          borderRadius: "8px",
-          textDecoration: "none",
-          fontWeight: "bold",
-          fontSize: "1rem",
-        }}
-      >
-        Back to Character Sheet
-      </Link>
-      <h2 style={{ textAlign: "center", marginBottom: "1.2rem" }}>Your Spellbook</h2>
-      <div style={{ textAlign: "center", marginBottom: "1.1rem" }}>
-        <b>Spell Slots:</b> {equipped.length} / {MAX_SLOTS}
-        <div style={{ fontSize: "0.97em", color: theme.secondary, marginTop: "0.2em" }}>
-          {equipped.length === 0
-            ? "No spells equipped"
-            : equipped.join(", ")}
+      {(!lessonBook || !selectOnly) && (
+        <Link
+          to="/character-sheet"
+          style={{
+            display: "inline-block",
+            marginBottom: "1.2rem",
+            background: theme.secondary,
+            color: "#fff",
+            padding: "0.7rem 1.3rem",
+            borderRadius: "8px",
+            textDecoration: "none",
+            fontWeight: "bold",
+            fontSize: "1rem",
+          }}
+        >
+          Back to Character Sheet
+        </Link>
+      )}
+      <h2 style={{ textAlign: "center", marginBottom: "1.2rem" }}>
+        {lessonBook ? lessonBook : "Your Spellbook"}
+      </h2>
+      {!selectOnly && (
+        <div style={{ textAlign: "center", marginBottom: "1.1rem" }}>
+          <b>Spell Slots:</b> {equipped.length} / {MAX_SLOTS}
+          <div style={{ fontSize: "0.97em", color: theme.secondary, marginTop: "0.2em" }}>
+            {equipped.length === 0
+              ? "No spells equipped"
+              : equipped.join(", ")}
+          </div>
+          <div style={{ fontSize: "0.80em", color: "#666", marginTop: "0.4em" }}>
+            Click a spell to equip/unequip (max {MAX_SLOTS}).
+          </div>
         </div>
-        <div style={{ fontSize: "0.80em", color: "#666", marginTop: "0.4em" }}>
-          Click a spell to equip/unequip (max {MAX_SLOTS}).
-        </div>
-      </div>
+      )}
       {Object.entries(groupedSpells).map(([book, spells]) => (
         <div key={book} style={{
           background: theme.accent,
@@ -170,8 +191,10 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
         }}>
           <h3 style={{ marginBottom: "0.7em", color: theme.primary }}>{book}</h3>
           {spells.map(spell => {
-            const isUnlocked = unlockedSpells.includes(spell.name);
+            const isUnlocked = unlockedSpells.includes(spell.name) || selectOnly; // In lesson mode, show all
             const isEquipped = equipped.includes(spell.name);
+            const isHighlight = spell.name === highlightSpell;
+
             return (
               <div
                 key={spell.name}
@@ -183,17 +206,19 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
                   padding: "0.5em 0.3em",
                   borderBottom: `1px dashed ${theme.secondary}`,
                   opacity: isUnlocked ? 1 : 0.65,
+                  background: isHighlight ? "#faffd8" : undefined,
+                  boxShadow: isHighlight ? "0 0 8px #b7e4c7" : undefined,
                 }}
               >
                 <div>
                   <span style={{
-                    fontWeight: isUnlocked ? "bold" : "normal",
+                    fontWeight: isHighlight ? "bold" : isUnlocked ? "bold" : "normal",
                     fontFamily: "serif",
                     color: isUnlocked ? theme.primary : "#aaa",
                   }}>
                     {isUnlocked ? spell.name : "???"}
                   </span>
-                  {isUnlocked && (
+                  {(isUnlocked || selectOnly) && (
                     <span style={{
                       fontSize: "0.92em",
                       color: theme.secondary,
@@ -203,10 +228,27 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
                     </span>
                   )}
                 </div>
-                {isUnlocked && (
+                {selectOnly ? (
+                  <button
+                    onClick={() => onSelectSpell?.(spell.name)}
+                    disabled={spell.name !== highlightSpell}
+                    style={{
+                      background: spell.name === highlightSpell ? "#b7e4c7" : "#f7f7f7",
+                      color: "#222",
+                      border: spell.name === highlightSpell ? `2px solid ${theme.secondary}` : `1px solid #ccc`,
+                      borderRadius: "8px",
+                      padding: "0.35em 1.2em",
+                      fontWeight: spell.name === highlightSpell ? "bold" : "normal",
+                      marginLeft: "0.7em",
+                      cursor: spell.name === highlightSpell ? "pointer" : "not-allowed",
+                    }}
+                  >
+                    Select
+                  </button>
+                ) : isUnlocked ? (
                   <button
                     onClick={() => toggleEquip(spell.name)}
-                    disabled={!isEquipped && equipped.length >= MAX_SLOTS}
+                    disabled={(!isEquipped && equipped.length >= MAX_SLOTS) || disabledEquip}
                     style={{
                       background: isEquipped ? theme.primary : "#f7f7f7",
                       color: isEquipped ? "#fff" : theme.primary,
@@ -215,21 +257,23 @@ const SpellBook: React.FC<SpellBookProps> = ({ character, setCharacter }) => {
                       padding: "0.35em 1.2em",
                       fontWeight: isEquipped ? "bold" : "normal",
                       marginLeft: "0.7em",
-                      cursor: !isEquipped && equipped.length >= MAX_SLOTS ? "not-allowed" : "pointer",
-                      opacity: !isEquipped && equipped.length >= MAX_SLOTS ? 0.6 : 1,
+                      cursor: (!isEquipped && equipped.length >= MAX_SLOTS) || disabledEquip ? "not-allowed" : "pointer",
+                      opacity: (!isEquipped && equipped.length >= MAX_SLOTS) || disabledEquip ? 0.6 : 1,
                     }}
                   >
                     {isEquipped ? "Equipped" : "Add to Slot"}
                   </button>
-                )}
+                ) : null}
               </div>
             );
           })}
         </div>
       ))}
-      <div style={{ textAlign: "center", color: theme.secondary, marginTop: "1.5rem", fontSize: "0.95em" }}>
-        Locked spells will reveal themselves as you progress!
-      </div>
+      {!selectOnly && (
+        <div style={{ textAlign: "center", color: theme.secondary, marginTop: "1.5rem", fontSize: "0.95em" }}>
+          Locked spells will reveal themselves as you progress!
+        </div>
+      )}
     </div>
   );
 };
