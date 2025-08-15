@@ -13,38 +13,77 @@ interface Props {
   setCharacter: (c: Character) => void;
 }
 
+type Step = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
 const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) => {
   const theme = houseThemes[character.house];
   const navigate = useNavigate();
-  const [step, setStep] = useState(0); // 0=intro, 1=spellbook, 2=dice, 3=result(success), 4=fail
+  const completed = (character.completedLessons ?? []).includes(WINGARDIUM);
+  const [step, setStep] = useState<Step>(0); // 0=intro, 1=spellbook, 2=dice feather, 3=cushion choice, 4=dice cushion, 5=success, 6=fail
   const [diceModalOpen, setDiceModalOpen] = useState(false);
   const [rollResult, setRollResult] = useState<number | null>(null);
+  const [method, setMethod] = useState<"magic" | "throw" | null>(null);
+  const [throwSuccess, setThrowSuccess] = useState<boolean | null>(null);
 
   function handleSelectSpell(spell: string) {
     if (spell === WINGARDIUM) setStep(2);
   }
 
-  function handleDiceRoll(result: number, sides: number) {
-    if (sides !== 20) return;
+  // Feather float
+  function handleFeatherRoll(result: number, sides: number) {
+    if (sides !== 12) return;
     const total = result + character.magic;
     setRollResult(total);
-    if (total >= 13) {
-      setCharacter({
-        ...character,
-        unlockedSpells: Array.from(new Set([...(character.unlockedSpells ?? []), WINGARDIUM])),
-        completedLessons: Array.from(new Set([...(character.completedLessons ?? []), WINGARDIUM])),
-        experience: character.experience + 12,
-      });
+    if (total >= 12) {
       setStep(3);
     } else {
-      setStep(4);
+      setStep(6);
     }
     setDiceModalOpen(false);
+  }
+
+  // Cushion part
+  function handleCushionRoll(result: number, sides: number) {
+    if (sides !== 12) return;
+    const total = result + character.magic;
+    setRollResult(total);
+    if (total >= 15) {
+      if (!completed) {
+        setCharacter({
+          ...character,
+          unlockedSpells: Array.from(new Set([...(character.unlockedSpells ?? []), WINGARDIUM])),
+          completedLessons: Array.from(new Set([...(character.completedLessons ?? []), WINGARDIUM])),
+          experience: character.experience + 12,
+        });
+      }
+      setStep(5);
+    } else {
+      setStep(6);
+    }
+    setDiceModalOpen(false);
+  }
+
+  // Throwing the cushion
+  function handleThrowCushion() {
+    // 50% chance to succeed
+    const success = Math.random() < 0.5;
+    setThrowSuccess(success);
+    if (success) {
+      setMethod("throw");
+      setStep(5);
+    } else {
+      setStep(6);
+    }
   }
 
   function tryAgain() {
     setRollResult(null);
     setStep(2);
+  }
+
+  function retryCushion() {
+    setRollResult(null);
+    setStep(4);
   }
 
   return (
@@ -70,7 +109,7 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
       {step === 0 && (
         <>
           <p>
-            Professor Flitwick grins, "Today, we master <b>Wingardium Leviosa</b>! You'll try to make a feather float. Remember: It's <b>levi-OH-sa</b>, not <b>levio-SAR</b>!"
+            Professor Flitwick grins, "Today, we master <b>Wingardium Leviosa</b>! You'll try to make a feather float. Remember: It's <b>levi-OH-sa</b>, not <b>levio-SAR</b>! Open your books and find the correct spell."
           </p>
           <button
             style={{
@@ -85,7 +124,7 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
             }}
             onClick={() => setStep(1)}
           >
-            Start Lesson
+            Open Spellbook
           </button>
         </>
       )}
@@ -93,7 +132,7 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
       {step === 1 && (
         <>
           <p>
-            <b>Professor Flitwick:</b> "Open your <i>Standard Book of Spells, Grade 1</i> and choose the correct spell to levitate the feather."
+            <b>Professor Flitwick:</b> "Select the spell to levitate the feather from your spellbook."
           </p>
           <div
             style={{
@@ -108,13 +147,13 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
               character={character}
               setCharacter={setCharacter}
               lessonBook={STANDARD_BOOK}
-              highlightSpell={WINGARDIUM}
+              highlightSpell={undefined}
               selectOnly
               onSelectSpell={handleSelectSpell}
             />
           </div>
           <p style={{ marginTop: "4em", color: theme.accent }}>
-            (Only <b>Wingardium Leviosa</b> can be selected for this lesson)
+            (No spell is highlighted in this lesson)
           </p>
         </>
       )}
@@ -122,8 +161,8 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
       {step === 2 && (
         <>
           <p>
-            <b>Professor Flitwick:</b> "Excellent! Now, let's see if you can float the feather.<br />
-            Roll a <b>d20</b> and add your <b>Magic ({character.magic})</b>. You need 13 or more to succeed!"
+            <b>Professor Flitwick:</b> "Let's see if you can float the feather.<br />
+            Roll a <b>d12</b> and add your <b>Magic ({character.magic})</b>. You need 12 or more to succeed!"
           </p>
           <div
             style={{
@@ -134,10 +173,10 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
             }}
           >
             <DiceButton
-              allowedDice={[20]}
-              highlightDice={20}
+              allowedDice={[12]}
+              highlightDice={12}
               showModal={diceModalOpen}
-              onRoll={handleDiceRoll}
+              onRoll={handleFeatherRoll}
               onClose={() => setDiceModalOpen(false)}
             />
             <button
@@ -158,7 +197,7 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
             />
           </div>
           <p style={{ marginTop: "5em", color: theme.accent }}>
-            (Only the d20 is available for this lesson)
+            (Only the d12 is available for this lesson)
           </p>
         </>
       )}
@@ -172,33 +211,152 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
             Success! The feather floats gracefully in the air.
           </p>
           <p>
-            <b>Professor Flitwick:</b> "Splendid! You've mastered <i>Wingardium Leviosa</i> and earned 12 experience."
+            <b>Professor Flitwick:</b> "Splendid! Now, let's try something harder. Can you move a cushion into the box?"
           </p>
-          <button
-            style={{
-              background: theme.primary,
-              color: "#fff",
-              padding: "1rem 2rem",
-              borderRadius: "8px",
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-              cursor: "pointer",
-              marginTop: "1.5rem"
-            }}
-            onClick={() => navigate("/school")}
-          >
-            Return to School
-          </button>
+          <div style={{ margin: "2rem 0" }}>
+            <button
+              style={{
+                background: theme.primary,
+                color: "#fff",
+                padding: "1rem 2rem",
+                borderRadius: "8px",
+                fontWeight: "bold",
+                fontSize: "1.1rem",
+                cursor: "pointer",
+                margin: "0 1rem"
+              }}
+              onClick={() => {
+                setMethod("magic");
+                setStep(4);
+              }}
+            >
+              Use Magic
+            </button>
+            <button
+              style={{
+                background: theme.accent,
+                color: "#fff",
+                padding: "1rem 2rem",
+                borderRadius: "8px",
+                fontWeight: "bold",
+                fontSize: "1.1rem",
+                cursor: "pointer",
+                margin: "0 1rem"
+              }}
+              onClick={() => handleThrowCushion()}
+            >
+              Wait for Flitwick to look away and throw it
+            </button>
+          </div>
         </>
       )}
 
-      {step === 4 && (
+      {step === 4 && method === "magic" && (
         <>
           <p>
-            <strong>Your total roll:</strong> {rollResult}
+            <b>Professor Flitwick:</b> "Roll a <b>d12</b> and add your <b>Magic ({character.magic})</b>. You need 15 or more to move the cushion to the box!"
+          </p>
+          <div
+            style={{
+              position: "fixed",
+              bottom: "2rem",
+              right: "2rem",
+              zIndex: 100
+            }}
+          >
+            <DiceButton
+              allowedDice={[12]}
+              highlightDice={12}
+              showModal={diceModalOpen}
+              onRoll={handleCushionRoll}
+              onClose={() => setDiceModalOpen(false)}
+            />
+            <button
+              style={{
+                position: "absolute",
+                bottom: 0,
+                right: 0,
+                width: "64px",
+                height: "64px",
+                background: "transparent",
+                border: "none",
+                zIndex: 1500,
+                cursor: "pointer",
+              }}
+              aria-label="Open dice roller for lesson"
+              onClick={() => setDiceModalOpen(true)}
+              tabIndex={0}
+            />
+          </div>
+          <p style={{ marginTop: "5em", color: theme.accent }}>
+            (Only the d12 is available for this lesson)
+          </p>
+        </>
+      )}
+
+      {step === 5 && (
+        <>
+          {method === "throw" && throwSuccess ? (
+            <>
+              <p style={{ color: "#1b5e20", fontWeight: "bold" }}>
+                Success! When Flitwick isn't looking, you toss the cushion into the box. The class cheers, but you haven't actually learned the spell.
+              </p>
+              <button
+                style={{
+                  background: theme.primary,
+                  color: "#fff",
+                  padding: "1rem 2rem",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  fontSize: "1.1rem",
+                  cursor: "pointer",
+                  marginTop: "1.5rem"
+                }}
+                onClick={() => navigate("/school")}
+              >
+                Return to School
+              </button>
+            </>
+          ) : (
+            <>
+              <p>
+                <strong>Your total roll:</strong> {rollResult}
+              </p>
+              <p style={{ color: "#1b5e20", fontWeight: "bold" }}>
+                Success! The cushion floats perfectly into the box.
+              </p>
+              <p>
+                <b>Professor Flitwick:</b> "Excellent! You've mastered <i>Wingardium Leviosa</i>{completed ? "." : " and earned 12 experience."}"
+              </p>
+              <button
+                style={{
+                  background: theme.primary,
+                  color: "#fff",
+                  padding: "1rem 2rem",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  fontSize: "1.1rem",
+                  cursor: "pointer",
+                  marginTop: "1.5rem"
+                }}
+                onClick={() => navigate("/school")}
+              >
+                Return to School
+              </button>
+            </>
+          )}
+        </>
+      )}
+
+      {step === 6 && (
+        <>
+          <p>
+            <strong>{method === "magic" ? "Your total roll:" : ""}</strong> {rollResult !== null ? rollResult : ""}
           </p>
           <p style={{ color: "#b71c1c", fontWeight: "bold" }}>
-            Failure! The feather doesn't budge.
+            Failure! {method === "magic"
+              ? "The feather/cushion doesn't budge."
+              : "Your throw is spotted and you get a stern look from Professor Flitwick."}
           </p>
           <p>
             Hermione whispers, <i>"You're saying it all wrong! It's <b>levi-OH-sa</b>, not <b>levio-SAR</b>!"</i>
@@ -214,7 +372,14 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
               cursor: "pointer",
               marginTop: "1.5rem"
             }}
-            onClick={tryAgain}
+            onClick={
+              method === "magic"
+                ? retryCushion
+                : () => {
+                    setMethod(null);
+                    setStep(3);
+                  }
+            }
           >
             Try Again
           </button>
