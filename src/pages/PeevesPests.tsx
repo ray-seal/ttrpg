@@ -3,20 +3,22 @@ import { Link } from "react-router-dom";
 import { Character } from "../types";
 import { houseThemes } from "../themes";
 
+// Peeves Pests quests data
 const quests = [
   {
     id: "worthy",
     title: "Prove You're Worthy",
     description: (
       <>
-        Float a jug of water over the staff table and tip it on Professor Snape using <b>Wingardium Leviosa</b>.<br/>
-        <span style={{fontStyle:'italic'}}>Are you bold enough to pull it off?</span>
+        Float a jug of water over the staff table and tip it on Professor Snape using <b>Wingardium Leviosa</b>.<br />
+        <span style={{ fontStyle: 'italic' }}>Are you bold enough to pull it off?</span>
       </>
     ),
-    requiredFlag: "wingardiumLeviosaUnlocked", // adjust this to your actual flag name!
+    requiredSpell: "Wingardium Leviosa", // Only appears after this spell is unlocked
     completedFlag: "peevesWorthyQuestDone",
     rewardXP: 25
-  }
+  },
+  // You can add more quests here, using requiredSpell or requiredFlag as needed
 ];
 
 interface Props {
@@ -27,12 +29,15 @@ interface Props {
 const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
   const theme = houseThemes[character.house];
   const flags = character.flags || {};
-  const completed = (flag: string) => !!flags[flag];
+  const unlockedSpells = character.unlockedSpells || [];
 
-  // Only show quests available and not completed
-  const visibleQuests = quests.filter(
-    q => flags[q.requiredFlag] && !completed(q.completedFlag)
-  );
+  // Quests are visible if the requiredSpell is unlocked, requiredFlag (if any) is set, and completedFlag is not set
+  const visibleQuests = quests.filter(q => {
+    if (q.requiredSpell && !unlockedSpells.includes(q.requiredSpell)) return false;
+    if (q.requiredFlag && !flags[q.requiredFlag]) return false;
+    if (q.completedFlag && flags[q.completedFlag]) return false;
+    return true;
+  });
 
   function handleResult(q: typeof quests[0], passed: boolean) {
     if (!setCharacter) return;
@@ -42,7 +47,7 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
       newChar = { ...newChar, experience: (newChar.experience || 0) + (q.rewardXP || 0) };
       alert(`You succeed! Peeves is delighted. (+${q.rewardXP} XP)`);
     } else {
-      // Optionally mark a detention flag here
+      // Optionally mark a detention flag here for future logic
       // newFlags.detention = true;
       alert("You failed! Professor Snape gives you detention!");
     }
