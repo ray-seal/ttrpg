@@ -1,0 +1,51 @@
+{
+  "scenes": [
+    {
+      "id": "wakeup",
+      "text": "You wake up in your house dormitory, the sun streaming through the window. It's your first morning at Hogwarts.",
+      "choices": [
+        { "text": "Go to the common room", "next": "common_room" },
+        { "text": "Make friends with a dormmate", "next": "make_friends" },
+        { "text": "Stay in bed a bit longer", "next": "sleep_in" }
+      ]
+    },
+    {
+      "id": "make_friends",
+      "text": "You strike up a conversation with a fellow first year. You feel a little less nervous about the day ahead.",
+      "choices": [
+        { "text": "Go to the common room", "next": "common_room" }
+      ],
+      "setFlag": "madeFriend"
+    },
+    {
+      "id": "sleep_in",
+      "text": "You pull the covers over your head and try to snooze a bit more. Eventually, you hear voices from the common room.",
+      "choices": [
+        { "text": "Go to the common room", "next": "common_room" }
+      ]
+    },
+    {
+      "id": "common_room",
+      "text": "Your head of house is waiting in the common room, holding a stack of timetables. 'Good morning! Here are your schedules for the year.'",
+      "choices": [
+        { "text": "Thank your head of house", "next": "school_unlocked" },
+        { "text": "Ask about breakfast", "next": "breakfast" }
+      ],
+      "setFlag": "gotTimetable"
+    },
+    {
+      "id": "breakfast",
+      "text": "The head of house smiles: 'Breakfast is in the Great Hall. Don't be late for your first class!'",
+      "choices": [
+        { "text": "Thank them and go to the Great Hall", "next": "school_unlocked" }
+      ]
+    },
+    {
+      "id": "school_unlocked",
+      "text": "You now have your timetable. The school grounds and classes are open to you!",
+      "choices": [
+        { "text": "Go to the School Page", "action": "unlockSchool", "next": "END" }
+      ]
+    }
+  ]
+}
