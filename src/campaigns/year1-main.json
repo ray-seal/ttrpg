@@ -27,23 +27,30 @@
       "id": "common_room",
       "text": "Your head of house is waiting in the common room, holding a stack of timetables. 'Good morning! Here are your schedules for the year.'",
       "choices": [
-        { "text": "Thank your head of house", "next": "school_unlocked", "action": "unlockSchool" },
-        { "text": "Ask about breakfast", "next": "breakfast" }
+        { "text": "Thank your head of house", "next": "after_timetable", "action": "unlockSchool" }
       ],
       "setFlag": "hasTimetable"
     },
     {
-      "id": "breakfast",
-      "text": "The head of house smiles: 'Breakfast is in the Great Hall. Don't be late for your first class!'",
+      "id": "after_timetable",
+      "text": "Timetable in hand, you consider your next move.",
       "choices": [
-        { "text": "Thank them and go to the School", "next": "school_unlocked", "action": "unlockSchool" }
+        { "text": "Go to breakfast in the Great Hall", "next": "breakfast" },
+        { "text": "Skip breakfast and go straight to class", "next": "goto_school" }
       ]
     },
     {
-      "id": "school_unlocked",
-      "text": "You now have your timetable. The school grounds and classes are open to you!",
+      "id": "breakfast",
+      "text": "You enjoy a hearty breakfast and chat with some classmates. Feeling energized, you head to your first class.",
       "choices": [
-        { "text": "Go to the School Page", "next": "END", "action": "unlockSchool" }
+        { "text": "Go to class", "next": "goto_school" }
+      ]
+    },
+    {
+      "id": "goto_school",
+      "text": "You head off to your first class, ready for a magical day.",
+      "choices": [
+        { "text": "Go to the School Page", "next": "END", "action": "gotoSchool" }
       ]
     }
   ]
