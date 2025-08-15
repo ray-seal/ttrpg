@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Character } from "../types";
 import { houseThemes } from "../themes";
+import DiceButton from "../components/DiceButton"; // Make sure this path is correct for your project
 
-// Peeves Pests quests data
 const quests = [
   {
     id: "worthy",
@@ -14,11 +14,10 @@ const quests = [
         <span style={{ fontStyle: 'italic' }}>Are you bold enough to pull it off?</span>
       </>
     ),
-    requiredSpell: "Wingardium Leviosa", // Only appears after this spell is unlocked
+    requiredSpell: "Wingardium Leviosa",
     completedFlag: "peevesWorthyQuestDone",
     rewardXP: 25
   },
-  // You can add more quests here, using requiredSpell or requiredFlag as needed
 ];
 
 interface Props {
@@ -26,10 +25,7 @@ interface Props {
   setCharacter?: (char: Character) => void;
 }
 
-const getHouseKey = (house: string) => {
-  // Use lowercased house name for character fields; adjust as needed for your data shape
-  return house.toLowerCase();
-};
+const getHouseKey = (house: string) => house.toLowerCase();
 
 const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
   const theme = houseThemes[character.house];
@@ -39,8 +35,8 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
   const [questStep, setQuestStep] = useState<"intro" | "rolling" | "result" | null>(null);
   const [roll, setRoll] = useState<number | null>(null);
   const [questResult, setQuestResult] = useState<"success" | "fail" | null>(null);
+  const [diceModalOpen, setDiceModalOpen] = useState(false);
 
-  // Quests are visible if the requiredSpell is unlocked, requiredFlag (if any) is set, and completedFlag is not set
   const visibleQuests = quests.filter(q => {
     if (q.requiredSpell && !unlockedSpells.includes(q.requiredSpell)) return false;
     if (q.requiredFlag && !flags[q.requiredFlag]) return false;
@@ -55,14 +51,15 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
     setQuestResult(null);
   }
 
-  function rollForAgility() {
-    const d12 = Math.ceil(Math.random() * 12);
-    const total = d12 + (character.agility || 0);
+  function handleDiceRoll(result: number, sides: number) {
+    if (sides !== 12) return;
+    const total = result + (character.agility || 0);
     setRoll(total);
     setQuestStep("result");
+    setDiceModalOpen(false);
+
     if (total >= 13) {
       setQuestResult("success");
-      // Complete quest, give XP
       if (setCharacter) {
         setCharacter({
           ...character,
@@ -72,10 +69,8 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
       }
     } else {
       setQuestResult("fail");
-      // Complete quest, give detention and subtract house points
       if (setCharacter) {
         const houseKey = getHouseKey(character.house);
-        // Subtract 10 from the correct house, clamp at 0
         const newPoints = Math.max(0, (character[houseKey] || 0) - 10);
         setCharacter({
           ...character,
@@ -91,9 +86,9 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
     setQuestStep(null);
     setRoll(null);
     setQuestResult(null);
+    setDiceModalOpen(false);
   }
 
-  // Modal/dialogue for the "worthy" quest
   const worthyQuestModal = (
     <div
       style={{
@@ -117,7 +112,6 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
         }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Dialogue steps */}
         {questStep === "intro" && (
           <>
             <div style={{ fontWeight: "bold", color: theme.secondary, fontSize: "1.1em", marginBottom: "1em" }}>
@@ -165,7 +159,7 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
                 cursor: "pointer",
                 marginTop: "1.2em"
               }}
-              onClick={rollForAgility}
+              onClick={() => setDiceModalOpen(true)}
             >
               Roll!
             </button>
@@ -220,6 +214,40 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
                 >Continue</button>
               </>
             )}
+          </div>
+        )}
+        {diceModalOpen && (
+          <div
+            style={{
+              position: "fixed", left: 0, top: 0, width: "100vw", height: "100vh",
+              background: "rgba(0,0,0,0.18)", zIndex: 4100, display: "flex", alignItems: "center", justifyContent: "center"
+            }}
+            onClick={() => setDiceModalOpen(false)}
+          >
+            <div
+              style={{
+                background: "#fffbe9",
+                border: `2px solid ${theme.secondary}`,
+                borderRadius: "16px",
+                minWidth: 180,
+                minHeight: 120,
+                zIndex: 4200,
+                padding: "2rem",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.10)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center"
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <DiceButton
+                allowedDice={[12]}
+                highlightDice={12}
+                showModal={true}
+                onRoll={handleDiceRoll}
+                onClose={() => setDiceModalOpen(false)}
+              />
+            </div>
           </div>
         )}
       </div>
@@ -305,7 +333,6 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
           )}
         </div>
       </div>
-      {/* Quest modal/dialog */}
       {(activeQuest === "worthy") && worthyQuestModal}
     </div>
   );
