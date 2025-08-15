@@ -1,14 +1,15 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Character } from "../types";
 import { houseThemes } from "../themes";
 
+// Only spells from Standard Book of Spells Grade 1 for Year 1
 const yearOneLessons = [
   {
     title: "Alohomora",
     path: "/school/alohomora-lesson",
     desc: "Unlocking Charm",
-    required: null, // always available
+    required: null,
   },
   {
     title: "Lumos",
@@ -20,13 +21,7 @@ const yearOneLessons = [
     title: "Wingardium Leviosa",
     path: "/school/wingardium-leviosa-lesson",
     desc: "Levitation Charm",
-    required: "Alohomora", // must finish Alohomora first!
-  },
-  {
-    title: "Petrificus Totalus",
-    path: "#",
-    desc: "Full Body-Bind Curse",
-    required: null,
+    required: "Alohomora",
   },
   {
     title: "Incendio",
@@ -40,42 +35,6 @@ const yearOneLessons = [
     desc: "Wand-Extinguishing Charm",
     required: null,
   },
-  {
-    title: "Finite Incantatem",
-    path: "#",
-    desc: "General Counter-Spell",
-    required: null,
-  },
-  {
-    title: "Expelliarmus",
-    path: "#",
-    desc: "Disarming Charm",
-    required: null,
-  },
-  {
-    title: "Devil's Snare Escape",
-    path: "#",
-    desc: "Plant-repelling technique",
-    required: null,
-  },
-  {
-    title: "Obliviate",
-    path: "#",
-    desc: "Memory Charm",
-    required: null,
-  },
-  {
-    title: "Locomotor Mortis",
-    path: "#",
-    desc: "Leg-Locker Curse",
-    required: null,
-  },
-  {
-    title: "Ennervate",
-    path: "#",
-    desc: "Reviving Spell",
-    required: null,
-  },
 ];
 
 interface Props {
@@ -87,6 +46,7 @@ const School: React.FC<Props> = ({ character }) => {
   const completedLessons = character.completedLessons || [];
   // Accept either a flag or a direct property for Peeves Pests unlock
   const peevesUnlocked = !!character.unlockedPeevesPests || !!(character.flags && character.flags.peevesPest);
+  const navigate = useNavigate();
 
   return (
     <div
@@ -101,9 +61,37 @@ const School: React.FC<Props> = ({ character }) => {
         boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
         fontFamily: "serif",
         textAlign: "center",
-        opacity: 0.6
+        opacity: 0.6,
+        position: "relative",
       }}
     >
+      {/* Floating Peeves Pests button */}
+      {peevesUnlocked && (
+        <button
+          onClick={() => navigate("/peeves-pests")}
+          style={{
+            position: "fixed",
+            top: "2rem",
+            left: "2rem",
+            background: "#af1e8c",
+            color: "#fff",
+            padding: "0.7rem 1.5rem",
+            borderRadius: "10px",
+            fontWeight: "bold",
+            fontSize: "1.05rem",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+            border: "none",
+            zIndex: 3001,
+            cursor: "pointer",
+            letterSpacing: "0.04em",
+            transition: "background .15s",
+          }}
+          aria-label="Peeves Pests"
+        >
+          🧨 Peeves Pests
+        </button>
+      )}
+
       <Link
         to="/"
         style={{
@@ -121,6 +109,8 @@ const School: React.FC<Props> = ({ character }) => {
         Back to Home
       </Link>
       <h2>Hogwarts School Lessons</h2>
+
+      {/* Year 1 Section */}
       <div style={{
         padding: "1.6rem",
         background: "#ece6da",
@@ -128,7 +118,7 @@ const School: React.FC<Props> = ({ character }) => {
         margin: "2rem 0",
         boxShadow: "0 2px 6px rgba(0,0,0,0.07)",
       }}>
-        <h3 style={{ marginBottom: "1.1rem", color: theme.secondary }}>Year 1</h3>
+        <h3 style={{ marginBottom: "1.1rem", color: theme.secondary }}>Year 1 (Standard Book of Spells, Grade 1)</h3>
         <div style={{
           display: "flex",
           flexWrap: "wrap",
@@ -136,7 +126,6 @@ const School: React.FC<Props> = ({ character }) => {
           gap: "1rem",
         }}>
           {yearOneLessons.map(lesson => {
-            // Is this lesson locked?
             const isLocked = lesson.required && !completedLessons.includes(lesson.required);
             if (lesson.path !== "#") {
               return isLocked ? (
@@ -240,26 +229,6 @@ const School: React.FC<Props> = ({ character }) => {
           (More years coming soon!)
         </div>
       </div>
-      {peevesUnlocked && (
-        <Link
-          to="/peeves-pests"
-          style={{
-            display: "inline-block",
-            marginTop: "1.5rem",
-            background: "#af1e8c",
-            color: "#fff",
-            padding: "1rem 2rem",
-            borderRadius: "10px",
-            fontWeight: "bold",
-            fontSize: "1.15rem",
-            textDecoration: "none",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-            letterSpacing: "0.04em"
-          }}
-        >
-          🧨 Peeves Pests Side Quests
-        </Link>
-      )}
     </div>
   );
 };
