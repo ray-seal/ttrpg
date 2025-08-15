@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import campaignData from "../campaigns/year1-main.json";
 import { Character } from "../types";
 
@@ -21,24 +22,27 @@ type Scene = {
 
 const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) => {
   const [sceneId, setSceneId] = useState("wakeup");
+  const navigate = useNavigate();
 
-  // Helper: get current scene
   const scene = (campaignData.scenes as Scene[]).find((s) => s.id === sceneId);
 
-  // Set flag in character state if needed
   function handleChoice(choice: any) {
     // Set a campaign flag on the character (e.g., hasTimetable)
     if (scene?.setFlag) {
       if (scene.setFlag === "hasTimetable" && !character.hasTimetable) {
         setCharacter({ ...character, hasTimetable: true });
       }
-      // Add other flag logic here if you want
     }
     if (choice.action === "unlockSchool" && !character.hasTimetable) {
       setCharacter({ ...character, hasTimetable: true });
     }
+    // If this is the "Go to school page" choice, navigate!
+    if (choice.action === "gotoSchool") {
+      navigate("/school");
+      return;
+    }
     if (choice.next === "END") {
-      // Optionally: route away, or just end campaign here
+      // Optionally: show a message or just do nothing
       return;
     }
     setSceneId(choice.next);
