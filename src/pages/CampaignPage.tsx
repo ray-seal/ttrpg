@@ -77,6 +77,12 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     if (choice.setFlag) {
       setFlags(prev => ({ ...prev, [choice.setFlag]: true }));
     }
+
+    // Unlock Peeves Pests membership for the character
+    if (choice.action === "unlockPeevesPests") {
+      setCharacter({ ...character, unlockedPeevesPests: true });
+    }
+
     if (choice.action === "unlockSchool" && !character.hasTimetable) {
       setCharacter({ ...character, hasTimetable: true });
     }
