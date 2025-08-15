@@ -43,7 +43,7 @@
       "id": "breakfast",
       "text": "You enjoy a hearty breakfast and chat with some classmates. Peeves is gesturing to you to go talk to him away from your table.",
       "choices": [
-        { "text": "Go to class", "next": "goto_school" }
+        { "text": "Go to class", "next": "goto_school" },
         { "text": "Talk to Peeves.", "next": "talkto_peeves" }
       ]
     },
@@ -51,11 +51,17 @@
       "id": "talkto_peeves",
       "text": "Peeves tells you he is looking for some mischief makers to join his secret club.",
       "choices": [
-        { "text": "Join the Peeves Pests.", "next": "peeves_pests" }
-        { "text": "Politely decline and go to class.", "next": "goto_class" }
-      ],
-    }
-        
+        { "text": "Join the Peeves Pests.", "next": "peeves_pests", "action": "unlockPeevesPests", "setFlag": "peevesPest" },
+        { "text": "Politely decline and go to class.", "next": "goto_school" }
+      ]
+    },
+    {
+      "id": "peeves_pests",
+      "text": "You are now a proud member of the Peeves Pests! Peeves grins, 'I'll be in touch with your first mayhemous mission soon...'",
+      "choices": [
+        { "text": "Go to class", "next": "goto_school" }
+      ]
+    },
     {
       "id": "goto_school",
       "text": "You head off to your first class, ready for a magical day.",
