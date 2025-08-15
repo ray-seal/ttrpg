@@ -12,8 +12,7 @@ import WingardiumLeviosaLesson from "./pages/WingardiumLeviosaLesson";
 import School from "./pages/School";
 import ThemedLayout from "./components/ThemedLayout";
 import SpellBook from "./pages/Spellbook";
-
-// If you use BrowserRouter, wrap App in BrowserRouter in main.tsx, not here!
+import CampaignPage from "./pages/CampaignPage";
 
 const CHARACTER_KEY = "character";
 
@@ -164,12 +163,12 @@ const App: React.FC = () => {
       <Route
         path="/school"
         element={
-          character ? (
+          character && character.hasTimetable ? (
             <ThemedLayout character={character}>
               <School character={character} />
             </ThemedLayout>
           ) : (
-            <Navigate to="/" replace />
+            <Navigate to="/campaign" />
           )
         }
       />
@@ -186,36 +185,23 @@ const App: React.FC = () => {
         }
       />
       <Route
-  path="/school/wingardium-leviosa-lesson"
-  element={
-    character ? (
-      <ThemedLayout character={character}>
-        <WingardiumLeviosaLesson character={character} setCharacter={setCharacter} />
-      </ThemedLayout>
-    ) : (
-      <Navigate to="/" replace />
-    )
-  }
-/>
+        path="/school/wingardium-leviosa-lesson"
+        element={
+          character ? (
+            <ThemedLayout character={character}>
+              <WingardiumLeviosaLesson character={character} setCharacter={setCharacter} />
+            </ThemedLayout>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
       <Route
         path="/campaign"
         element={
           character ? (
             <ThemedLayout character={character}>
-              <div
-                style={{
-                  minHeight: "100vh",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontFamily: "monospace",
-                }}
-              >
-                <h2>Campaign</h2>
-                <p>Coming soon!</p>
-                <a href="/" style={{ marginTop: "2rem" }}>Back to Home</a>
-              </div>
+              <CampaignPage character={character} setCharacter={setCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
