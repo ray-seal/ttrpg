@@ -13,6 +13,7 @@ import School from "./pages/School";
 import ThemedLayout from "./components/ThemedLayout";
 import SpellBook from "./pages/Spellbook";
 import CampaignPage from "./pages/CampaignPage";
+import PeevesPests from "./pages/PeevesPests";
 
 const CHARACTER_KEY = "character";
 
@@ -190,6 +191,18 @@ const App: React.FC = () => {
           character ? (
             <ThemedLayout character={character}>
               <WingardiumLeviosaLesson character={character} setCharacter={setCharacter} />
+            </ThemedLayout>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/peeves-pests"
+        element={
+          character ? (
+            <ThemedLayout character={character}>
+              <PeevesPests character={character} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
