@@ -41,11 +41,21 @@
     },
     {
       "id": "breakfast",
-      "text": "You enjoy a hearty breakfast and chat with some classmates. Feeling energized, you head to your first class.",
+      "text": "You enjoy a hearty breakfast and chat with some classmates. Peeves is gesturing to you to go talk to him away from your table.",
       "choices": [
         { "text": "Go to class", "next": "goto_school" }
+        { "text": "Talk to Peeves.", "next": "talkto_peeves" }
       ]
     },
+    {
+      "id": "talkto_peeves",
+      "text": "Peeves tells you he is looking for some mischief makers to join his secret club.",
+      "choices": [
+        { "text": "Join the Peeves Pests.", "next": "peeves_pests" }
+        { "text": "Politely decline and go to class.", "next": "goto_class" }
+      ],
+    }
+        
     {
       "id": "goto_school",
       "text": "You head off to your first class, ready for a magical day.",
