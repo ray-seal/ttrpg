@@ -8,61 +8,73 @@ const yearOneLessons = [
     title: "Alohomora",
     path: "/school/alohomora-lesson",
     desc: "Unlocking Charm",
+    required: null, // always available
   },
   {
     title: "Lumos",
     path: "#",
     desc: "Wand-Lighting Charm",
+    required: null,
   },
   {
     title: "Wingardium Leviosa",
     path: "/school/wingardium-leviosa-lesson",
     desc: "Levitation Charm",
+    required: "Alohomora", // must finish Alohomora first!
   },
   {
     title: "Petrificus Totalus",
     path: "#",
     desc: "Full Body-Bind Curse",
+    required: null,
   },
   {
     title: "Incendio",
     path: "#",
     desc: "Fire-Making Spell",
+    required: null,
   },
   {
     title: "Nox",
     path: "#",
     desc: "Wand-Extinguishing Charm",
+    required: null,
   },
   {
     title: "Finite Incantatem",
     path: "#",
     desc: "General Counter-Spell",
+    required: null,
   },
   {
     title: "Expelliarmus",
     path: "#",
     desc: "Disarming Charm",
+    required: null,
   },
   {
     title: "Devil's Snare Escape",
     path: "#",
     desc: "Plant-repelling technique",
+    required: null,
   },
   {
     title: "Obliviate",
     path: "#",
     desc: "Memory Charm",
+    required: null,
   },
   {
     title: "Locomotor Mortis",
     path: "#",
     desc: "Leg-Locker Curse",
+    required: null,
   },
   {
     title: "Ennervate",
     path: "#",
     desc: "Reviving Spell",
+    required: null,
   },
 ];
 
@@ -72,6 +84,7 @@ interface Props {
 
 const School: React.FC<Props> = ({ character }) => {
   const theme = houseThemes[character.house];
+  const completedLessons = character.completedLessons || [];
   return (
     <div
       style={{
@@ -118,66 +131,102 @@ const School: React.FC<Props> = ({ character }) => {
           justifyContent: "center",
           gap: "1rem",
         }}>
-          {yearOneLessons.map(lesson => (
-            lesson.path !== "#" ? (
-              <Link
-                key={lesson.title}
-                to={lesson.path}
-                style={{
-                  background: theme.primary,
-                  color: "#fff",
-                  padding: "1rem 1.4rem",
-                  borderRadius: "8px",
-                  fontWeight: "bold",
-                  fontSize: "1.1rem",
-                  textDecoration: "none",
-                  minWidth: "175px",
-                  marginBottom: "0.5rem",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.07)",
-                  transition: "background .15s",
-                }}
-              >
-                {lesson.title}
-                <div style={{
-                  fontWeight: "normal",
-                  fontSize: "0.95em",
-                  marginTop: "0.3em",
-                  color: theme.accent
-                }}>
-                  {lesson.desc}
-                </div>
-              </Link>
-            ) : (
-              <button
-                key={lesson.title}
-                disabled
-                style={{
-                  background: theme.accent,
-                  color: "#fff",
-                  padding: "1rem 1.4rem",
-                  borderRadius: "8px",
-                  fontWeight: "bold",
-                  fontSize: "1.1rem",
-                  minWidth: "175px",
-                  marginBottom: "0.5rem",
-                  border: "none",
-                  opacity: 0.7,
-                  cursor: "not-allowed",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
-                }}
-              >
-                {lesson.title}
-                <div style={{
-                  fontWeight: "normal",
-                  fontSize: "0.95em",
-                  marginTop: "0.3em",
-                  color: theme.secondary
-                }}>
-                  {lesson.desc}
-                </div>
-              </button>
-            )
-          ))}
+          {yearOneLessons.map(lesson => {
+            // Is this lesson locked?
+            const isLocked = lesson.required && !completedLessons.includes(lesson.required);
+            if (lesson.path !== "#") {
+              return isLocked ? (
+                <button
+                  key={lesson.title}
+                  disabled
+                  style={{
+                    background: theme.accent,
+                    color: "#fff",
+                    padding: "1rem 1.4rem",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    fontSize: "1.1rem",
+                    minWidth: "175px",
+                    marginBottom: "0.5rem",
+                    border: "none",
+                    opacity: 0.7,
+                    cursor: "not-allowed",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+                  }}
+                  title={`Complete ${lesson.required} to unlock`}
+                >
+                  {lesson.title}
+                  <div style={{
+                    fontWeight: "normal",
+                    fontSize: "0.95em",
+                    marginTop: "0.3em",
+                    color: theme.secondary
+                  }}>
+                    {lesson.desc}
+                  </div>
+                </button>
+              ) : (
+                <Link
+                  key={lesson.title}
+                  to={lesson.path}
+                  style={{
+                    background: theme.primary,
+                    color: "#fff",
+                    padding: "1rem 1.4rem",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    fontSize: "1.1rem",
+                    textDecoration: "none",
+                    minWidth: "175px",
+                    marginBottom: "0.5rem",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.07)",
+                    transition: "background .15s",
+                  }}
+                >
+                  {lesson.title}
+                  <div style={{
+                    fontWeight: "normal",
+                    fontSize: "0.95em",
+                    marginTop: "0.3em",
+                    color: theme.accent
+                  }}>
+                    {lesson.desc}
+                  </div>
+                </Link>
+              );
+            } else {
+              return (
+                <button
+                  key={lesson.title}
+                  disabled
+                  style={{
+                    background: theme.accent,
+                    color: "#fff",
+                    padding: "1rem 1.4rem",
+                    borderRadius: "8px",
+                    fontWeight: "bold",
+                    fontSize: "1.1rem",
+                    minWidth: "175px",
+                    marginBottom: "0.5rem",
+                    border: "none",
+                    opacity: 0.7,
+                    cursor: "not-allowed",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+                  }}
+                >
+                  {lesson.title}
+                  <div style={{
+                    fontWeight: "normal",
+                    fontSize: "0.95em",
+                    marginTop: "0.3em",
+                    color: theme.secondary
+                  }}>
+                    {lesson.desc}
+                  </div>
+                </button>
+              );
+            }
+          })}
         </div>
         <div style={{
           marginTop: "1.4rem",
