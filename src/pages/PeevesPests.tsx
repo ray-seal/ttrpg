@@ -48,6 +48,12 @@ const PeevesPests: React.FC<Props> = ({ character }) => {
       }}>
         <p>
           Welcome to Peeves' secret club! Here you’ll find side quests all about causing magical mayhem across Hogwarts.
+      <ol> Rules of Peeves Pests!
+      <li>All mayhem caused under the instruction of peeves to be marked with PP.</li>
+        <li>We do not talk about Peeves Pests.</li>
+        <li>Bonus points for mayhem caused whilst not under instruction.</li>
+        <li>All mayhem should be caused to disturb and disrupt, not harm!</li>
+      </ol>
         </p>
         <p style={{ fontStyle: "italic", color: "#af1e8c" }}>
           (Side quests coming soon!)
