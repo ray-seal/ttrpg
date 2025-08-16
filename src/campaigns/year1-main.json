@@ -1,0 +1,73 @@
+{
+  "scenes": [
+    {
+      "id": "wakeup",
+      "text": "You wake up in your house dormitory, the sun streaming through the window. It's your first morning at Hogwarts.",
+      "choices": [
+        { "text": "Go to the common room", "next": "common_room" },
+        { "text": "Make friends with a dormmate", "next": "make_friends", "setFlag": "madeFriend" },
+        { "text": "Stay in bed a bit longer", "next": "sleep_in" }
+      ]
+    },
+    {
+      "id": "make_friends",
+      "text": "You strike up a conversation with a fellow first year. You feel a little less nervous about the day ahead.",
+      "choices": [
+        { "text": "Go to the common room", "next": "common_room" }
+      ]
+    },
+    {
+      "id": "sleep_in",
+      "text": "You pull the covers over your head and try to snooze a bit more. Eventually, you hear voices from the common room.",
+      "choices": [
+        { "text": "Go to the common room", "next": "common_room" }
+      ]
+    },
+    {
+      "id": "common_room",
+      "text": "Your head of house is waiting in the common room, holding a stack of timetables. 'Good morning! Here are your schedules for the year.'",
+      "choices": [
+        { "text": "Thank your head of house", "next": "after_timetable", "action": "unlockSchool" }
+      ],
+      "setFlag": "hasTimetable"
+    },
+    {
+      "id": "after_timetable",
+      "text": "Timetable in hand, you consider your next move.",
+      "choices": [
+        { "text": "Go to breakfast in the Great Hall", "next": "breakfast", "setFlag": "ateBreakfast" },
+        { "text": "Skip breakfast and go straight to class", "next": "goto_school" }
+      ]
+    },
+    {
+      "id": "breakfast",
+      "text": "You enjoy a hearty breakfast and chat with some classmates. Peeves the poltergeist is gesturing to you to go talk to him away from your table.",
+      "choices": [
+        { "text": "Go to class", "next": "goto_school" },
+        { "text": "Talk to Peeves.", "next": "talkto_peeves" }
+      ]
+    },
+    {
+      "id": "talkto_peeves",
+      "text": "Peeves tells you he is looking for some mischief makers to join his secret club.",
+      "choices": [
+        { "text": "Join the Peeves Pests.", "next": "peeves_pests", "action": "unlockPeevesPests", "setFlag": "peevesPest" },
+        { "text": "Politely decline and go to class.", "next": "goto_school" }
+      ]
+    },
+    {
+      "id": "peeves_pests",
+      "text": "You are now a proud member of the Peeves Pests! Peeves grins, 'I'll be in touch with your first mayhemous mission soon...'",
+      "choices": [
+        { "text": "Go to class", "next": "goto_school" }
+      ]
+    },
+    {
+      "id": "goto_school",
+      "text": "You head off to your first class, ready for a magical day.",
+      "choices": [
+        { "text": "Go to the School Page", "next": "END", "action": "gotoSchool" }
+      ]
+    }
+  ]
+}

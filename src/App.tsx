@@ -8,10 +8,12 @@ import { Character } from "./types";
 import DiceButton from "./components/DiceButton";
 import HouseShield from "./components/HouseShield";
 import AlohomoraLesson from "./pages/AlohomoraLesson";
+import WingardiumLeviosaLesson from "./pages/WingardiumLeviosaLesson";
 import School from "./pages/School";
 import ThemedLayout from "./components/ThemedLayout";
-
-// If you use BrowserRouter, wrap App in BrowserRouter in main.tsx, not here!
+import SpellBook from "./pages/Spellbook";
+import CampaignPage from "./pages/CampaignPage";
+import PeevesPests from "./pages/PeevesPests";
 
 const CHARACTER_KEY = "character";
 
@@ -102,7 +104,7 @@ const App: React.FC = () => {
               <h1 style={{ color: "inherit", textAlign: "center" }}>
                 Harry Potter TTRPG
               </h1>
-              <CharacterSheet character={character} />
+              <CharacterSheet character={character} setCharacter={setCharacter} />
               {/* Reset game section */}
               <div style={{ marginTop: "2rem", textAlign: "center" }}>
                 <label htmlFor="reset-input" style={{ marginRight: "1rem" }}>
@@ -148,14 +150,26 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="/school"
+        path="/spellbook"
         element={
           character ? (
             <ThemedLayout character={character}>
-              <School />
+              <SpellBook character={character} setCharacter={setCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/school"
+        element={
+          character && character.hasTimetable ? (
+            <ThemedLayout character={character}>
+              <School character={character} />
+            </ThemedLayout>
+          ) : (
+            <Navigate to="/campaign" />
           )
         }
       />
@@ -172,24 +186,35 @@ const App: React.FC = () => {
         }
       />
       <Route
+        path="/school/wingardium-leviosa-lesson"
+        element={
+          character ? (
+            <ThemedLayout character={character}>
+              <WingardiumLeviosaLesson character={character} setCharacter={setCharacter} />
+            </ThemedLayout>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/peeves-pests"
+        element={
+          character ? (
+            <ThemedLayout character={character}>
+            <PeevesPests character={character} setCharacter={setCharacter} />
+            </ThemedLayout>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
         path="/campaign"
         element={
           character ? (
             <ThemedLayout character={character}>
-              <div
-                style={{
-                  minHeight: "100vh",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontFamily: "monospace",
-                }}
-              >
-                <h2>Campaign</h2>
-                <p>Coming soon!</p>
-                <a href="/" style={{ marginTop: "2rem" }}>Back to Home</a>
-              </div>
+              <CampaignPage character={character} setCharacter={setCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
