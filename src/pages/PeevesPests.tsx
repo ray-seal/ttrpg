@@ -310,6 +310,16 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
         Back to School
       </Link>
       <h2 style={{ color: "#af1e8c" }}>Peeves' Pests</h2>
+      <br />
+      <p>
+        <ol>
+        <u><b>Rules!!</b></u>
+          <li>We do not talk about Peeves Pests!</li>
+          <li>All mayhem caused under instruction of Peeves to be marked with PP!!</li>
+          <li>Bonus points awarded for causing mayhem not under instruction!!</li>
+          <li>All mayhem caused to disrupt or disturb, NOT harm!!</li>
+          </ol>
+      </p>
       {/* Tabs */}
       <div style={{ display: "flex", justifyContent: "center", margin: "1em 0 2em 0" }}>
         <button
