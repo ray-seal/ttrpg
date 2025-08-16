@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Character } from "../types";
 import { houseThemes } from "../themes";
-import DiceButton from "../components/DiceButton"; // Make sure this path is correct for your project
+import DiceButton from "../components/DiceButton"; // Adjust path if needed
 
 const quests = [
   {
@@ -31,18 +31,25 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
   const theme = houseThemes[character.house];
   const flags = character.flags || {};
   const unlockedSpells = character.unlockedSpells || [];
+
+  // Tab state: "active" or "completed"
+  const [tab, setTab] = useState<"active" | "completed">("active");
   const [activeQuest, setActiveQuest] = useState<string | null>(null);
   const [questStep, setQuestStep] = useState<"intro" | "rolling" | "result" | null>(null);
   const [roll, setRoll] = useState<number | null>(null);
   const [questResult, setQuestResult] = useState<"success" | "fail" | null>(null);
   const [diceModalOpen, setDiceModalOpen] = useState(false);
 
-  const visibleQuests = quests.filter(q => {
+  // Only show active quests in "Active" tab
+  const activeQuests = quests.filter(q => {
     if (q.requiredSpell && !unlockedSpells.includes(q.requiredSpell)) return false;
     if (q.requiredFlag && !flags[q.requiredFlag]) return false;
     if (q.completedFlag && flags[q.completedFlag]) return false;
     return true;
   });
+
+  // Show completed quests in "Completed" tab
+  const completedQuests = quests.filter(q => flags[q.completedFlag]);
 
   function startQuest(qid: string) {
     setActiveQuest(qid);
@@ -58,24 +65,29 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
     setQuestStep("result");
     setDiceModalOpen(false);
 
+    const quest = quests.find(q => q.id === activeQuest);
+    const alreadyCompleted = quest && flags[quest.completedFlag];
+
     if (total >= 13) {
       setQuestResult("success");
-      if (setCharacter) {
+      // Only award XP on first completion
+      if (setCharacter && quest && !alreadyCompleted) {
         setCharacter({
           ...character,
-          experience: (character.experience || 0) + 25,
-          flags: { ...flags, peevesWorthyQuestDone: true }
+          experience: (character.experience || 0) + quest.rewardXP,
+          flags: { ...flags, [quest.completedFlag]: true }
         });
       }
     } else {
       setQuestResult("fail");
-      if (setCharacter) {
+      // Only penalize on first failure
+      if (setCharacter && quest && !alreadyCompleted) {
         const houseKey = getHouseKey(character.house);
         const newPoints = Math.max(0, (character[houseKey] || 0) - 10);
         setCharacter({
           ...character,
           [houseKey]: newPoints,
-          flags: { ...flags, peevesWorthyQuestDone: true, detention: true }
+          flags: { ...flags, [quest.completedFlag]: true, detention: true }
         });
       }
     }
@@ -89,7 +101,8 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
     setDiceModalOpen(false);
   }
 
-  const worthyQuestModal = (
+  // Modal/dialogue for the "worthy" quest (used in both tabs)
+  const worthyQuestModal = (isReplay: boolean = false) => (
     <div
       style={{
         position: "fixed", left: 0, top: 0, width: "100vw", height: "100vh",
@@ -116,6 +129,7 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
           <>
             <div style={{ fontWeight: "bold", color: theme.secondary, fontSize: "1.1em", marginBottom: "1em" }}>
               Prove You're Worthy
+              {isReplay && <span style={{ fontWeight: 400, fontSize: "0.9em", color: "#888" }}> (Replay)</span>}
             </div>
             <div style={{ marginBottom: "1.2em", lineHeight: 1.5 }}>
               You take your seat in the Great Hall. Food appears with a flourish. The teachers all start conversing—now is your chance.<br /><br />
@@ -174,7 +188,7 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
               <>
                 <div style={{ color: "#388e3c", marginBottom: "0.9em", fontWeight: "bold" }}>
                   You slip into the entrance hall where Peeves is waiting. He is ecstatic!
-                  <br />+25 XP
+                  {isReplay ? null : (<><br />+25 XP</>)}
                 </div>
                 <button
                   style={{
@@ -197,6 +211,7 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
                   Professor Snape catches you!<br />
                   He gives you a detention and takes 10 points from {character.house}.<br />
                   (Peeves is disappointed, but you'll get another chance for mayhem!)
+                  {isReplay && <div style={{ color: "#888", marginTop: 8 }}>(No house points lost on replay)</div>}
                 </div>
                 <button
                   style={{
@@ -244,7 +259,15 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
                 allowedDice={[12]}
                 highlightDice={12}
                 showModal={true}
-                onRoll={handleDiceRoll}
+                onRoll={isReplay
+                  ? (result, sides) => {
+                      // Just for flavor, never award XP or house points on replay
+                      setRoll(result + (character.agility || 0));
+                      setQuestStep("result");
+                      setDiceModalOpen(false);
+                      setQuestResult(result + (character.agility || 0) >= 13 ? "success" : "fail");
+                    }
+                  : handleDiceRoll}
                 onClose={() => setDiceModalOpen(false)}
               />
             </div>
@@ -287,24 +310,48 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
         Back to School
       </Link>
       <h2 style={{ color: "#af1e8c" }}>Peeves' Pests</h2>
-      <div style={{ margin: "1.5rem 0 0 0", fontSize: "1.2em" }}>
-        <p>
-          Welcome to Peeves' secret club! Here you’ll find side quests all about causing magical mayhem across Hogwarts.
-          <ol> <b><u>Rules of Peeves Pests!</u></b>
-            <br />
-            <li>All mayhem caused under the instruction of peeves to be marked with PP.</li>
-            <li>We do not talk about Peeves Pests.</li>
-            <li>Bonus points for mayhem caused whilst not under instruction.</li>
-            <li>All mayhem should be caused to disturb and disrupt, not harm!</li>
-          </ol>
-        </p>
-        <div style={{ margin: "2em 0" }}>
-          {visibleQuests.length === 0 ? (
+      {/* Tabs */}
+      <div style={{ display: "flex", justifyContent: "center", margin: "1em 0 2em 0" }}>
+        <button
+          style={{
+            background: tab === "active" ? theme.secondary : "#ece6da",
+            color: tab === "active" ? "#fff" : "#222",
+            fontWeight: "bold",
+            border: "none",
+            borderRadius: "8px 0 0 8px",
+            padding: "0.6em 1.5em",
+            cursor: tab === "active" ? "default" : "pointer",
+            borderRight: "1px solid #ccc"
+          }}
+          onClick={() => setTab("active")}
+          disabled={tab === "active"}
+        >
+          Active Quests
+        </button>
+        <button
+          style={{
+            background: tab === "completed" ? theme.secondary : "#ece6da",
+            color: tab === "completed" ? "#fff" : "#222",
+            fontWeight: "bold",
+            border: "none",
+            borderRadius: "0 8px 8px 0",
+            padding: "0.6em 1.5em",
+            cursor: tab === "completed" ? "default" : "pointer"
+          }}
+          onClick={() => setTab("completed")}
+          disabled={tab === "completed"}
+        >
+          Completed Quests
+        </button>
+      </div>
+      <div style={{ margin: "2em 0" }}>
+        {tab === "active" ? (
+          activeQuests.length === 0 ? (
             <p style={{ fontStyle: "italic", color: "#af1e8c" }}>
               (No active side quests right now!)
             </p>
           ) : (
-            visibleQuests.map(q => (
+            activeQuests.map(q => (
               <div
                 key={q.id}
                 style={{
@@ -330,10 +377,47 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
                 <div style={{ color: "#888", fontSize: "0.95em" }}>(Click to begin)</div>
               </div>
             ))
-          )}
-        </div>
+          )
+        ) : (
+          completedQuests.length === 0 ? (
+            <p style={{ fontStyle: "italic", color: "#af1e8c" }}>
+              (No completed side quests yet!)
+            </p>
+          ) : (
+            completedQuests.map(q => (
+              <div
+                key={q.id}
+                style={{
+                  background: "#f2f2f2",
+                  borderRadius: "8px",
+                  margin: "1.3em 0",
+                  padding: "1em",
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+                  borderLeft: `4px solid ${theme.secondary}`,
+                  textAlign: "left",
+                  cursor: "pointer",
+                  opacity: 0.9
+                }}
+                onClick={() => startQuest(q.id)}
+                tabIndex={0}
+                aria-label={`Replay quest: ${q.title}`}
+                title="Replay this quest"
+              >
+                <div style={{ fontWeight: "bold", fontSize: "1.10em", color: theme.secondary }}>
+                  {q.title} <span style={{ fontWeight: 400, fontSize: "0.92em", color: "#888" }}>(Completed)</span>
+                </div>
+                <div style={{ fontStyle: "italic", color: "#af1e8c", margin: "0.45em 0 0.7em 0" }}>
+                  {q.description}
+                </div>
+                <div style={{ color: "#888", fontSize: "0.95em" }}>(Replay for fun)</div>
+              </div>
+            ))
+          )
+        )}
       </div>
-      {(activeQuest === "worthy") && worthyQuestModal}
+      {/* Quest modal/dialog */}
+      {(activeQuest === "worthy" && tab === "active") && worthyQuestModal(false)}
+      {(activeQuest === "worthy" && tab === "completed") && worthyQuestModal(true)}
     </div>
   );
 };
