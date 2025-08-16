@@ -105,7 +105,7 @@ const CharacterSheet: React.FC<Props> = ({ character, setCharacter }) => {
         <strong>House:</strong> {character.house}
       </div>
       <div>
-        <strong>XP:</strong> {character.experience}
+        <strong>House Points:</strong> {character.experience}
       </div>
       <hr style={{ margin: "1rem 0", borderColor: theme.accent, opacity: 0.3 }} />
       <div>
