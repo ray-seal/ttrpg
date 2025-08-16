@@ -71,7 +71,7 @@ const HomePage: React.FC<HomePageProps> = ({ hasCharacter }) => (
                 marginTop: "1rem"
             }}
             >
-                School (Lessons)
+                Classes
             </Link>
             <Link
             to="/campaign"
