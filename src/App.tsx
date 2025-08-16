@@ -202,7 +202,7 @@ const App: React.FC = () => {
         element={
           character ? (
             <ThemedLayout character={character}>
-              <PeevesPests character={character} />
+            <PeevesPests character={character} setCharacter={setCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
