@@ -84,9 +84,11 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
       if (setCharacter && quest && !alreadyCompleted) {
         const houseKey = getHouseKey(character.house);
         const newPoints = Math.max(0, (character[houseKey] || 0) - 10);
+        const newExperience = Math.max(0, (character.experience || 0) -20);
         setCharacter({
           ...character,
           [houseKey]: newPoints,
+          experience: newExperience,
           flags: { ...flags, [quest.completedFlag]: true, detention: true }
         });
       }
