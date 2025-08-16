@@ -159,7 +159,7 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
             <div style={{ marginBottom: "1.1em" }}>
               <b>Roll a d12 and add your Agility ({character.agility || 0})</b>
               <br />
-              <span style={{ color: "#865c2c" }}>13 or higher: You make your escape!</span>
+              <span style={{ color: "#865c2c" }}>12 or higher: You make your escape!</span>
             </div>
             <button
               style={{
