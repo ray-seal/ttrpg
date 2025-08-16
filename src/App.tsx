@@ -65,6 +65,17 @@ const App: React.FC = () => {
   const currentHouse = character?.house as House | undefined;
   const theme = currentHouse ? houseThemes[currentHouse] : houseThemes.Gryffindor;
 
+  // Dynamically update the PWA/browser theme color based on the current house
+  useEffect(() => {
+    let metaThemeColor = document.querySelector("meta[name=theme-color]");
+    if (!metaThemeColor) {
+      metaThemeColor = document.createElement("meta");
+      metaThemeColor.setAttribute("name", "theme-color");
+      document.head.appendChild(metaThemeColor);
+    }
+    metaThemeColor.setAttribute("content", theme.primary);
+  }, [theme]);
+
   function addExperience(points: number) {
     setCharacter((prev) => {
       if (!prev) return prev;
