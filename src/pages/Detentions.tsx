@@ -73,7 +73,7 @@ const Detentions: React.FC<Props> = ({ character, setCharacter }) => {
         <h2 style={{ color: theme.secondary }}>Detention Hall</h2>
         <p style={{ fontWeight: "bold" }}>Professor Snape greets you with a sneer.</p>
         <p>
-          "Since you seem to think rules are optional, you'll be cleaning cauldrons by hand. Three cauldrons, spotless. Then, if you can persuade me, you may go."
+          "Since you seem to think rules are optional, you'll be cleaning cauldrons by hand. Three cauldrons, spotless."
         </p>
         <button
           onClick={() => setStep("knowledge1")}
@@ -90,7 +90,7 @@ const Detentions: React.FC<Props> = ({ character, setCharacter }) => {
       <div style={{ ...baseBox(theme) }}>
         <h2 style={{ color: theme.secondary }}>Detention Failed</h2>
         <p style={{ color: "#b71c1c", fontWeight: "bold" }}>
-          Snape inspects your work and finds it lacking. “You’ll be staying late, I’m afraid.” Try again!
+          Snape inspects your work and finds it lacking. “Do it again {character.name}!” With a flick of his wand the caudrons fill with leftovers again!
         </p>
         <button onClick={handleTryAgain} style={mainBtn(theme)}>
           Try Again
