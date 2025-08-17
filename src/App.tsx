@@ -14,6 +14,7 @@ import ThemedLayout from "./components/ThemedLayout";
 import SpellBook from "./pages/Spellbook";
 import CampaignPage from "./pages/CampaignPage";
 import PeevesPests from "./pages/PeevesPests";
+import Detentions from "./pages/Detentions";
 
 const CHARACTER_KEY = "character";
 
@@ -177,7 +178,7 @@ const App: React.FC = () => {
         element={
           character && character.hasTimetable ? (
             <ThemedLayout character={character}>
-              <School character={character} />
+              <School character={character} setCharacter={setCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/campaign" />
@@ -214,6 +215,18 @@ const App: React.FC = () => {
           character ? (
             <ThemedLayout character={character}>
             <PeevesPests character={character} setCharacter={setCharacter} />
+            </ThemedLayout>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/detentions"
+        element={
+          character ? (
+            <ThemedLayout character={character}>
+              <Detentions character={character} setCharacter={setCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
