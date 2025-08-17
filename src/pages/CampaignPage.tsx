@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import campaignData from "../campaigns/year1-main.json";
 import { Character } from "../types";
+import { houseThemes } from "../themes";
 
 interface CampaignPageProps {
   character: Character;
@@ -34,6 +35,8 @@ function loadFlags(key: string): Record<string, boolean> {
 
 const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) => {
   const navigate = useNavigate();
+  const theme = houseThemes[character.house];
+  const hasDetention = !!(character.flags && character.flags.detention);
 
   // Progress and flags keys
   const progressKey = getProgressKey(character);
@@ -64,6 +67,48 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
   }, [character, progressKey, flagsKey]);
 
   const scene = (campaignData.scenes as Scene[]).find((s) => s.id === sceneId);
+
+  if (hasDetention) {
+    return (
+      <div
+        style={{
+          background: theme.background,
+          color: theme.primary,
+          border: `2px solid ${theme.secondary}`,
+          padding: "2rem",
+          borderRadius: "16px",
+          maxWidth: "540px",
+          margin: "3rem auto",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
+          fontFamily: "serif",
+          textAlign: "center",
+          position: "relative",
+        }}
+      >
+        <h2 style={{ color: theme.secondary }}>Campaign Locked</h2>
+        <p>
+          You cannot participate in the campaign while you have an outstanding detention.<br />
+          Please report to detention to complete your punishment.
+        </p>
+        <button
+          onClick={() => navigate("/detentions")}
+          style={{
+            background: theme.secondary,
+            color: "#fff",
+            border: "none",
+            borderRadius: "8px",
+            padding: "0.8em 1.8em",
+            fontWeight: "bold",
+            fontSize: "1.1em",
+            cursor: "pointer",
+            marginTop: "1em"
+          }}
+        >
+          Go To Detention
+        </button>
+      </div>
+    );
+  }
 
   function handleChoice(choice: any) {
     // Set campaign state/flags
