@@ -3,7 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { Character } from "../types";
 import { houseThemes } from "../themes";
 
-// Only spells from Standard Book of Spells Grade 1 for Year 1
+interface Props {
+  character: Character;
+}
+
 const yearOneLessons = [
   {
     title: "Alohomora",
@@ -37,16 +40,53 @@ const yearOneLessons = [
   },
 ];
 
-interface Props {
-  character: Character;
-}
-
 const School: React.FC<Props> = ({ character }) => {
   const theme = houseThemes[character.house];
   const completedLessons = character.completedLessons || [];
-  // Accept either a flag or a direct property for Peeves Pests unlock
   const peevesUnlocked = !!character.unlockedPeevesPests || !!(character.flags && character.flags.peevesPest);
   const navigate = useNavigate();
+  const hasDetention = !!(character.flags && character.flags.detention);
+
+  if (hasDetention) {
+    return (
+      <div
+        style={{
+          background: theme.background,
+          color: theme.primary,
+          border: `2px solid ${theme.secondary}`,
+          padding: "2rem",
+          borderRadius: "16px",
+          maxWidth: "540px",
+          margin: "3rem auto",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
+          fontFamily: "serif",
+          textAlign: "center",
+          position: "relative",
+        }}
+      >
+        <h2 style={{ color: theme.secondary }}>You Have Detention</h2>
+        <p style={{ marginBottom: "2em" }}>
+          Professor Snape has assigned you to clean cauldrons by hand. You must complete your detention before attending classes.
+        </p>
+        <button
+          onClick={() => navigate("/detentions")}
+          style={{
+            background: theme.secondary,
+            color: "#fff",
+            border: "none",
+            borderRadius: "8px",
+            padding: "0.8em 1.8em",
+            fontWeight: "bold",
+            fontSize: "1.1em",
+            cursor: "pointer",
+            marginTop: "1em"
+          }}
+        >
+          Go To Detention
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -65,7 +105,6 @@ const School: React.FC<Props> = ({ character }) => {
         position: "relative",
       }}
     >
-      {/* Floating Peeves Pests button */}
       {peevesUnlocked && (
         <button
           onClick={() => navigate("/peeves-pests")}
@@ -110,7 +149,6 @@ const School: React.FC<Props> = ({ character }) => {
       </Link>
       <h2>Hogwarts School Lessons</h2>
 
-      {/* Year 1 Section */}
       <div style={{
         padding: "1.6rem",
         background: "#ece6da",
