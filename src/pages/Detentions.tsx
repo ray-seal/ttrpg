@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Character } from "../types";
 import { houseThemes } from "../themes";
+import DiceButton from "../components/DiceButton";
 
 interface Props {
   character: Character;
@@ -9,232 +11,205 @@ interface Props {
 
 type Step = "intro" | "knowledge1" | "magic" | "knowledge2" | "charisma" | "success" | "fail";
 
+const checks = [
+  { step: "knowledge1", label: "Knowledge check: Remember the correct potion residue cleaning technique.", stat: "knowledge", target: 10 },
+  { step: "magic", label: "Magic check: Use magic to dissolve stubborn stains (but don't let Snape catch you!).", stat: "magic", target: 11 },
+  { step: "knowledge2", label: "Knowledge check: Identify if all cauldrons are truly clean.", stat: "knowledge", target: 10 },
+  { step: "charisma", label: "Charisma check: Try to talk Snape into letting you go early.", stat: "charisma", target: 12 },
+];
+
 const Detentions: React.FC<Props> = ({ character, setCharacter }) => {
   const [step, setStep] = useState<Step>("intro");
-  const [results, setResults] = useState<{ [k: string]: boolean }>({});
+  const [showDiceModal, setShowDiceModal] = useState(false);
+  const [currentCheck, setCurrentCheck] = useState(0);
+  const [lastRoll, setLastRoll] = useState<number | null>(null);
   const [rolling, setRolling] = useState(false);
   const theme = houseThemes[character.house];
+  const navigate = useNavigate();
 
-  function rollCheck(stat: number, target: number, label: string, next: Step) {
-    setRolling(true);
-    setTimeout(() => {
-      const roll = Math.ceil(Math.random() * 12);
-      const total = roll + stat;
-      const success = total >= target;
-      setResults(r => ({ ...r, [label]: success }));
-      setRolling(false);
-      setStep(success ? next : "fail");
-    }, 750);
+  function handleStartCheck(idx: number) {
+    setCurrentCheck(idx);
+    setShowDiceModal(true);
+  }
+
+  function handleDiceRoll(result: number, sides: number) {
+    setLastRoll(result);
+    setShowDiceModal(false);
+
+    const check = checks[currentCheck];
+    const statValue = character[check.stat as keyof Character] || 0;
+    const total = result + statValue;
+    const passed = total >= check.target;
+
+    if (passed) {
+      if (currentCheck < checks.length - 1) {
+        setStep(checks[currentCheck + 1].step as Step);
+      } else {
+        setStep("success");
+      }
+    } else {
+      setStep("fail");
+    }
+  }
+
+  function handleTryAgain() {
+    setStep("intro");
+    setCurrentCheck(0);
+    setLastRoll(null);
   }
 
   function finishDetention() {
-    // Remove detention flag
     setCharacter({
       ...character,
       flags: { ...character.flags, detention: false }
     });
+    navigate("/school");
   }
 
+  // Render steps
+  if (step === "intro") {
+    return (
+      <div style={{ ...baseBox(theme) }}>
+        <h2 style={{ color: theme.secondary }}>Detention Hall</h2>
+        <p style={{ fontWeight: "bold" }}>Professor Snape greets you with a sneer.</p>
+        <p>
+          "Since you seem to think rules are optional, you'll be cleaning cauldrons by hand. Three cauldrons, spotless. Then, if you can persuade me, you may go."
+        </p>
+        <button
+          onClick={() => setStep("knowledge1")}
+          style={mainBtn(theme)}
+        >
+          Begin Cleaning
+        </button>
+      </div>
+    );
+  }
+
+  if (step === "fail") {
+    return (
+      <div style={{ ...baseBox(theme) }}>
+        <h2 style={{ color: theme.secondary }}>Detention Failed</h2>
+        <p style={{ color: "#b71c1c", fontWeight: "bold" }}>
+          Snape inspects your work and finds it lacking. “You’ll be staying late, I’m afraid.” Try again!
+        </p>
+        <button onClick={handleTryAgain} style={mainBtn(theme)}>
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  if (step === "success") {
+    return (
+      <div style={{ ...baseBox(theme) }}>
+        <h2 style={{ color: theme.secondary }}>Detention Complete</h2>
+        <p style={{ color: "#388e3c", fontWeight: "bold" }}>
+          You’ve impressed Snape (somehow). He grumbles, but waves you away. You are free from detention!
+        </p>
+        <button
+          onClick={finishDetention}
+          style={mainBtn(theme)}
+        >
+          Return to School
+        </button>
+      </div>
+    );
+  }
+
+  // Otherwise, render the current check step
+  const checkIdx = checks.findIndex(c => c.step === step);
+  const check = checks[checkIdx];
+  const statValue = character[check.stat as keyof Character] || 0;
+
   return (
-    <div
-      style={{
-        background: theme.background,
-        color: theme.primary,
-        border: `2px solid ${theme.secondary}`,
-        padding: "2rem",
-        borderRadius: "16px",
-        maxWidth: "540px",
-        margin: "3rem auto",
-        boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
-        fontFamily: "serif",
-        textAlign: "center"
-      }}
-    >
+    <div style={{ ...baseBox(theme) }}>
       <h2 style={{ color: theme.secondary }}>Detention Hall</h2>
-      {step === "intro" && (
-        <div>
-          <p style={{ fontWeight: "bold" }}>Professor Snape greets you with a sneer.</p>
-          <p>
-            "Since you seem to think rules are optional, you'll be cleaning cauldrons by hand. Three cauldrons, spotless. Then, if you can persuade me, you may go."
-          </p>
-          <button
-            onClick={() => setStep("knowledge1")}
-            style={{
-              background: theme.primary,
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              padding: "0.7em 1.5em",
-              fontWeight: "bold",
-              fontSize: "1.07em",
-              cursor: "pointer",
-              marginTop: "1.3em"
-            }}
-          >
-            Begin Cleaning
-          </button>
-        </div>
+      <p>
+        <b>{check.label}</b>
+        <br />
+        (Roll d12 + {check.stat.charAt(0).toUpperCase() + check.stat.slice(1)}, target {check.target})
+      </p>
+      <button
+        disabled={showDiceModal}
+        onClick={() => handleStartCheck(checkIdx)}
+        style={mainBtn(theme)}
+      >
+        Roll!
+      </button>
+      {typeof lastRoll === "number" && (
+        <p>
+          Last roll: <b>{lastRoll} + {statValue} = {lastRoll + statValue}</b>
+        </p>
       )}
-      {step === "knowledge1" && (
-        <div>
-          <p>
-            <b>Knowledge check:</b> Remember the correct potion residue cleaning technique.<br />
-            (Roll d12 + Knowledge, target 10)
-          </p>
-          <button
-            disabled={rolling}
-            onClick={() =>
-              rollCheck(character.knowledge || 0, 10, "knowledge1", "magic")
-            }
-            style={{
-              background: theme.accent,
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              padding: "0.7em 1.5em",
-              fontWeight: "bold",
-              fontSize: "1.07em",
-              cursor: "pointer",
-              marginTop: "1.3em"
-            }}
-          >
-            Roll!
-          </button>
-          {rolling && <p>Rolling...</p>}
-        </div>
-      )}
-      {step === "magic" && (
-        <div>
-          <p>
-            <b>Magic check:</b> Use magic to dissolve stubborn stains (but don't let Snape catch you!).<br />
-            (Roll d12 + Magic, target 11)
-          </p>
-          <button
-            disabled={rolling}
-            onClick={() =>
-              rollCheck(character.magic || 0, 11, "magic", "knowledge2")
-            }
-            style={{
-              background: theme.accent,
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              padding: "0.7em 1.5em",
-              fontWeight: "bold",
-              fontSize: "1.07em",
-              cursor: "pointer",
-              marginTop: "1.3em"
-            }}
-          >
-            Roll!
-          </button>
-          {rolling && <p>Rolling...</p>}
-        </div>
-      )}
-      {step === "knowledge2" && (
-        <div>
-          <p>
-            <b>Knowledge check:</b> Identify if all cauldrons are truly clean.<br />
-            (Roll d12 + Knowledge, target 10)
-          </p>
-          <button
-            disabled={rolling}
-            onClick={() =>
-              rollCheck(character.knowledge || 0, 10, "knowledge2", "charisma")
-            }
-            style={{
-              background: theme.accent,
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              padding: "0.7em 1.5em",
-              fontWeight: "bold",
-              fontSize: "1.07em",
-              cursor: "pointer",
-              marginTop: "1.3em"
-            }}
-          >
-            Roll!
-          </button>
-          {rolling && <p>Rolling...</p>}
-        </div>
-      )}
-      {step === "charisma" && (
-        <div>
-          <p>
-            <b>Charisma check:</b> Try to talk Snape into letting you go early.<br />
-            (Roll d12 + Charisma, target 12)
-          </p>
-          <button
-            disabled={rolling}
-            onClick={() =>
-              rollCheck(character.charisma || 0, 12, "charisma", "success")
-            }
-            style={{
-              background: theme.accent,
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              padding: "0.7em 1.5em",
-              fontWeight: "bold",
-              fontSize: "1.07em",
-              cursor: "pointer",
-              marginTop: "1.3em"
-            }}
-          >
-            Roll!
-          </button>
-          {rolling && <p>Rolling...</p>}
-        </div>
-      )}
-      {step === "success" && (
-        <div>
-          <p style={{ color: "#388e3c", fontWeight: "bold" }}>
-            You’ve impressed Snape (somehow). He grumbles, but waves you away. You are free from detention!
-          </p>
-          <button
-            onClick={finishDetention}
-            style={{
-              background: theme.secondary,
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              padding: "0.7em 1.5em",
-              fontWeight: "bold",
-              fontSize: "1.07em",
-              cursor: "pointer",
-              marginTop: "1.3em"
-            }}
-          >
-            Return to School
-          </button>
-        </div>
-      )}
-      {step === "fail" && (
-        <div>
-          <p style={{ color: "#b71c1c", fontWeight: "bold" }}>
-            Snape inspects your work and finds it lacking. “You’ll be staying late, I’m afraid.” Try again!
-          </p>
-          <button
-            onClick={() => setStep("intro")}
-            style={{
-              background: theme.secondary,
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              padding: "0.7em 1.5em",
-              fontWeight: "bold",
-              fontSize: "1.07em",
-              cursor: "pointer",
-              marginTop: "1.3em"
-            }}
-          >
-            Try Again
-          </button>
+      {showDiceModal && (
+        <div style={diceModalStyle}>
+          <div style={diceModalInnerStyle(theme)}>
+            <DiceButton
+              allowedDice={[12]}
+              highlightDice={12}
+              showModal={true}
+              onRoll={handleDiceRoll}
+              onClose={() => setShowDiceModal(false)}
+            />
+          </div>
         </div>
       )}
     </div>
   );
 };
+
+// --- Styling helpers
+function baseBox(theme: any) {
+  return {
+    background: theme.background,
+    color: theme.primary,
+    border: `2px solid ${theme.secondary}`,
+    padding: "2rem",
+    borderRadius: "16px",
+    maxWidth: "540px",
+    margin: "3rem auto",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
+    fontFamily: "serif",
+    textAlign: "center"
+  };
+}
+function mainBtn(theme: any) {
+  return {
+    background: theme.secondary,
+    color: "#fff",
+    border: "none",
+    borderRadius: "8px",
+    padding: "0.7em 1.5em",
+    fontWeight: "bold",
+    fontSize: "1.07em",
+    cursor: "pointer",
+    marginTop: "1.3em"
+  };
+}
+const diceModalStyle: React.CSSProperties = {
+  position: "fixed",
+  left: 0,
+  top: 0,
+  width: "100vw",
+  height: "100vh",
+  background: "rgba(0,0,0,0.18)",
+  zIndex: 2000,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center"
+};
+const diceModalInnerStyle = (theme: any): React.CSSProperties => ({
+  background: "#fffbe9",
+  border: `2px solid ${theme.secondary}`,
+  borderRadius: "16px",
+  minWidth: 180,
+  minHeight: 120,
+  zIndex: 2100,
+  padding: "2rem",
+  boxShadow: "0 2px 12px rgba(0,0,0,0.10)",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center"
+});
 
 export default Detentions;
