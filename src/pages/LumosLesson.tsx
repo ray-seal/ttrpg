@@ -65,6 +65,9 @@ export default function LumosLesson({
   onComplete,
   character = {},
 }) {
+  // Always allow Lumos in this lesson!
+  const spells = Array.from(new Set([...(unlockedSpells || []), "Lumos"]));
+
   // Maze, player and lesson state
   const [maze, setMaze] = useState(() => generateMaze(GRID_SIZE));
   const [player, setPlayer] = useState({ x: 1, y: 1 });
@@ -74,6 +77,7 @@ export default function LumosLesson({
   const [message, setMessage] = useState("");
   const [showSpellbook, setShowSpellbook] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
+  const [showDice, setShowDice] = useState(false);
   const [path, setPath] = useState([[1, 1]]); // Player's path
 
   // For the intro message
@@ -159,6 +163,7 @@ export default function LumosLesson({
   function handleDiceRoll(result) {
     setMovement(result);
     setMessage(`You rolled a ${result}. Move up to ${result} spaces.`);
+    setShowDice(false);
   }
 
   // Render maze grid with vision mask
@@ -231,7 +236,7 @@ export default function LumosLesson({
       >
         <h4>Spellbook</h4>
         {["Lumos", "Alohomora", "Wingardium Leviosa"].map((spell) =>
-          unlockedSpells.includes(spell) ? (
+          spells.includes(spell) ? (
             <button
               key={spell}
               style={{
@@ -414,14 +419,35 @@ export default function LumosLesson({
         📖
       </button>
       {showSpellbook && <SpellbookModal />}
-      {/* Dice roller bottom right */}
-      <div style={{ position: "fixed", right: 24, bottom: 24, zIndex: 1200 }}>
+      {/* Dice roller floating button (opens modal) */}
+      <button
+        style={{
+          position: "fixed",
+          right: 24,
+          bottom: 24,
+          zIndex: 1200,
+          background: "#fff",
+          border: "2px solid #d3c56b",
+          borderRadius: "50%",
+          width: 60,
+          height: 60,
+          fontWeight: "bold",
+          fontSize: "1.5em",
+          boxShadow: "0 2px 10px rgba(0,0,0,0.10)"
+        }}
+        onClick={() => setShowDice(true)}
+        aria-label="Roll dice"
+      >
+        🎲
+      </button>
+      {showDice && (
         <DiceButton
           allowedDice={[6]}
-          showModal={false}
+          showModal={true}
           onRoll={handleDiceRoll}
+          onClose={() => setShowDice(false)}
         />
-      </div>
+      )}
     </div>
   );
 }
