@@ -26,7 +26,7 @@ const yearOneLessons = [
     isLesson: true,
   },
   {
-    title: "Lumos",
+    title: "Lumos/nox",
     path: "/school/lumos-lesson",
     desc: "Wand-Lighting Charm",
     required: null, // We'll lock via hasUnlockedLumos
@@ -43,13 +43,6 @@ const yearOneLessons = [
     title: "Incendio",
     path: "#",
     desc: "Fire-Making Spell",
-    required: null,
-    isLesson: false,
-  },
-  {
-    title: "Nox",
-    path: "#",
-    desc: "Wand-Extinguishing Charm",
     required: null,
     isLesson: false,
   },
