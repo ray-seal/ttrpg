@@ -93,6 +93,21 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     }
   }, [character, progressKey, flagsKey]);
 
+  // ---- SYNC CAMPAIGN FLAGS TO CHARACTER FLAGS ----
+  useEffect(() => {
+    if (character && flags) {
+      setCharacter({
+        ...character,
+        flags: {
+          ...(character.flags || {}),
+          ...flags,
+        }
+      });
+    }
+    // eslint-disable-next-line
+  }, [flags]);
+  // ------------------------------------------------
+
   const scene = (campaignData.scenes as Scene[]).find((s) => s.id === sceneId);
 
   // Helper for checking if a choice should be shown
