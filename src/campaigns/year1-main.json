@@ -210,14 +210,7 @@
   "id": "troll_epilogue",
   "text": "The story of how you took on a troll spreads throughout the school, some call you dumb, others call you a hero, but nobody talks of anything else. At least not for a while",
   "choices": [
-    { "text": "Continue", "next": "term_two" }
-  ]
-},
-{
-  "id": "term_two",
-  "text": "The new term begins, the whole school is still buzzing with rumours about what happened in that bathroom, but only you know the truth. You go into your second term at Hogwarts ready to learn.",
-  "choices": [
-    { "text": "Go to class", "next": "school_termtwo" }
+    { "text": "Continue", "next": "school_termtwo" }
   ]
 },
 {
