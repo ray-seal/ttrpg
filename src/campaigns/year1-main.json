@@ -97,7 +97,7 @@
   "text": "You let fly with all your might...",
    "choices": [
     { "text": "Roll",
-    "roll": { "stat": "courage", "target": 10, "success": "troll_throw_success", "fail": "troll_throw_fail" }
+    "roll": { "stat": "courage", "target": 15, "success": "troll_throw_success", "fail": "troll_throw_fail" }
    }
   ]
 },
@@ -128,7 +128,7 @@
   "text": "the troll swings its fist...",
   "choices": [
     { "text": "Roll",
-    "roll": { "stat": "agility", "target": 10, "success": "troll_dodge_success", "fail": "troll_dodge_fail" }
+    "roll": { "stat": "agility", "target": 15, "success": "troll_dodge_success", "fail": "troll_dodge_fail" }
     }
   ]
 },
@@ -158,7 +158,7 @@
   "text": "You desperately try to remember something useful...",
   "choices": [
     { "text": "Roll", 
-    "roll": { "stat": "knowledge", "target": 10, "success": "troll_jump_success", "fail": "troll_jump_fail" }
+    "roll": { "stat": "knowledge", "target": 15, "success": "troll_jump_success", "fail": "troll_jump_fail" }
     }
   ]
 },
@@ -188,7 +188,7 @@
   "text": "Your spell hits the club, just as the troll swings downward...",
   "choices": [
     { "text": "Roll",
-    "roll": { "stat": "magic", "target": 10, "success": "troll_leviosa_success", "fail": "troll_leviosa_fail" }
+    "roll": { "stat": "magic", "target": 15, "success": "troll_leviosa_success", "fail": "troll_leviosa_fail" }
     }
   ]
 },
@@ -215,9 +215,16 @@
 },
 {
   "id": "term_two",
-  "text": "The school is still buzzing with rumours about what happened in that bathroom, but only you know the truth. You go into your second term at Hogwarts ready to learn.",
+  "text": "The new term begins, the whole school is still buzzing with rumours about what happened in that bathroom, but only you know the truth. You go into your second term at Hogwarts ready to learn.",
   "choices": [
-    { "text": "Go to class", "next": "goto_school" }
+    { "text": "Go to class", "next": "school_termtwo" }
+  ]
+},
+{
+  "id": "school_termtwo",
+  "text": "You are now beginning your second term at Hogwarts. There are new lessons to attend before your adventure continues.",
+  "choices": [
+    { "text": "Go To Class", "next": "END", "action": "gotoSchool" }
   ]
 }
   ]
