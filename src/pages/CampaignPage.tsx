@@ -18,6 +18,8 @@ type Scene = {
     next: string;
     setFlag?: string;
     action?: string;
+    requiredSpell?: string;
+    awardExperience?: number;
     roll?: {
       stat: string;
       target: number;
@@ -31,8 +33,8 @@ type Scene = {
 function interpolate(text: string, character: Character) {
   if (!text) return "";
   return text
-  .replace(/\{character\.house\}/g, character.house || "")
-  .replace(/\{character\.name\}/g, character.name || "");
+    .replace(/\{character\.house\}/g, character.house || "")
+    .replace(/\{character\.name\}/g, character.name || "");
 }
 
 const getProgressKey = (character: Character) =>
@@ -92,6 +94,24 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
   }, [character, progressKey, flagsKey]);
 
   const scene = (campaignData.scenes as Scene[]).find((s) => s.id === sceneId);
+
+  // Helper for checking if a choice should be shown
+  function choiceIsAvailable(choice: any) {
+    // Required spell check
+    if (choice.requiredSpell) {
+      // Check both character.unlockedSpells (array) and character.flags for spell unlock
+      if (
+        !(
+          (character.unlockedSpells && character.unlockedSpells.includes(choice.requiredSpell)) ||
+          (character.flags && character.flags[choice.requiredSpell])
+        )
+      ) {
+        return false;
+      }
+    }
+    // You can add flag or stat requirements here later
+    return true;
+  }
 
   if (hasDetention) {
     return (
@@ -156,6 +176,15 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     if (choice.action === "unlockSchool" && !character.hasTimetable) {
       setCharacter({ ...character, hasTimetable: true });
     }
+
+    // Award experience points (house points) if present
+    if (typeof choice.awardExperience === "number") {
+      setCharacter({
+        ...character,
+        experience: (character.experience || 0) + choice.awardExperience
+      });
+    }
+
     // If this is the "Go to school page" choice, navigate!
     if (choice.action === "gotoSchool") {
       navigate("/school");
@@ -187,14 +216,14 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
   }
 
   function handleDiceRoll(result: number, sides: number) {
-    if(!pendingRoll) return;
+    if (!pendingRoll) return;
     const { roll } = pendingRoll;
     const statValue = character[roll.stat] || 0;
     const total = result + statValue;
     setPendingRoll(null);
     setTimeout(() => {
       setSceneId(total >= roll.target ? roll.success : roll.fail);
-      }, 800);
+    }, 800);
   }
 
   if (sceneId === "END") {
@@ -268,71 +297,73 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     }}>
       <p style={{ fontSize: "1.16rem" }}>{interpolate(scene.text, character)}</p>
       <div>
-        {scene.choices.map((choice, i) => 
-        choice.roll ? (
-          <button
-            key={i}
-            style={{
-              display: "block",
-              margin: "1em 0",
-              padding: "0.8em 1.5em",
-              borderRadius: "8px",
-              fontWeight: "bold",
-              fontSize: "1.06rem",
-              background: "#d3c56b",
-              color: "#333",
-              border: "none",
-              cursor: "pointer"
-            }}
-            onClick={() => handleChoice(choice)}
-          >
-            {choice.text}
-          </button>
-        ) : (
-          <button
-          key={i}
+        {scene.choices
+          .filter(choiceIsAvailable)
+          .map((choice, i) =>
+            choice.roll ? (
+              <button
+                key={i}
+                style={{
+                  display: "block",
+                  margin: "1em 0",
+                  padding: "0.8em 1.5em",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  fontSize: "1.06rem",
+                  background: "#d3c56b",
+                  color: "#333",
+                  border: "none",
+                  cursor: "pointer"
+                }}
+                onClick={() => handleChoice(choice)}
+              >
+                {choice.text}
+              </button>
+            ) : (
+              <button
+                key={i}
+                style={{
+                  display: "block",
+                  margin: "1em 0",
+                  padding: "0.8em 1.5em",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  fontSize: "1.06rem",
+                  background: "#d3c56b",
+                  color: "#333",
+                  border: "none",
+                  cursor: "pointer"
+                }}
+                onClick={() => handleChoice(choice)}
+              >
+                {choice.text}
+              </button>
+            )
+          )}
+
+        <button
           style={{
-            display: "block",
-            margin: "1em 0",
-            padding: "0.8em 1.5em",
+            marginTop: "2em",
+            padding: "0.7em 1.6em",
             borderRadius: "8px",
-            fontWeight: "bold",
-            fontSize: "1.06rem",
-            background: "#d3c56b",
+            background: "#b7e4c7",
             color: "#333",
             border: "none",
+            fontWeight: "bold",
+            fontSize: "1.08em",
             cursor: "pointer"
           }}
-          onClick={() => handleChoice(choice)}
-          >
-            {choice.text}
-          </button>
-        )
-      )}
-
-      <button
-      style={{
-        marginTop: "2em",
-        padding: "0.7em 1.6em",
-        borderRadius: "8px",
-        background: "#b7e4c7",
-        color: "#333",
-        border: "none",
-        fontWeight: "bold",
-        fontSize: "1.08em",
-        cursor: "pointer"
-      }}
-      onClick={() => navigate("/")}
-      >
-        Back To Home
-      </button>
+          onClick={() => navigate("/")}
+        >
+          Back To Home
+        </button>
       </div>
       {pendingRoll && (
         <DiceButton
-        allowedDice={[12]}
-        showModal={true}
-        onRoll={handleDiceRoll}
-        onClose={() => setPendingRoll(null)}
+          allowedDice={[12]}
+          showModal={true}
+          onRoll={handleDiceRoll}
+          onClose={() => setPendingRoll(null)}
         />
       )}
     </div>
