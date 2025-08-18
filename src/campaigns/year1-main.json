@@ -97,7 +97,7 @@
   "text": "You let fly with all your might...",
    "choices": [
     { "text": "Roll",
-    "roll": { "stat": "courage", "target": 10, "sucess": "troll_throw_success", "fail": "troll_throw_fail" }
+    "roll": { "stat": "courage", "target": 10, "success": "troll_throw_success", "fail": "troll_throw_fail" }
    }
   ]
 },

@@ -64,7 +64,7 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
   const [flags, setFlags] = useState<Record<string, boolean>>(loadFlags(flagsKey));
 
   // Dice modal state
-  const [pendindRoll, setPendingRoll] = useState<null | {
+  const [pendingRoll, setPendingRoll] = useState<null | {
     roll: {
       stat: string;
       target: number;
@@ -193,7 +193,7 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     const total = result + statValue;
     setPendingRoll(null);
     setTimeout(() => {
-      setSceneID(total >= roll.target ? roll.success : roll.fail);
+      setSceneId(total >= roll.target ? roll.success : roll.fail);
       }, 800);
   }
 
