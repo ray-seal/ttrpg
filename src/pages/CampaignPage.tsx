@@ -231,7 +231,7 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
       borderRadius: "12px",
       boxShadow: "0 2px 12px rgba(0,0,0,0.14)"
     }}>
-      <p style={{ fontSize: "1.16rem" }}>{scene.text}</p>
+      <p style={{ fontSize: "1.16rem" }}>{interpolate(scene.text, character)}</p>
       <div>
         {scene.choices.map((choice, i) => (
           <button
