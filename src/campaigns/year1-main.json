@@ -95,7 +95,7 @@
 {
   "id": "troll_throw_result",
   "text": "You let fly with all your might...",
-   "choices" [
+   "choices": [
     { "text": "If success", "next": "troll_throw_success", "check": { "stat": "courage", "target": 10 } },
     { "text": "if fail", "next": "troll_throw_fail", "check": { "stat": "courage", "target": 10, "fail": true } }
   ]
@@ -103,7 +103,7 @@
 {
   "id": "troll_throw_success",
   "text": "Your aim is true, the porcelain flies through the air and hits the troll right on the bridge of the nose. It bellows with pain and turns its back, giving you an opening.",
-  "choices" [
+  "choices": [
     { "text": "Jump on its back!", "next": "troll_jump" },
     { "text": "Try Wingardium Leviosa", "next": "troll_leviosa" }
   ]
