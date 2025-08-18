@@ -2,19 +2,9 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Character } from "../types";
 import { houseThemes } from "../themes";
-import LumosLesson from "../lessons/LumosLesson";
 
-// Helper: true if they have completed the troll quest and reached term two
-function hasUnlockedLumos(character: Character) {
-  // You may want a more robust flag, but for now check defeatedTroll or term_two/second term flag
-  // Example: after troll_epilogue, you route to school_termtwo
-  return (
-    character.completedLessons?.includes("Wingardium Leviosa") &&
-    character.completedLessons?.includes("Alohomora") &&
-    (character.flags?.termTwoStarted ||
-      character.flags?.school_termtwo ||
-      character.flags?.defeatedTroll)
-  );
+interface Props {
+  character: Character;
 }
 
 const yearOneLessons = [
@@ -23,32 +13,28 @@ const yearOneLessons = [
     path: "/school/alohomora-lesson",
     desc: "Unlocking Charm",
     required: null,
-    isLesson: true,
   },
   {
-    title: "Lumos/nox",
+    title: "Lumos/Nox",
     path: "/school/lumos-lesson",
-    desc: "Wand-Lighting Charm",
-    required: null, // We'll lock via hasUnlockedLumos
-    isLesson: true,
+    desc: "Wand-Lighting & -Dousing Charm",
+    required: null, // gating handled below
   },
   {
     title: "Wingardium Leviosa",
     path: "/school/wingardium-leviosa-lesson",
     desc: "Levitation Charm",
     required: "Alohomora",
-    isLesson: true,
   },
   {
     title: "Incendio",
     path: "#",
     desc: "Fire-Making Spell",
     required: null,
-    isLesson: false,
   },
 ];
 
-const School: React.FC<{ character: Character }> = ({ character }) => {
+const School: React.FC<Props> = ({ character }) => {
   const theme = houseThemes[character.house];
   const completedLessons = character.completedLessons || [];
   const peevesUnlocked =
@@ -56,6 +42,9 @@ const School: React.FC<{ character: Character }> = ({ character }) => {
     !!(character.flags && character.flags.peevesPest);
   const navigate = useNavigate();
   const hasDetention = !!(character.flags && character.flags.detention);
+
+  // Only unlocked after 'school_termtwo' flag is set
+  const hasUnlockedLumos = !!(character.flags && character.flags.school_termtwo);
 
   if (hasDetention) {
     return (
@@ -174,10 +163,13 @@ const School: React.FC<{ character: Character }> = ({ character }) => {
           gap: "1rem",
         }}>
           {yearOneLessons.map(lesson => {
-            const isLocked =
-              (lesson.title === "Lumos" && !hasUnlockedLumos(character)) ||
-              (lesson.required && !completedLessons.includes(lesson.required));
-            if (lesson.isLesson && lesson.path !== "#") {
+            // Custom lock for Lumos/Nox
+            const isLumos = lesson.title === "Lumos/Nox";
+            const isLocked = isLumos
+              ? !hasUnlockedLumos
+              : lesson.required && !completedLessons.includes(lesson.required);
+
+            if (lesson.path !== "#") {
               return isLocked ? (
                 <button
                   key={lesson.title}
@@ -197,8 +189,8 @@ const School: React.FC<{ character: Character }> = ({ character }) => {
                     boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
                   }}
                   title={
-                    lesson.title === "Lumos"
-                      ? "Unlocked after completing the troll quest and learning Alohomora and Wingardium Leviosa"
+                    isLumos
+                      ? "Unlocked after completing the troll quest (term two)"
                       : `Complete ${lesson.required} to unlock`
                   }
                 >
