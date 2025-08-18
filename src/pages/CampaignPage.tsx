@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import campaignData from "../campaigns/year1-main.json";
 import { Character } from "../types";
 import { houseThemes } from "../themes";
+import DiceButton from "../components/DiceButton";
 
 interface CampaignPageProps {
   character: Character;
@@ -17,6 +18,12 @@ type Scene = {
     next: string;
     setFlag?: string;
     action?: string;
+    roll?: {
+      stat: string;
+      target: number;
+      success: string;
+      fail: string;
+    }
   }[];
   setFlag?: string;
 };
@@ -55,6 +62,17 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
 
   // Campaign flags (e.g. metPeeves, ateBreakfast, etc)
   const [flags, setFlags] = useState<Record<string, boolean>>(loadFlags(flagsKey));
+
+  // Dice modal state
+  const [pendindRoll, setPendingRoll] = useState<null | {
+    roll: {
+      stat: string;
+      target: number;
+      success: string;
+      fail: string;
+    };
+    choice: any;
+  }>(null);
 
   // Save progress and flags to localStorage
   useEffect(() => {
@@ -159,7 +177,24 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
       setSceneId("END");
       return;
     }
+
+    if (choice.roll) {
+      setPendingRoll({ roll: choice.roll, choice });
+      return;
+    }
+
     setSceneId(choice.next);
+  }
+
+  function handleDiceRoll(result: number, sides: number) {
+    if(!pendingRoll) return;
+    const { roll } = pendingRoll;
+    const statValue = character[roll.stat] || 0;
+    const total = result + statValue;
+    setPendingRoll(null);
+    setTimeout(() => {
+      setSceneID(total >= roll.target ? roll.success : roll.fail);
+      }, 800);
   }
 
   if (sceneId === "END") {
@@ -233,7 +268,8 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     }}>
       <p style={{ fontSize: "1.16rem" }}>{interpolate(scene.text, character)}</p>
       <div>
-        {scene.choices.map((choice, i) => (
+        {scene.choices.map((choice, i) => 
+        choice.roll ? (
           <button
             key={i}
             style={{
@@ -252,25 +288,53 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
           >
             {choice.text}
           </button>
-        ))}
-        {/* Always show a back to home button */}
-        <button
+        ) : (
+          <button
+          key={i}
           style={{
-            marginTop: "2em",
-            padding: "0.7em 1.6em",
+            display: "block",
+            margin: "1em 0",
+            padding: "0.8em 1.5em",
             borderRadius: "8px",
-            background: "#b7e4c7",
+            fontWeight: "bold",
+            fontSize: "1.06rem",
+            background: "#d3c56b",
             color: "#333",
             border: "none",
-            fontWeight: "bold",
-            fontSize: "1.08em",
             cursor: "pointer"
           }}
-          onClick={() => navigate("/")}
-        >
-          Back to Home
-        </button>
+          onClick={() => handleChoice(choice)}
+          >
+            {choice.text}
+          </button>
+        )
+      )}
+
+      <button
+      style={{
+        marginTop: "2em",
+        padding: "0.7em 1.6em",
+        borderRadius: "8px",
+        background: "#b7e4c7",
+        color: "#333",
+        border: "none",
+        fontWeight: "bold",
+        fontSize: "1.08em",
+        cursor: "pointer"
+      }}
+      onClick={() => navigate("/")}
+      >
+        Back To Home
+      </button>
       </div>
+      {pendingRoll && (
+        <DiceButton
+        allowedDice={[12]}
+        showModal={true}
+        onRoll={handleDiceRoll}
+        onClose={() => setPendingRoll(null)}
+        />
+      )}
     </div>
   );
 };
