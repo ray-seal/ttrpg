@@ -9,7 +9,7 @@ import DiceButton from "./components/DiceButton";
 import HouseShield from "./components/HouseShield";
 import AlohomoraLesson from "./pages/AlohomoraLesson";
 import WingardiumLeviosaLesson from "./pages/WingardiumLeviosaLesson";
-import LumosLesson from "./lessons/LumosLesson";
+import LumosLesson from "./pages/LumosLesson";
 import School from "./pages/School";
 import ThemedLayout from "./components/ThemedLayout";
 import SpellBook from "./pages/Spellbook";
