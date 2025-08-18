@@ -9,6 +9,7 @@ import DiceButton from "./components/DiceButton";
 import HouseShield from "./components/HouseShield";
 import AlohomoraLesson from "./pages/AlohomoraLesson";
 import WingardiumLeviosaLesson from "./pages/WingardiumLeviosaLesson";
+import LumosLesson from "./lessons/LumosLesson";
 import School from "./pages/School";
 import ThemedLayout from "./components/ThemedLayout";
 import SpellBook from "./pages/Spellbook";
@@ -53,6 +54,17 @@ function getLevelForExperience(exp: number): number {
     level += 1;
   }
   return level;
+}
+
+// Helper: true if they have completed the troll quest and reached term two
+function hasUnlockedLumos(character: Character) {
+  return (
+    character.completedLessons?.includes("Wingardium Leviosa") &&
+    character.completedLessons?.includes("Alohomora") &&
+    (character.flags?.termTwoStarted ||
+      character.flags?.school_termtwo ||
+      character.flags?.defeatedTroll)
+  );
 }
 
 const App: React.FC = () => {
@@ -194,6 +206,33 @@ const App: React.FC = () => {
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/school/lumos-lesson"
+        element={
+          character && hasUnlockedLumos(character) ? (
+            <ThemedLayout character={character}>
+              <LumosLesson
+                character={character}
+                unlockedSpells={character.completedLessons || []}
+                onComplete={() => {
+                  // Award lesson completion if not already done
+                  if (!character.completedLessons?.includes("Lumos")) {
+                    setCharacter({
+                      ...character,
+                      completedLessons: [
+                        ...(character.completedLessons || []),
+                        "Lumos"
+                      ]
+                    });
+                  }
+                }}
+              />
+            </ThemedLayout>
+          ) : (
+            <Navigate to="/school" replace />
           )
         }
       />
