@@ -96,8 +96,9 @@
   "id": "troll_throw_result",
   "text": "You let fly with all your might...",
    "choices": [
-    { "text": "If success", "next": "troll_throw_success", "check": { "stat": "courage", "target": 10 } },
-    { "text": "if fail", "next": "troll_throw_fail", "check": { "stat": "courage", "target": 10, "fail": true } }
+    { "text": "Roll",
+    "roll": { "stat": "courage", "target": 10, "sucess": "troll_throw_success", "fail": "troll_throw_fail" }
+   }
   ]
 },
 {
@@ -105,7 +106,7 @@
   "text": "Your aim is true, the porcelain flies through the air and hits the troll right on the bridge of the nose. It bellows with pain and turns its back, giving you an opening.",
   "choices": [
     { "text": "Jump on its back!", "next": "troll_jump" },
-    { "text": "Try Wingardium Leviosa", "next": "troll_leviosa" }
+    { "text": "Wingardium Leviosa", "next": "troll_leviosa" }
   ]
 },
 {
@@ -126,15 +127,16 @@
   "id": "troll_dodge_result",
   "text": "the troll swings its fist...",
   "choices": [
-    { "text": "If success", "next": "troll_dodge_success", "check": { "stat": "agility", "target": 11 } },
-    { "text": "If fail", "next": "troll_dodge_fail", "check": { "stat": "agility", "target": 11, "fail": true } }
+    { "text": "Roll",
+    "roll": { "stat": "agility", "target": 10, "success": "troll_dodge_success", "fail": "troll_dodge_fail" }
+    }
   ]
 },
 {
   "id": "troll_dodge_success",
   "text": "You dive aside, just in time! The troll stumbles forward, dazed.",
   "choices": [
-    { "text": "Try Wingardium Leviosa", "next": "troll_leviosa" }
+    { "text": "Wingardium Leviosa", "next": "troll_leviosa" }
   ]
 },
 {
@@ -155,8 +157,9 @@
   "id": "troll_jump_result",
   "text": "You desperately try to remember something useful...",
   "choices": [
-    { "text": "If success", "next": "troll_jump_success", "check": { "stat": "knowledge", "target": 10 } },
-    { "text": "If fail", "next": "troll_jump_fail", "check": { "stat": "knowledge", "target": 10, "fail": true } }
+    { "text": "Roll", 
+    "roll": { "stat": "knowledge", "target": 10, "success": "troll_jump_success", "fail": "troll_jump_fail" }
+    }
   ]
 },
 {
@@ -184,8 +187,9 @@
   "id": "troll_leviosa_result",
   "text": "Your spell hits the club, just as the troll swings downward...",
   "choices": [
-    { "text": "If success", "next": "troll_leviosa_success", "check": { "stat": "magic", "target": 12 } },
-    { "text": "If fail", "next": "troll_leviosa_fail", "check": { "stat": "magic", "target": 12, "fail": true } }
+    { "text": "Roll",
+    "roll": { "stat": "magic", "target": 10, "success": "troll_leviosa_success", "fail": "troll_leviosa_fail" }
+    }
   ]
 },
 {
