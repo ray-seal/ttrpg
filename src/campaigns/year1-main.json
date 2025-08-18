@@ -216,6 +216,7 @@
 {
   "id": "school_termtwo",
   "text": "You are now beginning your second term at Hogwarts. There are new lessons to attend before your adventure continues.",
+  "setFlag": "school_termtwo",
   "choices": [
     { "text": "Go To Class", "next": "END", "action": "gotoSchool" }
   ]
