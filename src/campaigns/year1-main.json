@@ -209,6 +209,7 @@
     {
       "id": "troll_epilogue",
       "text": "The story of how you took on a troll spreads throughout the school, some call you dumb, others call you a hero, but nobody talks of anything else. At least not for a while",
+      "setFlag": "school_termtwo",
       "choices": [
         { "text": "Continue", "next": "school_termtwo" }
       ]
