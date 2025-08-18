@@ -56,15 +56,9 @@ function getLevelForExperience(exp: number): number {
   return level;
 }
 
-// Helper: true if they have completed the troll quest and reached term two
+// Helper to check if school_termtwo flag is set
 function hasUnlockedLumos(character: Character) {
-  return (
-    character.completedLessons?.includes("Wingardium Leviosa") &&
-    character.completedLessons?.includes("Alohomora") &&
-    (character.flags?.termTwoStarted ||
-      character.flags?.school_termtwo ||
-      character.flags?.defeatedTroll)
-  );
+  return !!(character.flags && character.flags.school_termtwo);
 }
 
 const App: React.FC = () => {
@@ -217,18 +211,7 @@ const App: React.FC = () => {
               <LumosLesson
                 character={character}
                 unlockedSpells={character.completedLessons || []}
-                onComplete={() => {
-                  // Award lesson completion if not already done
-                  if (!character.completedLessons?.includes("Lumos")) {
-                    setCharacter({
-                      ...character,
-                      completedLessons: [
-                        ...(character.completedLessons || []),
-                        "Lumos"
-                      ]
-                    });
-                  }
-                }}
+                setCharacter={setCharacter}
               />
             </ThemedLayout>
           ) : (
