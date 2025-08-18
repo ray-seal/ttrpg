@@ -21,6 +21,13 @@ type Scene = {
   setFlag?: string;
 };
 
+function interpolate(text: string, character: Character) {
+  if (!text) return "";
+  return text
+  .replace(/\{character\.house\}/g, character.house || "")
+  .replace(/\{character\.name\}/g, character.name || "");
+}
+
 const getProgressKey = (character: Character) =>
   `campaignProgress_${character.id ?? character.name ?? "default"}`;
 
