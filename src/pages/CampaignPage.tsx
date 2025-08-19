@@ -11,16 +11,15 @@ interface CampaignPageProps {
 
 const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) => {
   const [currentSceneId, setCurrentSceneId] = useState(character.currentSceneId || "wakeup");
-  const [rolling, setRolling] = useState(false);
+  const [rolling, setRolling] = useState<any>(null);
   const [rollResult, setRollResult] = useState<number | null>(null);
   const [showDice, setShowDice] = useState(false);
   const [showItemModal, setShowItemModal] = useState(false);
 
   const scene = scenes.scenes.find(s => s.id === currentSceneId);
 
-  // Basic scene flag/award handling (setFlag, awardExperience, awardItem, etc)
+  // Handles scene flags, XP, items, and scene transitions
   function handleChoice(choice: any) {
-    // Set flags, award XP, items, etc
     let updatedCharacter = { ...character };
 
     if (choice.setFlag) {
@@ -32,11 +31,11 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     if (choice.awardItem) {
       updatedCharacter.items = Array.from(new Set([...(updatedCharacter.items || []), choice.awardItem]));
     }
-    if (choice.action === "gotoSchool") updatedCharacter.currentSceneId = undefined;
 
-    // Advance scene
+    // Scene routing
     if (choice.next === "END") {
-      setCurrentSceneId("wakeup"); // Loop or handle ending differently as desired
+      // Go to "wakeup" or you can route to a summary/end page
+      setCurrentSceneId("wakeup");
       updatedCharacter.currentSceneId = "wakeup";
     } else {
       setCurrentSceneId(choice.next);
@@ -47,7 +46,6 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     setShowDice(false);
   }
 
-  // Used for stat rolls in scenes
   function handleRollChoice(choice: any) {
     setRolling(choice.roll);
     setShowDice(true);
@@ -56,18 +54,18 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
   function handleRollResult(diceValue: number) {
     if (typeof rolling === "object" && rolling !== null) {
       // Stat roll: e.g. {stat, target, success, fail}
-      const statValue = character[rolling.stat] || 0;
+      const statValue = Number(character[rolling.stat]) || 0;
       const total = diceValue + statValue;
       setRollResult(total);
       setShowDice(false);
       setTimeout(() => {
         handleChoice({ next: total >= rolling.target ? rolling.success : rolling.fail });
-        setRolling(false);
+        setRolling(null);
       }, 1200);
     }
   }
 
-  // Filter choices based on equipped spell, items, etc.
+  // Filter choices based on equipped spells, items, etc.
   const filteredChoices = (scene?.choices || []).filter(choice => {
     if (choice.requiredSpell && !character.unlockedSpells?.includes(choice.requiredSpell)) {
       return false;
