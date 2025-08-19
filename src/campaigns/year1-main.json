@@ -304,10 +304,15 @@
     },
     {
       "id": "restricted_success",
-      "text": "You explore the restricted section safely, learning secrets about the Philosopher's Stone. End of Term Two!",
+      "text": "You explore the restricted section safely, learning secrets about the Philosopher's Stone. End of Term Two!\n\nThank you for playing! Term Three will be added soon. Please check back for more adventures.",
       "choices": [
-        { "text": "End Term", "next": "END", "setFlag": "termTwoComplete" }
+        { "text": "Exit", "next": "end_of_content" }
       ]
+    },
+    {
+      "id": "end_of_content",
+      "text": "That's all for now! Stay tuned for Term Three.",
+      "choices": []
     }
   ]
 }
