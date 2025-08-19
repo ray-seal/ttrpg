@@ -18,8 +18,9 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
 
   const scene = scenes.scenes.find(s => s.id === currentSceneId);
 
-  // Handles scene flags, XP, items, and scene transitions
+  // Basic scene flag/award handling (setFlag, awardExperience, awardItem, etc)
   function handleChoice(choice: any) {
+    // Set flags, award XP, items, etc
     let updatedCharacter = { ...character };
 
     if (choice.setFlag) {
@@ -31,11 +32,11 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     if (choice.awardItem) {
       updatedCharacter.items = Array.from(new Set([...(updatedCharacter.items || []), choice.awardItem]));
     }
+    if (choice.action === "gotoSchool") updatedCharacter.currentSceneId = undefined;
 
-    // Scene routing
+    // Advance scene
     if (choice.next === "END") {
-      // Go to "wakeup" or you can route to a summary/end page
-      setCurrentSceneId("wakeup");
+      setCurrentSceneId("wakeup"); // Loop or handle ending differently as desired
       updatedCharacter.currentSceneId = "wakeup";
     } else {
       setCurrentSceneId(choice.next);
@@ -46,6 +47,7 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     setShowDice(false);
   }
 
+  // Used for stat rolls in scenes
   function handleRollChoice(choice: any) {
     setRolling(choice.roll);
     setShowDice(true);
@@ -65,7 +67,7 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     }
   }
 
-  // Filter choices based on equipped spells, items, etc.
+  // Filter choices based on equipped spell, items, etc.
   const filteredChoices = (scene?.choices || []).filter(choice => {
     if (choice.requiredSpell && !character.unlockedSpells?.includes(choice.requiredSpell)) {
       return false;
