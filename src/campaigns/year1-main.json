@@ -97,8 +97,7 @@
       "id": "troll_throw_result",
       "text": "You let fly with all your might...",
       "choices": [
-        {
-          "text": "Roll",
+        { "text": "Roll",
           "roll": { "stat": "courage", "target": 15, "success": "troll_throw_success", "fail": "troll_throw_fail" }
         }
       ]
@@ -129,8 +128,7 @@
       "id": "troll_dodge_result",
       "text": "the troll swings its fist...",
       "choices": [
-        {
-          "text": "Roll",
+        { "text": "Roll",
           "roll": { "stat": "agility", "target": 15, "success": "troll_dodge_success", "fail": "troll_dodge_fail" }
         }
       ]
@@ -160,8 +158,7 @@
       "id": "troll_jump_result",
       "text": "You desperately try to remember something useful...",
       "choices": [
-        {
-          "text": "Roll",
+        { "text": "Roll", 
           "roll": { "stat": "knowledge", "target": 15, "success": "troll_jump_success", "fail": "troll_jump_fail" }
         }
       ]
@@ -191,8 +188,7 @@
       "id": "troll_leviosa_result",
       "text": "Your spell hits the club, just as the troll swings downward...",
       "choices": [
-        {
-          "text": "Roll",
+        { "text": "Roll",
           "roll": { "stat": "magic", "target": 15, "success": "troll_leviosa_success", "fail": "troll_leviosa_fail" }
         }
       ]
@@ -224,7 +220,7 @@
       "text": "You are now beginning your second term at Hogwarts. There are new lessons to attend before your adventure continues.",
       "setFlag": "school_termtwo",
       "choices": [
-        { "text": "Go To Class", "next": "END", "action": "gotoSchool" }
+        { "text": "Begin Term Two Adventure", "next": "termtwo_intro" }
       ]
     },
     {
