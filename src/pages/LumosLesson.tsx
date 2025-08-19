@@ -174,9 +174,7 @@ export default function LumosLesson({
     let tiles = [];
     for (let y = 0; y < GRID_SIZE; y++) {
       for (let x = 0; x < GRID_SIZE; x++) {
-        // Vision mask
-        const dist =
-          Math.abs(x - player.x) + Math.abs(y - player.y);
+        const dist = Math.abs(x - player.x) + Math.abs(y - player.y);
         let visible = dist <= vision;
         let isPlayer = x === player.x && y === player.y;
         let isExit = maze[y][x] === 4;
@@ -341,8 +339,7 @@ export default function LumosLesson({
     );
   }
 
-  function handleCloseSpeech() {
-    setShowFlitwickSpeech(false);
+  function handleCloseSpeechAndGoToClasses() {
     // Unlock Lumos and Nox in spellbook and as equippable
     if (setCharacter) {
       const unlocked = character.unlockedSpells || [];
@@ -351,7 +348,7 @@ export default function LumosLesson({
       setCharacter({ ...character, unlockedSpells: next });
       setSpellsUnlockedThisSession(true);
     }
-    // Optionally, call onComplete if you want to auto-advance
+    navigate("/school");
   }
 
   // Flitwick's Nox speech modal
@@ -394,24 +391,7 @@ export default function LumosLesson({
               fontSize: "1.08em",
               cursor: "pointer"
             }}
-            onClick={handleCloseSpeech}
-          >
-            Close
-          </button>
-          <br />
-          <button
-            style={{
-              marginTop: "1em",
-              padding: "0.7em 1.6em",
-              borderRadius: "8px",
-              background: "#d3c56b",
-              color: "#333",
-              border: "none",
-              fontWeight: "bold",
-              fontSize: "1.08em",
-              cursor: "pointer"
-            }}
-            onClick={() => navigate("/school")}
+            onClick={handleCloseSpeechAndGoToClasses}
           >
             Back to Classes
           </button>
