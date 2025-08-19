@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Character, House } from "../types";
+import { supabase } from "../supabaseClient";
 
 const DEFAULT_ATTRIBUTE = 5;
 const STARTING_POINTS = 5;
@@ -33,6 +34,7 @@ const placeholderStudents = [
 const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [name, setName] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
   const [chosenWord, setChosenWord] = useState<"success" | "courage" | "intelligence" | "power" | null>(null);
   const [house, setHouse] = useState<House | "">("");
   const [attributes, setAttributes] = useState({
@@ -44,8 +46,24 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
   });
   const [pointsLeft, setPointsLeft] = useState(STARTING_POINTS);
 
+  // Autofill name from the user profile in Supabase
+  useEffect(() => {
+    async function fetchUserData() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        // Try to get name from user metadata
+        if (user.user_metadata && user.user_metadata.name) {
+          setName(user.user_metadata.name);
+          setStep(2); // Skip name entry if we have it
+        }
+      }
+    }
+    fetchUserData();
+  }, []);
+
   // When house is set, apply bonus point once!
-  React.useEffect(() => {
+  useEffect(() => {
     if (house && step === 3) {
       const attr = attributeByHouse[house as House];
       setAttributes(prev => ({
@@ -55,6 +73,51 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
     }
     // eslint-disable-next-line
   }, [house, step]);
+
+  // When user finishes, update Supabase character row
+  async function createOrUpdateCharacterInSupabase(newChar: Character) {
+    if (!userId) return;
+    // Check if character exists for user_id
+    const { data: existing, error: fetchError } = await supabase
+      .from("characters")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existing) {
+      // Update existing character
+      await supabase.from("characters").update({
+        name: newChar.name,
+        house: newChar.house,
+        magic: newChar.magic,
+        knowledge: newChar.knowledge,
+        courage: newChar.courage,
+        agility: newChar.agility,
+        charisma: newChar.charisma,
+        experience: newChar.experience,
+        level: newChar.level,
+        updated_at: new Date().toISOString(),
+      }).eq("user_id", userId);
+    } else {
+      // Insert new character
+      await supabase.from("characters").insert([{
+        user_id: userId,
+        name: newChar.name,
+        house: newChar.house,
+        magic: newChar.magic,
+        knowledge: newChar.knowledge,
+        courage: newChar.courage,
+        agility: newChar.agility,
+        charisma: newChar.charisma,
+        experience: newChar.experience,
+        level: newChar.level,
+        hit_points: 10,
+        scene_id: "wakeup",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }]);
+    }
+  }
 
   // Step 1: Enter name
   if (step === 1) {
@@ -83,6 +146,7 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
               marginBottom: "1rem"
             }}
             onKeyDown={e => { if (e.key === "Enter" && name.trim()) setStep(2); }}
+            disabled={!!name} // if autofilled, don't allow editing
           />
         </div>
         <button
@@ -210,6 +274,28 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
 
   // Step 4: Distribute Attribute Points (+1 bonus already applied)
   if (step === 4 && house) {
+    async function handleAttributeChange(attr: keyof typeof attributes, delta: number) {
+      const newValue = attributes[attr] + delta;
+      const min = DEFAULT_ATTRIBUTE + ((attributeByHouse[house] === attr) ? BONUS : 0);
+      if (delta > 0 && pointsLeft > 0) {
+        setAttributes(prev => ({ ...prev, [attr]: prev[attr] + 1 }));
+        setPointsLeft(pointsLeft - 1);
+        // Save to Supabase
+        await updateAttributeInSupabase(attr, newValue);
+      }
+      if (delta < 0 && attributes[attr] > min) {
+        setAttributes(prev => ({ ...prev, [attr]: prev[attr] - 1 }));
+        setPointsLeft(pointsLeft + 1);
+        // Save to Supabase
+        await updateAttributeInSupabase(attr, newValue);
+      }
+    }
+
+    async function updateAttributeInSupabase(attr: keyof typeof attributes, value: number) {
+      if (!userId) return;
+      await supabase.from("characters").update({ [attr]: value, updated_at: new Date().toISOString() }).eq("user_id", userId);
+    }
+
     return (
       <div style={{
         background: "#f7f7f7",
@@ -233,7 +319,7 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
                 {attr}: <b>{attributes[attr]}</b>
               </span>
               <button
-                onClick={() => { if (pointsLeft > 0) { setAttributes(prev => ({ ...prev, [attr]: prev[attr] + 1 })); setPointsLeft(pointsLeft - 1); } }}
+                onClick={() => handleAttributeChange(attr, 1)}
                 disabled={pointsLeft === 0}
                 style={{
                   margin: "0 0.5rem", padding: "0.25rem 0.75rem", fontWeight: "bold",
@@ -241,14 +327,7 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
                 }}
               >+</button>
               <button
-                onClick={() => {
-                  // Prevent going below default, but allow subtracting bonus if over default+bonus
-                  const min = DEFAULT_ATTRIBUTE + ((attributeByHouse[house] === attr) ? BONUS : 0);
-                  if (attributes[attr] > min) {
-                    setAttributes(prev => ({ ...prev, [attr]: prev[attr] - 1 }));
-                    setPointsLeft(pointsLeft + 1);
-                  }
-                }}
+                onClick={() => handleAttributeChange(attr, -1)}
                 disabled={attributes[attr] === DEFAULT_ATTRIBUTE + ((attributeByHouse[house] === attr) ? BONUS : 0)}
                 style={{
                   margin: "0 0.5rem", padding: "0.25rem 0.75rem", fontWeight: "bold",
@@ -261,8 +340,8 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
           ))}
         </div>
         <button
-          onClick={() => {
-            onCreate({
+          onClick={async () => {
+            const characterObj: Character = {
               name,
               house: house as House,
               magic: attributes.magic,
@@ -272,7 +351,9 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
               charisma: attributes.charisma,
               level: 1,
               experience: 0,
-            });
+            };
+            await createOrUpdateCharacterInSupabase(characterObj);
+            onCreate(characterObj);
           }}
           disabled={pointsLeft !== 0}
           style={{
