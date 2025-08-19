@@ -283,7 +283,7 @@
     },
     {
       "id": "find_mirror",
-      "text": "You find the Mirror of Erised. Before you can look into it, you hear footsteps. Christmas comes, and you find a silvery cloak among your gifts.",
+      "text": "You find the Mirror of Erised. Before you can look into it, you hear footsteps.",
       "choices": [
         { "text": "Continue", "next": "christmas_morning", "setFlag": "hasCloak", "awardItem": "Invisibility Cloak" }
       ]
