@@ -4,6 +4,7 @@ import { Character } from "../types";
 import { houseThemes } from "../themes";
 import DiceButton from "../components/DiceButton";
 import SpellBook from "./Spellbook";
+import { supabase } from "../supabaseClient";
 
 const STANDARD_BOOK = "Standard Book of Spells Grade 1";
 const GRADE1_SPELLS = [
@@ -35,6 +36,23 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
   const [cushionMethod, setCushionMethod] = useState<"magic"|"throw"|null>(null);
   const [cushionSuccess, setCushionSuccess] = useState<boolean|null>(null);
 
+  async function markSpellLearnt() {
+    const newUnlocked = Array.from(new Set([...(character.unlockedSpells ?? []), "Wingardium Leviosa"]));
+    const newCompleted = Array.from(new Set([...(character.completedLessons ?? []), "Wingardium Leviosa"]));
+    const newExp = character.experience + 12;
+    setCharacter({
+      ...character,
+      unlockedSpells: newUnlocked,
+      completedLessons: newCompleted,
+      experience: newExp,
+    });
+    await supabase.from("characters").update({
+      unlockedSpells: newUnlocked,
+      completedLessons: newCompleted,
+      experience: newExp
+    }).eq("id", character.id);
+  }
+
   function handleSpellClick(spell: string) {
     if (spell === "Wingardium Leviosa") {
       setSpellbookOpen(false);
@@ -58,19 +76,14 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
   }
 
   // Cushion part
-  function handleCushionRoll(result: number, sides: number) {
+  async function handleCushionRoll(result: number, sides: number) {
     if (sides !== 12) return;
     const total = result + character.magic;
     setRollResult(total);
     const passed = total >= 15;
     setCushionSuccess(passed);
     if (passed && !completed) {
-      setCharacter({
-        ...character,
-        unlockedSpells: Array.from(new Set([...(character.unlockedSpells ?? []), "Wingardium Leviosa"])),
-        completedLessons: Array.from(new Set([...(character.completedLessons ?? []), "Wingardium Leviosa"])),
-        experience: character.experience + 12,
-      });
+      await markSpellLearnt();
     }
     setDiceModalOpen(false);
     setStep("cushionResult");
