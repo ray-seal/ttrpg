@@ -1,246 +1,357 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Character } from "../types";
 import { houseThemes } from "../themes";
+import DiceButton from "../components/DiceButton";
+import SpellBook from "./Spellbook";
+import { supabase } from "../supabaseClient";
 
-// Main spell list
-const SPELLS = [
-  {
-    category: "Standard Book of Spells, Grade 1",
-    spells: [
-      { key: "Alohomora", name: "Alohomora", desc: "Unlocking Charm" },
-      { key: "Lumos", name: "Lumos", desc: "Wand-Lighting Charm" },
-      { key: "Wingardium Leviosa", name: "Wingardium Leviosa", desc: "Levitation Charm" },
-      { key: "Incendio", name: "Incendio", desc: "Fire-Making Spell" },
-      { key: "Nox", name: "Nox", desc: "Wand-Extinguishing Charm" }
-    ]
-  },
-  {
-    category: "Standard Book of Spells, Grade 2",
-    spells: [
-      { key: "Petrificus Totalus", name: "Petrificus Totalus", desc: "Full Body-Bind Curse" },
-      { key: "Finite Incantatem", name: "Finite Incantatem", desc: "General Counter-Spell" },
-      { key: "Expelliarmus", name: "Expelliarmus", desc: "Disarming Charm" },
-      { key: "Locomotor Mortis", name: "Locomotor Mortis", desc: "Leg-Locker Curse" },
-      { key: "Ennervate", name: "Ennervate", desc: "Reviving Spell" }
-    ]
-  },
-  {
-    category: "Defences",
-    spells: [
-      { key: "Devil's Snare Escape", name: "Devil's Snare Escape", desc: "Plant-repelling technique" },
-      { key: "Obliviate", name: "Obliviate", desc: "Memory Charm" }
-    ]
-  },
-  {
-    category: "Curses",
-    spells: [
-      // Add more curses here as you expand
-    ]
-  }
+const STANDARD_BOOK = "Standard Book of Spells Grade 1";
+const GRADE1_SPELLS = [
+  "Alohomora",
+  "Lumos",
+  "Wingardium Leviosa",
+  "Incendio",
+  "Nox"
 ];
 
 interface Props {
   character: Character;
-  setCharacter?: (char: Character) => void;
+  setCharacter: (c: Character) => void;
 }
 
-const Spellbook: React.FC<Props> = ({ character, setCharacter }) => {
-  const [tab, setTab] = useState<"all" | "equipped" | "items">("all");
+const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
   const theme = houseThemes[character.house];
-  const unlocked = character.unlockedSpells || [];
-  const equippedSpells = character.equippedSpells || [];
-  const items = character.items || [];
+  const navigate = useNavigate();
+  const completed = (character.completedLessons ?? []).includes("Alohomora");
+  const [step, setStep] = useState<"intro"|"select"|"roll"|"result"|"wrong">("intro");
+  const [spellbookOpen, setSpellbookOpen] = useState(false);
+  const [diceModalOpen, setDiceModalOpen] = useState(false);
+  const [rollResult, setRollResult] = useState<number | null>(null);
+  const [success, setSuccess] = useState<boolean | null>(null);
+
+  async function markSpellLearnt() {
+    // Update character in Supabase with new unlockedSpells, completedLessons, and +10 XP
+    const newUnlocked = Array.from(new Set([...(character.unlockedSpells ?? []), "Alohomora"]));
+    const newCompleted = Array.from(new Set([...(character.completedLessons ?? []), "Alohomora"]));
+    const newExp = character.experience + 10;
+    setCharacter({
+      ...character,
+      unlockedSpells: newUnlocked,
+      completedLessons: newCompleted,
+      experience: newExp,
+    });
+    // Persist to Supabase
+    await supabase.from("characters").update({
+      unlockedSpells: newUnlocked,
+      completedLessons: newCompleted,
+      experience: newExp
+    }).eq("id", character.id);
+  }
+
+  function handleSpellClick(spell: string) {
+    if (spell === "Alohomora") {
+      setSpellbookOpen(false);
+      setStep("roll");
+    } else {
+      setSpellbookOpen(false);
+      setStep("wrong");
+    }
+  }
+
+  async function handleDiceRoll(result: number, sides: number) {
+    if (sides !== 12) return;
+    const total = result + character.magic;
+    setRollResult(total);
+    const passed = total >= 12;
+    setSuccess(passed);
+    if (passed && !completed) {
+      await markSpellLearnt();
+    }
+    setDiceModalOpen(false);
+    setStep("result");
+  }
 
   return (
     <div
       style={{
-        background: theme.background,
-        color: theme.primary,
         border: `2px solid ${theme.secondary}`,
+        background: "rgba(255,255,255,0.60)",
+        color: theme.primary,
         padding: "2rem",
         borderRadius: "16px",
-        maxWidth: "540px",
-        margin: "3rem auto",
+        maxWidth: "420px",
+        margin: "2rem auto",
         boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
         fontFamily: "serif",
-        textAlign: "center",
-        opacity: 0.6,
-        position: "relative",
+        position: "relative"
       }}
     >
-      <Link
-        to={document.referrer.startsWith(window.location.origin) ? -1 : "/character-sheet"}
-        style={{
-          display: "inline-block",
-          marginBottom: "1.2rem",
-          background: theme.secondary,
-          color: "#fff",
-          padding: "0.7rem 1.3rem",
-          borderRadius: "8px",
-          textDecoration: "none",
-          fontWeight: "bold",
-          fontSize: "1rem",
-        }}
-      >
-        Back
-      </Link>
-      <h2>Spellbook</h2>
-      <div style={{ display: "flex", justifyContent: "center", gap: 20, margin: "2rem 0 1.3rem 0" }}>
-        <button
-          style={{
-            padding: "0.5em 1.1em",
-            borderRadius: "8px",
-            border: tab === "all" ? `2px solid ${theme.secondary}` : "2px solid #ccc",
-            background: tab === "all" ? "#fffbe9" : "#ece6da",
-            fontWeight: "bold",
-            cursor: "pointer"
-          }}
-          onClick={() => setTab("all")}
-        >All Spells</button>
-        <button
-          style={{
-            padding: "0.5em 1.1em",
-            borderRadius: "8px",
-            border: tab === "equipped" ? `2px solid ${theme.secondary}` : "2px solid #ccc",
-            background: tab === "equipped" ? "#fffbe9" : "#ece6da",
-            fontWeight: "bold",
-            cursor: "pointer"
-          }}
-          onClick={() => setTab("equipped")}
-        >Equipped Spells</button>
-        <button
-          style={{
-            padding: "0.5em 1.1em",
-            borderRadius: "8px",
-            border: tab === "items" ? `2px solid ${theme.secondary}` : "2px solid #ccc",
-            background: tab === "items" ? "#fffbe9" : "#ece6da",
-            fontWeight: "bold",
-            cursor: "pointer"
-          }}
-          onClick={() => setTab("items")}
-        >Items</button>
-      </div>
-      {tab === "all" && (
-        <div>
-          {SPELLS.map(group => (
-            <div
-              key={group.category}
-              style={{
-                margin: "2rem 0 2rem 0",
-                background: "#ece6da",
-                borderRadius: "10px",
-                padding: "1.2rem 1rem",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.07)",
-                opacity: 0.97,
-              }}
-            >
-              <h3 style={{
-                color: theme.secondary,
-                margin: "0 0 0.7em 0",
-                fontWeight: "bold",
-                fontSize: "1.13em",
-                letterSpacing: "0.02em"
-              }}>{group.category}</h3>
-              <div>
-                {group.spells.length === 0 ? (
-                  <div style={{ color: "#b71c1c", fontStyle: "italic", marginBottom: "1em" }}>No spells yet.</div>
-                ) : (
-                  group.spells.map(spell => {
-                    const isUnlocked = unlocked.includes(spell.key);
-                    return (
-                      <div
-                        key={spell.key}
-                        style={{
-                          background: isUnlocked ? "#fffbe9" : "#e0e0e0",
-                          borderRadius: "8px",
-                          margin: "0.5em 0",
-                          padding: "0.7em 1em",
-                          textAlign: "left",
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                          borderLeft: isUnlocked ? `4px solid ${theme.secondary}` : "4px solid #bbb",
-                          fontFamily: "serif"
-                        }}
-                      >
-                        <div style={{
-                          fontWeight: "bold",
-                          fontSize: "1.05em",
-                          color: isUnlocked ? theme.primary : "#888"
-                        }}>
-                          {isUnlocked ? spell.name : "???"}
-                        </div>
-                        <div style={{
-                          fontStyle: "italic",
-                          color: isUnlocked ? theme.secondary : "#bbb"
-                        }}>
-                          {isUnlocked ? spell.desc : "???"}
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+      <h2 style={{ color: theme.secondary, marginBottom: "0.5rem" }}>
+        Professor Flitwick's Charms Class
+      </h2>
+      <h3>Lesson: Alohomora</h3>
+      {step === "intro" && (
+        <>
+          <p>
+            Professor Flitwick beams, "Welcome! Today you'll learn <b>Alohomora</b>.<br />
+            Open your <b>Standard Book of Spells Grade 1</b> and select the unlocking charm!"
+          </p>
+          <button
+            style={{
+              background: theme.primary,
+              color: "#fff",
+              padding: "0.8rem 2rem",
+              borderRadius: "8px",
+              fontWeight: "bold",
+              fontSize: "1.1rem",
+              cursor: "pointer"
+            }}
+            onClick={() => setStep("select")}
+          >
+            I'm ready
+          </button>
+        </>
       )}
-      {tab === "equipped" && (
-        <div>
-          <h3 style={{ color: theme.secondary, fontWeight: "bold" }}>Your Equipped Spells</h3>
-          {equippedSpells.length === 0 && <div style={{ color: "#a09f92", fontStyle: "italic" }}>No spells equipped.</div>}
-          <ul style={{ padding: 0, margin: "1.2em 0", listStyle: "none" }}>
-            {equippedSpells.map(spell => (
-              <li
-                key={spell}
+
+      {step === "select" && (
+        <p>
+          Professor Flitwick: "Which spell will open a locked door? Open your spellbook and select it!"
+        </p>
+      )}
+
+      {step === "wrong" && (
+        <>
+          <p>
+            Professor Flitwick shakes his head. <b>"That's not quite right, try again!"</b>
+          </p>
+          <button
+            style={{
+              background: theme.primary,
+              color: "#fff",
+              padding: "0.8rem 2rem",
+              borderRadius: "8px",
+              fontWeight: "bold",
+              fontSize: "1.1rem",
+              cursor: "pointer"
+            }}
+            onClick={() => setStep("select")}
+          >
+            Try again
+          </button>
+        </>
+      )}
+
+      {step === "roll" && (
+        <>
+          <p>
+            Professor Flitwick: "Excellent! Now, roll a <b>d12</b> and add your Magic ({character.magic}). 12 or more passes!"
+          </p>
+        </>
+      )}
+
+      {step === "result" && (
+        <>
+          <p><strong>Your total roll:</strong> {rollResult}</p>
+          {success ? (
+            <>
+              <p style={{ color: "#1b5e20", fontWeight: "bold" }}>
+                Success! The door unlocks and the class applauds.
+              </p>
+              <p>
+                Professor Flitwick: "Brilliant work! {completed ? "" : "You've learned Alohomora and gained 10 experience."}"
+              </p>
+              <button
                 style={{
-                  background: "#fffbe9",
+                  background: theme.primary,
+                  color: "#fff",
+                  padding: "0.8rem 2rem",
                   borderRadius: "8px",
-                  margin: "0.5em 0",
-                  padding: "0.7em 1em",
-                  textAlign: "left",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                  borderLeft: `4px solid ${theme.secondary}`,
-                  fontFamily: "serif",
                   fontWeight: "bold",
-                  color: theme.primary
+                  fontSize: "1.1rem",
+                  cursor: "pointer"
                 }}
+                onClick={() => navigate("/school")}
               >
-                {spell}
-              </li>
-            ))}
-          </ul>
-          <div style={{ color: "#b71c1c", fontStyle: "italic", fontSize: "0.96em" }}>
-            Equipped spells are available for quick use in adventures!
+                Return to School
+              </button>
+            </>
+          ) : (
+            <>
+              <p style={{ color: "#b71c1c", fontWeight: "bold" }}>
+                Failure! The door remains locked.
+              </p>
+              <p>
+                Professor Flitwick: "Don't worry! With more study, you'll get it next time."
+              </p>
+              <button
+                style={{
+                  background: "#4287f5",
+                  color: "#fff",
+                  padding: "0.8rem 2rem",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  fontSize: "1.1rem",
+                  cursor: "pointer"
+                }}
+                onClick={() => navigate("/school")}
+              >
+                Return to School
+              </button>
+            </>
+          )}
+        </>
+      )}
+
+      {/* Floating spellbook button */}
+      <button
+        style={{
+          position: "fixed",
+          left: "2rem",
+          bottom: "2rem",
+          zIndex: 2000,
+          width: "64px",
+          height: "64px",
+          border: "none",
+          background: "none",
+          cursor: "pointer",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center"
+        }}
+        aria-label="Open Spellbook"
+        onClick={() => setSpellbookOpen(true)}
+        disabled={step !== "select"}
+      >
+        <svg
+          width={64}
+          height={64}
+          viewBox="0 0 64 64"
+          aria-hidden="true"
+          style={{ display: "block" }}
+        >
+          <rect x="8" y="12" width="48" height="40" rx="6" fill="#e6ddb8" stroke="#865c2c" strokeWidth={3}/>
+          <rect x="16" y="18" width="32" height="28" rx="2" fill="#fffbe9" />
+          <path d="M32 18 v28" stroke="#c5ae86" strokeWidth={2}/>
+          <text x="32" y="54" fontSize="10" fontWeight="bold" textAnchor="middle" fill="#865c2c">Book</text>
+        </svg>
+        <span style={{
+          fontSize: "0.95rem",
+          color: "#865c2c",
+          fontWeight: "bold",
+          marginTop: "0.2em"
+        }}>Spellbook</span>
+      </button>
+      {/* Spellbook Modal */}
+      {spellbookOpen && (
+        <div
+          style={{
+            position: "fixed", left: 0, top: 0, width: "100vw", height: "100vh",
+            background: "rgba(0,0,0,0.18)", zIndex: 3000, display: "flex", alignItems: "center", justifyContent: "center"
+          }}
+          onClick={() => setSpellbookOpen(false)}
+        >
+          <div
+            style={{
+              background: "#fffbe9",
+              border: `2px solid ${theme.secondary}`,
+              borderRadius: "16px",
+              minWidth: 320,
+              minHeight: 240,
+              zIndex: 4000,
+              padding: "2rem",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.10)",
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 style={{ color: theme.secondary, marginTop: 0 }}>Standard Book of Spells Grade 1</h3>
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              {GRADE1_SPELLS.map(spell => (
+                <li key={spell}>
+                  <button
+                    style={{
+                      background: spell === "Alohomora" ? "#b7e4c7" : "#ece6da",
+                      color: "#222",
+                      padding: "0.5em 1em",
+                      border: "1px solid #ccc",
+                      borderRadius: "6px",
+                      fontWeight: spell === "Alohomora" ? "bold" : "normal",
+                      margin: "0.5em 0",
+                      cursor: "pointer",
+                      width: "100%",
+                    }}
+                    onClick={() => handleSpellClick(spell)}
+                  >
+                    {spell}
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       )}
-      {tab === "items" && (
-        <div>
-          <h3 style={{ color: theme.secondary, fontWeight: "bold" }}>Your Items</h3>
-          {items.length === 0 && <div style={{ color: "#a09f92", fontStyle: "italic" }}>No items yet.</div>}
-          <ul style={{ padding: 0, margin: "1.2em 0", listStyle: "none" }}>
-            {items.map(item => (
-              <li
-                key={item}
-                style={{
-                  background: "#fffbe9",
-                  borderRadius: "8px",
-                  margin: "0.5em 0",
-                  padding: "0.7em 1em",
-                  textAlign: "left",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                  borderLeft: `4px solid ${theme.secondary}`,
-                  fontFamily: "serif",
-                  fontWeight: "bold",
-                  color: theme.primary
-                }}
-              >
-                {item}
-              </li>
-            ))}
-          </ul>
-          <div style={{ color: "#b71c1c", fontStyle: "italic", fontSize: "0.96em" }}>
-            Use items during your adventures for special effects!
+
+      {/* Floating dice button */}
+      <button
+        style={{
+          position: "fixed",
+          right: "2rem",
+          bottom: "2rem",
+          zIndex: 2000,
+          width: "64px",
+          height: "64px",
+          border: "none",
+          background: "none",
+          cursor: "pointer",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center"
+        }}
+        aria-label="Open Dice Roller"
+        onClick={() => setDiceModalOpen(true)}
+        disabled={step !== "roll"}
+      >
+        <span style={{
+          fontSize: "2.2rem"
+        }}>🎲</span>
+        <span style={{
+          fontSize: "0.95rem",
+          color: "#865c2c",
+          fontWeight: "bold",
+          marginTop: "0.2em"
+        }}>Roll Dice</span>
+      </button>
+      {diceModalOpen && (
+        <div
+          style={{
+            position: "fixed", left: 0, top: 0, width: "100vw", height: "100vh",
+            background: "rgba(0,0,0,0.18)", zIndex: 3000, display: "flex", alignItems: "center", justifyContent: "center"
+          }}
+          onClick={() => setDiceModalOpen(false)}
+        >
+          <div
+            style={{
+              background: "#fffbe9",
+              border: `2px solid ${theme.secondary}`,
+              borderRadius: "16px",
+              minWidth: 180,
+              minHeight: 120,
+              zIndex: 4000,
+              padding: "2rem",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.10)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center"
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <DiceButton
+              allowedDice={[12]}
+              highlightDice={12}
+              showModal={true}
+              onRoll={handleDiceRoll}
+              onClose={() => setDiceModalOpen(false)}
+            />
           </div>
         </div>
       )}
@@ -248,4 +359,4 @@ const Spellbook: React.FC<Props> = ({ character, setCharacter }) => {
   );
 };
 
-export default Spellbook;
+export default AlohomoraLesson;
