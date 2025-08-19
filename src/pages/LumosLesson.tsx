@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import DiceButton from "../components/DiceButton";
 
 // Maze generation and helpers
@@ -65,6 +66,7 @@ export default function LumosLesson({
   setCharacter,
   character = {},
 }) {
+  const navigate = useNavigate();
   // Always allow Lumos in this lesson!
   const spells = Array.from(new Set([...(unlockedSpells || []), "Lumos"]));
 
@@ -81,6 +83,7 @@ export default function LumosLesson({
   const [showFlitwickSpeech, setShowFlitwickSpeech] = useState(false);
   const [hasCompleted, setHasCompleted] = useState(false);
   const [path, setPath] = useState([[1, 1]]);
+  const [spellsUnlockedThisSession, setSpellsUnlockedThisSession] = useState(false);
 
   useEffect(() => {
     setShowIntro(true);
@@ -346,6 +349,7 @@ export default function LumosLesson({
       // Add both if not already present
       const next = Array.from(new Set([...unlocked, "Lumos", "Nox"]));
       setCharacter({ ...character, unlockedSpells: next });
+      setSpellsUnlockedThisSession(true);
     }
     // Optionally, call onComplete if you want to auto-advance
   }
@@ -393,6 +397,23 @@ export default function LumosLesson({
             onClick={handleCloseSpeech}
           >
             Close
+          </button>
+          <br />
+          <button
+            style={{
+              marginTop: "1em",
+              padding: "0.7em 1.6em",
+              borderRadius: "8px",
+              background: "#d3c56b",
+              color: "#333",
+              border: "none",
+              fontWeight: "bold",
+              fontSize: "1.08em",
+              cursor: "pointer"
+            }}
+            onClick={() => navigate("/school")}
+          >
+            Back to Classes
           </button>
         </div>
       </div>
