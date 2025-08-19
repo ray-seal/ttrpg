@@ -70,8 +70,9 @@
         { "text": "End of term feast...", "next": "troll_intro", "requiredSpell": "Wingardium Leviosa" }
       ]
     },
-    { "id": "troll_intro",
-      "text": "Your first term at Hogwarts has gone well; you've learned a few spells and made a few friends along the way. You sit in the Great Hall at the end of term feast with your friends at the {character.house} table, listening to the Headmaster's speech.",
+    {
+      "id": "troll_intro",
+      "text": "Your first term at Hogwarts has gone well; you've learned a few spells and made a few friends along the way. You sit in the Great Hall at the end of term feast with your friends at the table.",
       "choices": [
         { "text": "Continue", "next": "troll_bathroom" }
       ]
@@ -96,7 +97,8 @@
       "id": "troll_throw_result",
       "text": "You let fly with all your might...",
       "choices": [
-        { "text": "Roll",
+        {
+          "text": "Roll",
           "roll": { "stat": "courage", "target": 15, "success": "troll_throw_success", "fail": "troll_throw_fail" }
         }
       ]
@@ -127,7 +129,8 @@
       "id": "troll_dodge_result",
       "text": "the troll swings its fist...",
       "choices": [
-        { "text": "Roll",
+        {
+          "text": "Roll",
           "roll": { "stat": "agility", "target": 15, "success": "troll_dodge_success", "fail": "troll_dodge_fail" }
         }
       ]
@@ -141,7 +144,7 @@
     },
     {
       "id": "troll_dodge_fail",
-      "text": "The troll catches you with its fist, sending you sprawling. Stars dance before your eyes. It raises its club, high above its head ready to strike. You grasp your wand, 'swish and flick' the wand, and...",
+      "text": "The troll catches you with its fist, sending you sprawling. Stars dance before your eyes. It raises its club, high above its head ready to strike. You grasp your wand, 'swish and flick'...",
       "choices": [
         { "text": "Wingardium Leviosa", "next": "troll_leviosa" }
       ]
@@ -157,7 +160,8 @@
       "id": "troll_jump_result",
       "text": "You desperately try to remember something useful...",
       "choices": [
-        { "text": "Roll", 
+        {
+          "text": "Roll",
           "roll": { "stat": "knowledge", "target": 15, "success": "troll_jump_success", "fail": "troll_jump_fail" }
         }
       ]
@@ -187,7 +191,8 @@
       "id": "troll_leviosa_result",
       "text": "Your spell hits the club, just as the troll swings downward...",
       "choices": [
-        { "text": "Roll",
+        {
+          "text": "Roll",
           "roll": { "stat": "magic", "target": 15, "success": "troll_leviosa_success", "fail": "troll_leviosa_fail" }
         }
       ]
@@ -201,7 +206,7 @@
     },
     {
       "id": "troll_leviosa_fail",
-      "text": "Your spell fizzles! The troll howls and swings its club, narrowly missing you as you sprint out of the bathroom, straight into the path of Professors McGonagall, Snape, and Quirrell. The professors save the girl, but give you a stern talking to.",
+      "text": "Your spell fizzles! The troll howls and swings its club, narrowly missing you as you sprint out of the bathroom, straight into the path of Professors McGonagall, Snape, and Quirrell. They look at you, then the troll, then at each other.",
       "choices": [
         { "text": "You limp back to your dormitory, sore, tired, but at least you survived.", "next": "troll_epilogue", "setFlag": "trollSurvivor", "awardExperience": -5 }
       ]
@@ -222,92 +227,91 @@
         { "text": "Go To Class", "next": "END", "action": "gotoSchool" }
       ]
     },
-    // (Add these scenes after the current "school_termtwo" or at the end of your file)
-{
-  "id": "termtwo_intro",
-  "text": "It's the cold weeks between Halloween and Christmas. You hear rumors of a magical object hidden in the castle.",
-  "choices": [
-    { "text": "Investigate at night", "next": "night_hallways" }
-  ]
-},
-{
-  "id": "night_hallways",
-  "text": "The castle is dark and quiet. You may need Lumos to see, and Alohomora if you meet a locked door.",
-  "choices": [
-    { "text": "Use Lumos", "next": "dark_corridor", "requiredEquippedSpell": "Lumos" },
-    { "text": "Proceed in darkness (harder)", "next": "dark_corridor_nolumos" }
-  ]
-},
-{
-  "id": "dark_corridor",
-  "text": "Your wand lights the way. Ahead is a locked door.",
-  "choices": [
-    { "text": "Try Alohomora", "next": "restricted_section", "requiredEquippedSpell": "Alohomora" },
-    { "text": "Try to force the door", "next": "force_door" }
-  ]
-},
-{
-  "id": "dark_corridor_nolumos",
-  "text": "You stumble in the dark, tripping over something soft. Roll 1D12+Courage to see if you keep your nerve.",
-  "choices": [
-    { "text": "Roll for Courage", "roll": { "stat": "courage", "target": 14, "success": "dark_corridor", "fail": "run_away" } }
-  ]
-},
-{
-  "id": "force_door",
-  "text": "You try to force the door open, but it's magically locked! You'll need the right spell.",
-  "choices": [
-    { "text": "Go back", "next": "dark_corridor" }
-  ]
-},
-{
-  "id": "run_away",
-  "text": "Fear overtakes you and you dash back to your dormitory. Maybe you'll try again another night.",
-  "choices": [
-    { "text": "Try again", "next": "night_hallways" }
-  ]
-},
-{
-  "id": "restricted_section",
-  "text": "You're in the restricted section! Roll 1D12+Courage to sneak past the librarian.",
-  "choices": [
-    { "text": "Roll Courage", "roll": { "stat": "courage", "target": 14, "success": "find_mirror", "fail": "caught_library" } }
-  ]
-},
-{
-  "id": "caught_library",
-  "text": "You trip and Madam Pince catches you! She sends you back to your dormitory.",
-  "choices": [
-    { "text": "Try again next night", "next": "night_hallways" }
-  ]
-},
-{
-  "id": "find_mirror",
-  "text": "You find the Mirror of Erised. Before you can look into it, you hear footsteps. Christmas comes, and you find a silvery cloak among your gifts.",
-  "choices": [
-    { "text": "Continue", "next": "christmas_morning", "setFlag": "hasCloak", "awardItem": "Invisibility Cloak" }
-  ]
-},
-{
-  "id": "christmas_morning",
-  "text": "It's Christmas morning! You unwrap an Invisibility Cloak. You may now use items from your spellbook.",
-  "choices": [
-    { "text": "Sneak to the restricted section", "next": "sneak_with_cloak" }
-  ]
-},
-{
-  "id": "sneak_with_cloak",
-  "text": "With the cloak on, you easily slip past Filch and discover mysterious books. Try using your new item from the spellbook items page.",
-  "choices": [
-    { "text": "Use Invisibility Cloak", "next": "restricted_success", "requiredItem": "Invisibility Cloak" }
-  ]
-},
-{
-  "id": "restricted_success",
-  "text": "You explore the restricted section safely, learning secrets about the Philosopher's Stone. End of Term Two!",
-  "choices": [
-    { "text": "End Term", "next": "END", "setFlag": "termTwoComplete" }
-  ]
-}
+    {
+      "id": "termtwo_intro",
+      "text": "It's the cold weeks between Halloween and Christmas. You hear rumors of a magical object hidden in the castle.",
+      "choices": [
+        { "text": "Investigate at night", "next": "night_hallways" }
+      ]
+    },
+    {
+      "id": "night_hallways",
+      "text": "The castle is dark and quiet. You may need Lumos to see, and Alohomora if you meet a locked door.",
+      "choices": [
+        { "text": "Use Lumos", "next": "dark_corridor", "requiredEquippedSpell": "Lumos" },
+        { "text": "Proceed in darkness (harder)", "next": "dark_corridor_nolumos" }
+      ]
+    },
+    {
+      "id": "dark_corridor",
+      "text": "Your wand lights the way. Ahead is a locked door.",
+      "choices": [
+        { "text": "Try Alohomora", "next": "restricted_section", "requiredEquippedSpell": "Alohomora" },
+        { "text": "Try to force the door", "next": "force_door" }
+      ]
+    },
+    {
+      "id": "dark_corridor_nolumos",
+      "text": "You stumble in the dark, tripping over something soft. Roll 1D12+Courage to see if you keep your nerve.",
+      "choices": [
+        { "text": "Roll for Courage", "roll": { "stat": "courage", "target": 14, "success": "dark_corridor", "fail": "run_away" } }
+      ]
+    },
+    {
+      "id": "force_door",
+      "text": "You try to force the door open, but it's magically locked! You'll need the right spell.",
+      "choices": [
+        { "text": "Go back", "next": "dark_corridor" }
+      ]
+    },
+    {
+      "id": "run_away",
+      "text": "Fear overtakes you and you dash back to your dormitory. Maybe you'll try again another night.",
+      "choices": [
+        { "text": "Try again", "next": "night_hallways" }
+      ]
+    },
+    {
+      "id": "restricted_section",
+      "text": "You're in the restricted section! Roll 1D12+Courage to sneak past the librarian.",
+      "choices": [
+        { "text": "Roll Courage", "roll": { "stat": "courage", "target": 14, "success": "find_mirror", "fail": "caught_library" } }
+      ]
+    },
+    {
+      "id": "caught_library",
+      "text": "You trip and Madam Pince catches you! She sends you back to your dormitory.",
+      "choices": [
+        { "text": "Try again next night", "next": "night_hallways" }
+      ]
+    },
+    {
+      "id": "find_mirror",
+      "text": "You find the Mirror of Erised. Before you can look into it, you hear footsteps. Christmas comes, and you find a silvery cloak among your gifts.",
+      "choices": [
+        { "text": "Continue", "next": "christmas_morning", "setFlag": "hasCloak", "awardItem": "Invisibility Cloak" }
+      ]
+    },
+    {
+      "id": "christmas_morning",
+      "text": "It's Christmas morning! You unwrap an Invisibility Cloak. You may now use items from your spellbook.",
+      "choices": [
+        { "text": "Sneak to the restricted section", "next": "sneak_with_cloak" }
+      ]
+    },
+    {
+      "id": "sneak_with_cloak",
+      "text": "With the cloak on, you easily slip past Filch and discover mysterious books. Try using your new item from the spellbook items page.",
+      "choices": [
+        { "text": "Use Invisibility Cloak", "next": "restricted_success", "requiredItem": "Invisibility Cloak" }
+      ]
+    },
+    {
+      "id": "restricted_success",
+      "text": "You explore the restricted section safely, learning secrets about the Philosopher's Stone. End of Term Two!",
+      "choices": [
+        { "text": "End Term", "next": "END", "setFlag": "termTwoComplete" }
+      ]
+    }
   ]
 }
