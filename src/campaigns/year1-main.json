@@ -70,155 +70,249 @@
         { "text": "End of term feast...", "next": "troll_intro", "requiredSpell": "Wingardium Leviosa" }
       ]
     },
-    { "id": "troll_intro",
-  "text": "Your first term at Hogwarts has gone well; you've learned a few spells and made a few friends along the way. You sit in the Great Hall at the end of term feast with your friends at the {character.house} table when Professor Quirrell bursts into the hall, wild-eyed and stammering, 'Troll - there's a troll - in the dungeons! Thought you ought to know.' He then collapses in a heap. Professor Dumbledore leaps to his feet, shouting over the crowd and sending students back to their dorms. But as you follow the crowd, you overhear a rumour: a girl has been crying in the bathroom all afternoon. She won't know about the troll. You could tell a teacher... but you know magic and the troll is in the dungeons, not the bathroom. Without a moments hesitation, you slip away and race down to the bathroom...",
-"choices": [
-  { "text": "Continue", "next": "troll_bathroom" }
-]
-},
-{
-  "id": "troll_bathroom",
-  "text": "You arrive just in time to see the massive troll lumbering in, swinging its club. The girl shrieks and hides behind a row of sinks. The troll turns toward you, nostrils flaring. What do you do?",
-  "choices": [
-    { "text": "Throw something at the troll to distract it", "next": "troll_throw" },
-    { "text": "Jump on its back!", "next": "troll_jump" },
-    { "text": "Use Wingardium Leviosa to lift its club", "next": "troll_leviosa" }
-  ]
-},
-{
-  "id": "troll_throw",
-  "text": "You grab the nearest object, a piece of sink that has been smashed off, and throw with all your might at the trolls head. Roll 1D12+courage to see how bravely you act.",
-  "choices": [
-    { "text": "Roll for Courage", "next": "troll_throw_result" }
-  ]
-},
-{
-  "id": "troll_throw_result",
-  "text": "You let fly with all your might...",
-   "choices": [
-    { "text": "Roll",
-    "roll": { "stat": "courage", "target": 15, "success": "troll_throw_success", "fail": "troll_throw_fail" }
-   }
-  ]
-},
-{
-  "id": "troll_throw_success",
-  "text": "Your aim is true, the porcelain flies through the air and hits the troll right on the bridge of the nose. It bellows with pain and turns its back, giving you an opening.",
-  "choices": [
-    { "text": "Jump on its back!", "next": "troll_jump" },
-    { "text": "Wingardium Leviosa", "next": "troll_leviosa" }
-  ]
-},
-{
-  "id": "troll_throw_fail",
-  "text": "The porcelain bounces harmlessly off the trolls thick hide. Now it's angry! The troll charges towards you",
-  "choices": [
-    { "text": "Dodge out of the way", "next": "troll_dodge" }
-  ]
-},
-{
-  "id": "troll_dodge",
-  "text": "You try to dodge the troll's massive fist. Roll 1D12+Agility.",
-  "choices": [
-    { "text": "Roll for agility", "next": "troll_dodge_result" }
-  ]
-},
-{
-  "id": "troll_dodge_result",
-  "text": "the troll swings its fist...",
-  "choices": [
-    { "text": "Roll",
-    "roll": { "stat": "agility", "target": 15, "success": "troll_dodge_success", "fail": "troll_dodge_fail" }
+    {
+      "id": "troll_intro",
+      "text": "Your first term at Hogwarts has gone well; you've learned a few spells and made a few friends along the way. You sit in the Great Hall at the end of term feast with your friends at the table.",
+      "choices": [
+        { "text": "Continue", "next": "troll_bathroom" }
+      ]
+    },
+    {
+      "id": "troll_bathroom",
+      "text": "You arrive just in time to see the massive troll lumbering in, swinging its club. The girl shrieks and hides behind a row of sinks. The troll turns toward you, nostrils flaring. What do you do?",
+      "choices": [
+        { "text": "Throw something at the troll to distract it", "next": "troll_throw" },
+        { "text": "Jump on its back!", "next": "troll_jump" },
+        { "text": "Use Wingardium Leviosa to lift its club", "next": "troll_leviosa" }
+      ]
+    },
+    {
+      "id": "troll_throw",
+      "text": "You grab the nearest object, a piece of sink that has been smashed off, and throw with all your might at the trolls head. Roll 1D12+courage to see how bravely you act.",
+      "choices": [
+        { "text": "Roll for Courage", "next": "troll_throw_result" }
+      ]
+    },
+    {
+      "id": "troll_throw_result",
+      "text": "You let fly with all your might...",
+      "choices": [
+        { "text": "Roll",
+          "roll": { "stat": "courage", "target": 15, "success": "troll_throw_success", "fail": "troll_throw_fail" }
+        }
+      ]
+    },
+    {
+      "id": "troll_throw_success",
+      "text": "Your aim is true, the porcelain flies through the air and hits the troll right on the bridge of the nose. It bellows with pain and turns its back, giving you an opening.",
+      "choices": [
+        { "text": "Jump on its back!", "next": "troll_jump" },
+        { "text": "Wingardium Leviosa", "next": "troll_leviosa" }
+      ]
+    },
+    {
+      "id": "troll_throw_fail",
+      "text": "The porcelain bounces harmlessly off the trolls thick hide. Now it's angry! The troll charges towards you",
+      "choices": [
+        { "text": "Dodge out of the way", "next": "troll_dodge" }
+      ]
+    },
+    {
+      "id": "troll_dodge",
+      "text": "You try to dodge the troll's massive fist. Roll 1D12+Agility.",
+      "choices": [
+        { "text": "Roll for agility", "next": "troll_dodge_result" }
+      ]
+    },
+    {
+      "id": "troll_dodge_result",
+      "text": "the troll swings its fist...",
+      "choices": [
+        { "text": "Roll",
+          "roll": { "stat": "agility", "target": 15, "success": "troll_dodge_success", "fail": "troll_dodge_fail" }
+        }
+      ]
+    },
+    {
+      "id": "troll_dodge_success",
+      "text": "You dive aside, just in time! The troll stumbles forward, dazed.",
+      "choices": [
+        { "text": "Wingardium Leviosa", "next": "troll_leviosa" }
+      ]
+    },
+    {
+      "id": "troll_dodge_fail",
+      "text": "The troll catches you with its fist, sending you sprawling. Stars dance before your eyes. It raises its club, high above its head ready to strike. You grasp your wand, 'swish and flick'...",
+      "choices": [
+        { "text": "Wingardium Leviosa", "next": "troll_leviosa" }
+      ]
+    },
+    {
+      "id": "troll_jump",
+      "text": "You run at the troll and leap onto its back! Roll 1D12+Knowledge to recall how best to distract it from here",
+      "choices": [
+        { "text": "Roll for Knowledge", "next": "troll_jump_result" }
+      ]
+    },
+    {
+      "id": "troll_jump_result",
+      "text": "You desperately try to remember something useful...",
+      "choices": [
+        { "text": "Roll", 
+          "roll": { "stat": "knowledge", "target": 15, "success": "troll_jump_success", "fail": "troll_jump_fail" }
+        }
+      ]
+    },
+    {
+      "id": "troll_jump_success",
+      "text": "You remember: trolls are easily confused! You grab its ear and yell into it at the top of your lungs. The troll spins round, confused, and gets dizzy",
+      "choices": [
+        { "text": "Wingardium Leviosa", "next": "troll_leviosa" }
+      ]
+    },
+    {
+      "id": "troll_jump_fail",
+      "text": "You freeze, unable to think of anything clever. The troll shrugs you off, you grab your wand as it aims up to strike...",
+      "choices": [
+        { "text": "Wingardium Leviosa", "next": "troll_leviosa" }
+      ]
+    },
+    {
+      "id": "troll_leviosa",
+      "text": "You point your wand at the trolls club, swish and flick and shout 'WINGARDIUM LEVIOSA!' Roll 1D12+Magic.",
+      "choices": [
+        { "text": "Roll for Magic", "next": "troll_leviosa_result" }
+      ]
+    },
+    {
+      "id": "troll_leviosa_result",
+      "text": "Your spell hits the club, just as the troll swings downward...",
+      "choices": [
+        { "text": "Roll",
+          "roll": { "stat": "magic", "target": 15, "success": "troll_leviosa_success", "fail": "troll_leviosa_fail" }
+        }
+      ]
+    },
+    {
+      "id": "troll_leviosa_success",
+      "text": "The club soars out of the trolls hand and it swings an empty fist through the air. The club lingers for a moment then falls 'BONK' right on top of its head! The troll collapses, unconscious.",
+      "choices": [
+        { "text": "Help the girl up and return to your dormitory", "next": "troll_epilogue", "setFlag": "defeatedTroll", "awardExperience": 10 }
+      ]
+    },
+    {
+      "id": "troll_leviosa_fail",
+      "text": "Your spell fizzles! The troll howls and swings its club, narrowly missing you as you sprint out of the bathroom, straight into the path of Professors McGonagall, Snape, and Quirrell. They look at you, then the troll, then at each other.",
+      "choices": [
+        { "text": "You limp back to your dormitory, sore, tired, but at least you survived.", "next": "troll_epilogue", "setFlag": "trollSurvivor", "awardExperience": -5 }
+      ]
+    },
+    {
+      "id": "troll_epilogue",
+      "text": "The story of how you took on a troll spreads throughout the school, some call you dumb, others call you a hero, but nobody talks of anything else. At least not for a while",
+      "setFlag": "school_termtwo",
+      "choices": [
+        { "text": "Continue", "next": "school_termtwo" }
+      ]
+    },
+    {
+      "id": "school_termtwo",
+      "text": "You are now beginning your second term at Hogwarts. There are new lessons to attend before your adventure continues.",
+      "setFlag": "school_termtwo",
+      "choices": [
+        { "text": "Begin Term Two Adventure", "next": "termtwo_intro" }
+      ]
+    },
+    {
+      "id": "termtwo_intro",
+      "text": "It's the cold weeks between Halloween and Christmas. You hear rumors of a magical object hidden in the castle.",
+      "choices": [
+        { "text": "Investigate at night", "next": "night_hallways" }
+      ]
+    },
+    {
+      "id": "night_hallways",
+      "text": "The castle is dark and quiet. You may need Lumos to see, and Alohomora if you meet a locked door.",
+      "choices": [
+        { "text": "Use Lumos", "next": "dark_corridor", "requiredEquippedSpell": "Lumos" },
+        { "text": "Proceed in darkness (harder)", "next": "dark_corridor_nolumos" }
+      ]
+    },
+    {
+      "id": "dark_corridor",
+      "text": "Your wand lights the way. Ahead is a locked door.",
+      "choices": [
+        { "text": "Try Alohomora", "next": "restricted_section", "requiredEquippedSpell": "Alohomora" },
+        { "text": "Try to force the door", "next": "force_door" }
+      ]
+    },
+    {
+      "id": "dark_corridor_nolumos",
+      "text": "You stumble in the dark, tripping over something soft. Roll 1D12+Courage to see if you keep your nerve.",
+      "choices": [
+        { "text": "Roll for Courage", "roll": { "stat": "courage", "target": 14, "success": "dark_corridor", "fail": "run_away" } }
+      ]
+    },
+    {
+      "id": "force_door",
+      "text": "You try to force the door open, but it's magically locked! You'll need the right spell.",
+      "choices": [
+        { "text": "Go back", "next": "dark_corridor" }
+      ]
+    },
+    {
+      "id": "run_away",
+      "text": "Fear overtakes you and you dash back to your dormitory. Maybe you'll try again another night.",
+      "choices": [
+        { "text": "Try again", "next": "night_hallways" }
+      ]
+    },
+    {
+      "id": "restricted_section",
+      "text": "You're in the restricted section! Roll 1D12+Courage to sneak past the librarian.",
+      "choices": [
+        { "text": "Roll Courage", "roll": { "stat": "courage", "target": 14, "success": "find_mirror", "fail": "caught_library" } }
+      ]
+    },
+    {
+      "id": "caught_library",
+      "text": "You trip and Madam Pince catches you! She sends you back to your dormitory.",
+      "choices": [
+        { "text": "Try again next night", "next": "night_hallways" }
+      ]
+    },
+    {
+      "id": "find_mirror",
+      "text": "You find the Mirror of Erised. Before you can look into it, you hear footsteps.",
+      "choices": [
+        { "text": "Continue", "next": "christmas_morning", "setFlag": "hasCloak", "awardItem": "Invisibility Cloak" }
+      ]
+    },
+    {
+      "id": "christmas_morning",
+      "text": "It's Christmas morning! You unwrap an Invisibility Cloak. You may now use items from your spellbook.",
+      "choices": [
+        { "text": "Sneak to the restricted section", "next": "sneak_with_cloak" }
+      ]
+    },
+    {
+      "id": "sneak_with_cloak",
+      "text": "With the cloak on, you easily slip past Filch and discover mysterious books. Try using your new item from the spellbook items page.",
+      "choices": [
+        { "text": "Use Invisibility Cloak", "next": "restricted_success", "requiredItem": "Invisibility Cloak" }
+      ]
+    },
+    {
+      "id": "restricted_success",
+      "text": "You explore the restricted section safely, learning secrets about the Philosopher's Stone. End of Term Two!\n\nThank you for playing! Term Three will be added soon. Please check back for more adventures.",
+      "choices": [
+        { "text": "Exit", "next": "end_of_content" }
+      ]
+    },
+    {
+      "id": "end_of_content",
+      "text": "That's all for now! Stay tuned for Term Three.",
+      "choices": []
     }
-  ]
-},
-{
-  "id": "troll_dodge_success",
-  "text": "You dive aside, just in time! The troll stumbles forward, dazed.",
-  "choices": [
-    { "text": "Wingardium Leviosa", "next": "troll_leviosa" }
-  ]
-},
-{
-  "id": "troll_dodge_fail",
-  "text": "The troll catches you with its fist, sending you sprawling. Stars dance before your eyes. It raises its club, high above its head ready to strike. You grasp your wand, 'swish and flick' the mousey haired girl under the sink mouths to you",
-"choices": [
-  { "text": "Wingardium Leviosa", "next": "troll_leviosa" }
-]
-},
-{
-  "id": "troll_jump",
-  "text": "You run at the troll and leap onto its back! Roll 1D12+Knowledge to recall how best to distract it from here",
-  "choices": [
-    { "text": "Roll for Knowledge", "next": "troll_jump_result" }
-  ]
-},
-{
-  "id": "troll_jump_result",
-  "text": "You desperately try to remember something useful...",
-  "choices": [
-    { "text": "Roll", 
-    "roll": { "stat": "knowledge", "target": 15, "success": "troll_jump_success", "fail": "troll_jump_fail" }
-    }
-  ]
-},
-{
-  "id": "troll_jump_success",
-  "text": "You remember: trolls are easily confused! You grab its ear and yell into it at the top of your lungs. The troll spins round, confused, and gets dizzy",
-  "choices": [
-    { "text": "Wingardium Leviosa", "next": "troll_leviosa" }
-  ]
-},
-{
-  "id": "troll_jump_fail",
-  "text": "You freeze, unable to think of anything clever. The troll shrugs you off, you grab your wand as it aims up to strike...",
-  "choices": [
-    { "text": "Wingardium Leviosa", "next": "troll_leviosa" }
-  ]
-},
-{
-  "id": "troll_leviosa",
-  "text": "You point your wand at the trolls club, swish and flick and shout 'WINGARDIUM LEVIOSA!' Roll 1D12+Magic.",
-  "choices": [
-    { "text": "Roll for Magic", "next": "troll_leviosa_result" }
-  ]
-},
-{
-  "id": "troll_leviosa_result",
-  "text": "Your spell hits the club, just as the troll swings downward...",
-  "choices": [
-    { "text": "Roll",
-    "roll": { "stat": "magic", "target": 15, "success": "troll_leviosa_success", "fail": "troll_leviosa_fail" }
-    }
-  ]
-},
-{
-  "id": "troll_leviosa_success",
-  "text": "The club soars out of the trolls hand and it swings an empty fist through the air. The club lingers for a moment then falls 'BONK' right on top of its head! The troll collapses, unconscious. The girl peeks out, wide-eyed and grateful. Just then Professors McGonagall, Snape, and Quirrell burst into the bathroom. McGonagall looks at you over her spectacles, astonished. 'not many first years could take on a troll and live to tell the tale, ten points... will be awarded to {character.house}, for sheer dumb luck...'",
-  "choices": [
-    { "text": "Help the girl up and return to your dormitory", "next": "troll_epilogue", "setFlag": "defeatedTroll", "awardExperience": 10 }
-  ]
-},
-{
-  "id": "troll_leviosa_fail",
-  "text": "Your spell fizzles! The troll howls and swings its club, narrowly missing you as you sprint out of the bathroom, straight into the path of Professors McGonagall, Snape, and Quirrell. The professors dart into the bathroom and disarm the troll in one swift moment. They turn to you in the hallway. 'That was incredibly dangerous and foolish, five points will be taken from {character.house}. Now return to your dormitory'",
-  "choices": [
-    { "text": "You limp back to your dormitory, sore, tired, but at least you survived.", "next": "troll_epilogue", "setFlag": "trollSurvivor", "awardExperience": -5 }
-  ]
-},
-{
-  "id": "troll_epilogue",
-  "text": "The story of how you took on a troll spreads throughout the school, some call you dumb, others call you a hero, but nobody talks of anything else. At least not for a while",
-  "choices": [
-    { "text": "Continue", "next": "school_termtwo" }
-  ]
-},
-{
-  "id": "school_termtwo",
-  "text": "You are now beginning your second term at Hogwarts. There are new lessons to attend before your adventure continues.",
-  "choices": [
-    { "text": "Go To Class", "next": "END", "action": "gotoSchool" }
-  ]
-}
   ]
 }

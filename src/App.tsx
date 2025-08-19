@@ -9,6 +9,7 @@ import DiceButton from "./components/DiceButton";
 import HouseShield from "./components/HouseShield";
 import AlohomoraLesson from "./pages/AlohomoraLesson";
 import WingardiumLeviosaLesson from "./pages/WingardiumLeviosaLesson";
+import LumosLesson from "./pages/LumosLesson";
 import School from "./pages/School";
 import ThemedLayout from "./components/ThemedLayout";
 import SpellBook from "./pages/Spellbook";
@@ -53,6 +54,11 @@ function getLevelForExperience(exp: number): number {
     level += 1;
   }
   return level;
+}
+
+// Helper to check if school_termtwo flag is set
+function hasUnlockedLumos(character: Character) {
+  return !!(character.flags && character.flags.school_termtwo);
 }
 
 const App: React.FC = () => {
@@ -194,6 +200,22 @@ const App: React.FC = () => {
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/school/lumos-lesson"
+        element={
+          character && hasUnlockedLumos(character) ? (
+            <ThemedLayout character={character}>
+              <LumosLesson
+                character={character}
+                unlockedSpells={character.completedLessons || []}
+                setCharacter={setCharacter}
+              />
+            </ThemedLayout>
+          ) : (
+            <Navigate to="/school" replace />
           )
         }
       />

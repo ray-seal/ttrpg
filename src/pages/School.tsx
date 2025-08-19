@@ -15,10 +15,10 @@ const yearOneLessons = [
     required: null,
   },
   {
-    title: "Lumos",
-    path: "#",
-    desc: "Wand-Lighting Charm",
-    required: null,
+    title: "Lumos/Nox",
+    path: "/school/lumos-lesson",
+    desc: "Wand-Lighting & -Dousing Charm",
+    required: null, // gating handled below
   },
   {
     title: "Wingardium Leviosa",
@@ -32,20 +32,19 @@ const yearOneLessons = [
     desc: "Fire-Making Spell",
     required: null,
   },
-  {
-    title: "Nox",
-    path: "#",
-    desc: "Wand-Extinguishing Charm",
-    required: null,
-  },
 ];
 
 const School: React.FC<Props> = ({ character }) => {
   const theme = houseThemes[character.house];
   const completedLessons = character.completedLessons || [];
-  const peevesUnlocked = !!character.unlockedPeevesPests || !!(character.flags && character.flags.peevesPest);
+  const peevesUnlocked =
+    !!character.unlockedPeevesPests ||
+    !!(character.flags && character.flags.peevesPest);
   const navigate = useNavigate();
   const hasDetention = !!(character.flags && character.flags.detention);
+
+  // Only unlocked after 'school_termtwo' flag is set
+  const hasUnlockedLumos = !!(character.flags && character.flags.school_termtwo);
 
   if (hasDetention) {
     return (
@@ -164,7 +163,12 @@ const School: React.FC<Props> = ({ character }) => {
           gap: "1rem",
         }}>
           {yearOneLessons.map(lesson => {
-            const isLocked = lesson.required && !completedLessons.includes(lesson.required);
+            // Custom lock for Lumos/Nox
+            const isLumos = lesson.title === "Lumos/Nox";
+            const isLocked = isLumos
+              ? !hasUnlockedLumos
+              : lesson.required && !completedLessons.includes(lesson.required);
+
             if (lesson.path !== "#") {
               return isLocked ? (
                 <button
@@ -184,7 +188,11 @@ const School: React.FC<Props> = ({ character }) => {
                     cursor: "not-allowed",
                     boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
                   }}
-                  title={`Complete ${lesson.required} to unlock`}
+                  title={
+                    isLumos
+                      ? "Unlocked after completing the troll quest (term two)"
+                      : `Complete ${lesson.required} to unlock`
+                  }
                 >
                   {lesson.title}
                   <div style={{
