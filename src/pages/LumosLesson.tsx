@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DiceButton from "../components/DiceButton";
+import { supabase } from "../supabaseClient";
 
 // Maze generation and helpers
 const GRID_SIZE = 12;
@@ -89,6 +90,17 @@ export default function LumosLesson({
     setShowIntro(true);
   }, []);
 
+  async function markSpellLearnt() {
+    if (!setCharacter) return;
+    const unlocked = Array.from(new Set([...(character.unlockedSpells || []), "Lumos", "Nox"]));
+    setCharacter({ ...character, unlockedSpells: unlocked });
+    setSpellsUnlockedThisSession(true);
+    // Persist to Supabase
+    await supabase.from("characters").update({
+      unlockedSpells: unlocked
+    }).eq("id", character.id);
+  }
+
   function handleCastSpell(spell) {
     if (spell === "Lumos") {
       setLumosActive(true);
@@ -159,6 +171,7 @@ export default function LumosLesson({
       setMessage("Congratulations! You've found the exit.");
       setTimeout(() => {
         setShowFlitwickSpeech(true);
+        markSpellLearnt();
       }, 1600);
     }
   }
@@ -340,14 +353,6 @@ export default function LumosLesson({
   }
 
   function handleCloseSpeechAndGoToClasses() {
-    // Unlock Lumos and Nox in spellbook and as equippable
-    if (setCharacter) {
-      const unlocked = character.unlockedSpells || [];
-      // Add both if not already present
-      const next = Array.from(new Set([...unlocked, "Lumos", "Nox"]));
-      setCharacter({ ...character, unlockedSpells: next });
-      setSpellsUnlockedThisSession(true);
-    }
     navigate("/school");
   }
 
@@ -405,7 +410,7 @@ export default function LumosLesson({
       style={{
         position: "relative",
         width: 28 * GRID_SIZE + 2,
-        height: 28 * GRID_SIZE + 122, // +122px for controls at the bottom
+        height: 28 * GRID_SIZE + 122,
         margin: "2rem auto",
         background: "#fffbe9",
         borderRadius: 16,
@@ -414,11 +419,8 @@ export default function LumosLesson({
         flexDirection: "column"
       }}
     >
-      {/* Flitwick intro overlay */}
       {showIntro && <FlitwickIntro />}
-      {/* Maze grid */}
       <div style={{ flex: "0 0 auto" }}>{renderMaze()}</div>
-      {/* Controls and message at bottom center */}
       <div
         style={{
           width: 28 * GRID_SIZE,
@@ -476,7 +478,6 @@ export default function LumosLesson({
           )}
         </div>
       </div>
-      {/* Spellbook button */}
       <button
         style={{
           position: "fixed",
@@ -498,7 +499,6 @@ export default function LumosLesson({
         📖
       </button>
       {showSpellbook && <SpellbookModal />}
-      {/* Dice roller floating button (opens modal) */}
       <button
         style={{
           position: "fixed",
