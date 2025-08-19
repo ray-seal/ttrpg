@@ -4,6 +4,7 @@ import { Character } from "../types";
 import { houseThemes } from "../themes";
 import DiceButton from "../components/DiceButton";
 import SpellBook from "./Spellbook";
+import { supabase } from "../supabaseClient";
 
 const STANDARD_BOOK = "Standard Book of Spells Grade 1";
 const GRADE1_SPELLS = [
@@ -29,6 +30,25 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
   const [rollResult, setRollResult] = useState<number | null>(null);
   const [success, setSuccess] = useState<boolean | null>(null);
 
+  async function markSpellLearnt() {
+    // Update character in Supabase with new unlockedSpells, completedLessons, and +10 XP
+    const newUnlocked = Array.from(new Set([...(character.unlockedSpells ?? []), "Alohomora"]));
+    const newCompleted = Array.from(new Set([...(character.completedLessons ?? []), "Alohomora"]));
+    const newExp = character.experience + 10;
+    setCharacter({
+      ...character,
+      unlockedSpells: newUnlocked,
+      completedLessons: newCompleted,
+      experience: newExp,
+    });
+    // Persist to Supabase
+    await supabase.from("characters").update({
+      unlockedSpells: newUnlocked,
+      completedLessons: newCompleted,
+      experience: newExp
+    }).eq("id", character.id);
+  }
+
   function handleSpellClick(spell: string) {
     if (spell === "Alohomora") {
       setSpellbookOpen(false);
@@ -39,19 +59,14 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
     }
   }
 
-  function handleDiceRoll(result: number, sides: number) {
+  async function handleDiceRoll(result: number, sides: number) {
     if (sides !== 12) return;
     const total = result + character.magic;
     setRollResult(total);
     const passed = total >= 12;
     setSuccess(passed);
     if (passed && !completed) {
-      setCharacter({
-        ...character,
-        unlockedSpells: Array.from(new Set([...(character.unlockedSpells ?? []), "Alohomora"])),
-        completedLessons: Array.from(new Set([...(character.completedLessons ?? []), "Alohomora"])),
-        experience: character.experience + 10,
-      });
+      await markSpellLearnt();
     }
     setDiceModalOpen(false);
     setStep("result");
