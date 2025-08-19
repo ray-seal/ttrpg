@@ -18,9 +18,7 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
 
   const scene = scenes.scenes.find(s => s.id === currentSceneId);
 
-  // Basic scene flag/award handling (setFlag, awardExperience, awardItem, etc)
   function handleChoice(choice: any) {
-    // Set flags, award XP, items, etc
     let updatedCharacter = { ...character };
 
     if (choice.setFlag) {
@@ -34,10 +32,14 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     }
     if (choice.action === "gotoSchool") updatedCharacter.currentSceneId = undefined;
 
-    // Advance scene
-    if (choice.next === "END") {
-      setCurrentSceneId("wakeup"); // Loop or handle ending differently as desired
-      updatedCharacter.currentSceneId = "wakeup";
+    // End of content lock: if scene is "end_of_content", do not advance
+    if (choice.next === "end_of_content") {
+      setCurrentSceneId("end_of_content");
+      updatedCharacter.currentSceneId = "end_of_content";
+    } else if (choice.next === "END") {
+      // Lock campaign at end scene (do not restart)
+      setCurrentSceneId("end_of_content");
+      updatedCharacter.currentSceneId = "end_of_content";
     } else {
       setCurrentSceneId(choice.next);
       updatedCharacter.currentSceneId = choice.next;
@@ -47,7 +49,6 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     setShowDice(false);
   }
 
-  // Used for stat rolls in scenes
   function handleRollChoice(choice: any) {
     setRolling(choice.roll);
     setShowDice(true);
@@ -55,7 +56,6 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
 
   function handleRollResult(diceValue: number) {
     if (typeof rolling === "object" && rolling !== null) {
-      // Stat roll: e.g. {stat, target, success, fail}
       const statValue = Number(character[rolling.stat]) || 0;
       const total = diceValue + statValue;
       setRollResult(total);
@@ -67,7 +67,6 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     }
   }
 
-  // Filter choices based on equipped spell, items, etc.
   const filteredChoices = (scene?.choices || []).filter(choice => {
     if (choice.requiredSpell && !character.unlockedSpells?.includes(choice.requiredSpell)) {
       return false;
@@ -88,6 +87,14 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
         {scene?.text || "Scene not found."}
       </div>
       <div>
+        {filteredChoices.length === 0 && (
+          // Show end message if no choices and in end scene
+          currentSceneId === "end_of_content" ? (
+            <div style={{ marginTop: "2em", fontWeight: "bold", color: "#b71c1c", fontSize: "1.25em" }}>
+              Adventure complete! More coming soon.
+            </div>
+          ) : null
+        )}
         {filteredChoices.map((choice, idx) => {
           if (choice.roll) {
             return (
@@ -179,7 +186,6 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
         <ItemModal
           items={character.items || []}
           onUseItem={item => {
-            // Optionally handle item use logic here (e.g. set flag, show result, etc)
             setShowItemModal(false);
           }}
           onClose={() => setShowItemModal(false)}
