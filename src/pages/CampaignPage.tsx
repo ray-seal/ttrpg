@@ -80,6 +80,9 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
     return true;
   });
 
+  // Check if at end scene
+  const atEndOfContent = currentSceneId === "end_of_content";
+
   return (
     <div style={{ maxWidth: 660, margin: "2rem auto", background: "#fffbe9", borderRadius: 16, padding: "1.5rem 1.5rem 5rem 1.5rem", minHeight: 360, position: "relative" }}>
       <h2 style={{ margin: 0, fontFamily: "serif" }}>Hogwarts Adventure</h2>
@@ -87,13 +90,30 @@ const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) 
         {scene?.text || "Scene not found."}
       </div>
       <div>
-        {filteredChoices.length === 0 && (
-          // Show end message if no choices and in end scene
-          currentSceneId === "end_of_content" ? (
-            <div style={{ marginTop: "2em", fontWeight: "bold", color: "#b71c1c", fontSize: "1.25em" }}>
-              Adventure complete! More coming soon.
+        {filteredChoices.length === 0 && atEndOfContent && (
+          <div style={{ marginTop: "2em", fontWeight: "bold", color: "#b71c1c", fontSize: "1.25em" }}>
+            Adventure complete! More coming soon.
+            <div style={{ marginTop: "2em" }}>
+              <a
+                href="/"
+                style={{
+                  display: "inline-block",
+                  padding: "0.8em 2.2em",
+                  fontSize: "1.1em",
+                  fontWeight: "bold",
+                  background: "#ece6da",
+                  color: "#155724",
+                  border: "2px solid #d3c56b",
+                  borderRadius: "12px",
+                  textDecoration: "none",
+                  boxShadow: "0 1px 6px rgba(0,0,0,0.08)",
+                  transition: "background 0.14s",
+                }}
+              >
+                Back to Home
+              </a>
             </div>
-          ) : null
+          </div>
         )}
         {filteredChoices.map((choice, idx) => {
           if (choice.roll) {
