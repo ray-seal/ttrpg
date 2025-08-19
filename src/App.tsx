@@ -16,6 +16,8 @@ import SpellBook from "./pages/Spellbook";
 import CampaignPage from "./pages/CampaignPage";
 import PeevesPests from "./pages/PeevesPests";
 import Detentions from "./pages/Detentions";
+import AuthWizard from "./pages/AuthWizard";
+import Login from "./pages/Login"; // <-- create this page if not already
 
 const CHARACTER_KEY = "character";
 
@@ -103,6 +105,14 @@ const App: React.FC = () => {
       <Route
         path="/"
         element={<HomePage hasCharacter={!!character} />}
+      />
+      <Route
+        path="/signup"
+        element={<AuthWizard />}
+      />
+      <Route
+        path="/login"
+        element={<Login />}
       />
       <Route
         path="/character-creation"
@@ -236,7 +246,7 @@ const App: React.FC = () => {
         element={
           character ? (
             <ThemedLayout character={character}>
-            <PeevesPests character={character} setCharacter={setCharacter} />
+              <PeevesPests character={character} setCharacter={setCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
@@ -292,6 +302,8 @@ const App: React.FC = () => {
           )
         }
       />
+      {/* Fallback: go to signup */}
+      <Route path="*" element={<Navigate to="/signup" />} />
     </Routes>
   );
 };
