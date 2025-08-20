@@ -7,7 +7,10 @@ import MoneyBanner from "../components/MoneyBanner";
 const WAND_ITEM_ID = "9c1c1a36-8f3f-4c0e-b9b1-222222222222"; // Basic Wand
 const WAND_COST = 15;
 
-const Ollivanders: React.FC<{ character: Character }> = ({ character }) => {
+const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character) => void }> = ({
+  character,
+  setCharacter,
+}) => {
   const [localCharacter, setLocalCharacter] = useState<Character>(character);
   const [purchased, setPurchased] = useState(false);
   const [error, setError] = useState("");
@@ -36,7 +39,10 @@ const Ollivanders: React.FC<{ character: Character }> = ({ character }) => {
       .select("*")
       .eq("id", character.id)
       .single();
-    if (data) setLocalCharacter(data);
+    if (data) {
+      setLocalCharacter(data);
+      if (setCharacter) setCharacter(data);
+    }
   }
 
   const handlePurchase = async () => {
@@ -49,25 +55,70 @@ const Ollivanders: React.FC<{ character: Character }> = ({ character }) => {
       setError("You already have a wand!");
       return;
     }
-    await supabase.from("character_items")
-      .insert([{ character_id: character.id, item_id: WAND_ITEM_ID }]);
-    await supabase
+    // 1. Deduct money in DB FIRST (fail-safe)
+    const { error: moneyError } = await supabase
       .from("characters")
       .update({ wizarding_money: localCharacter.wizarding_money - WAND_COST })
       .eq("id", character.id);
+    if (moneyError) {
+      setError("Failed to deduct money.");
+      return;
+    }
+    // 2. Add wand to inventory in DB
+    const { error: wandError } = await supabase
+      .from("character_items")
+      .upsert(
+        [{ character_id: character.id, item_id: WAND_ITEM_ID, quantity: 1 }],
+        { onConflict: ["character_id", "item_id"] }
+      );
+    if (wandError) {
+      setError("Failed to add wand to inventory.");
+      // Optionally: refund money if wand insert fails
+      await supabase
+        .from("characters")
+        .update({ wizarding_money: localCharacter.wizarding_money })
+        .eq("id", character.id);
+      return;
+    }
     setPurchased(true);
-    await fetchCharacter();
+    // 3. Update local state to reflect changes immediately
+    setLocalCharacter((lc) => ({
+      ...lc,
+      wizarding_money: lc.wizarding_money - WAND_COST,
+    }));
+    if (setCharacter) {
+      setCharacter({
+        ...localCharacter,
+        wizarding_money: localCharacter.wizarding_money - WAND_COST,
+      });
+    }
+    await fetchCharacter(); // re-sync from DB
     await checkAlreadyHasWand();
   };
 
   return (
     <div>
       <MoneyBanner galleons={localCharacter.wizarding_money} />
-      <div style={{
-        maxWidth: 600, margin: "2rem auto", padding: "2.5rem",
-        background: "#f5efd9", borderRadius: 14, fontFamily: "serif", color: "#432c15", border: "2px solid #b79b5a"
-      }}>
-        <h2 style={{ fontFamily: "cursive", textAlign: "center", marginBottom: "1.5rem", color: "#1e1c17" }}>
+      <div
+        style={{
+          maxWidth: 600,
+          margin: "2rem auto",
+          padding: "2.5rem",
+          background: "#f5efd9",
+          borderRadius: 14,
+          fontFamily: "serif",
+          color: "#432c15",
+          border: "2px solid #b79b5a",
+        }}
+      >
+        <h2
+          style={{
+            fontFamily: "cursive",
+            textAlign: "center",
+            marginBottom: "1.5rem",
+            color: "#1e1c17",
+          }}
+        >
           Ollivanders: Makers of Fine Wands
         </h2>
         <p>
@@ -76,9 +127,17 @@ const Ollivanders: React.FC<{ character: Character }> = ({ character }) => {
         <p>
           <b>Basic Wand</b>: {WAND_COST} Galleons
         </p>
-        {error && <div style={{ color: "crimson", marginBottom: 10 }}>{error}</div>}
+        {error && (
+          <div style={{ color: "crimson", marginBottom: 10 }}>{error}</div>
+        )}
         {purchased || alreadyOwned ? (
-          <div style={{ color: "#2d6a4f", fontWeight: "bold", margin: "1.5rem 0" }}>
+          <div
+            style={{
+              color: "#2d6a4f",
+              fontWeight: "bold",
+              margin: "1.5rem 0",
+            }}
+          >
             Congratulations! You have your wand.
           </div>
         ) : (
@@ -86,15 +145,21 @@ const Ollivanders: React.FC<{ character: Character }> = ({ character }) => {
             onClick={handlePurchase}
             disabled={localCharacter.wizarding_money < WAND_COST}
             style={{
-              background: localCharacter.wizarding_money < WAND_COST ? "#ccc" : "#b79b5a",
+              background:
+                localCharacter.wizarding_money < WAND_COST
+                  ? "#ccc"
+                  : "#b79b5a",
               color: "#fff",
               padding: "1rem 2.2rem",
               borderRadius: "8px",
               fontWeight: "bold",
               fontSize: "1.1rem",
               border: "none",
-              cursor: localCharacter.wizarding_money < WAND_COST ? "not-allowed" : "pointer",
-              margin: "1.4rem 0"
+              cursor:
+                localCharacter.wizarding_money < WAND_COST
+                  ? "not-allowed"
+                  : "pointer",
+              margin: "1.4rem 0",
             }}
           >
             Buy Wand
