@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
@@ -17,9 +17,10 @@ const HomePage: React.FC<HomePageProps> = ({ hasCharacter }) => {
     supabase.auth.getSession().then(({ data }) => {
       if (isMounted) setSession(data.session);
       setLoading(false);
-      if (!data.session) {
-        navigate("/signup", { replace: true });
-      }
+      // Remove this redirect, so user always sees homepage even if not logged in
+      // if (!data.session) {
+      //   navigate("/signup", { replace: true });
+      // }
     });
     return () => {
       isMounted = false;
@@ -105,23 +106,6 @@ const HomePage: React.FC<HomePageProps> = ({ hasCharacter }) => {
             Create Character
           </Link>
         )}
-        {!session && (
-          <Link
-            to="/signup"
-            style={{
-              background: "#4287f5",
-              color: "#fff",
-              padding: "1rem",
-              borderRadius: "8px",
-              textAlign: "center",
-              textDecoration: "none",
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-            }}
-          >
-            Sign Up / Sign In
-          </Link>
-        )}
         <Link
           to="/school"
           style={{
@@ -138,51 +122,43 @@ const HomePage: React.FC<HomePageProps> = ({ hasCharacter }) => {
         >
           School
         </Link>
-        <Link
-          to="/hogsmeade"
-          style={{
-            background: "#5d4157",
-            color: "#fff",
-            padding: "1rem",
-            borderRadius: "8px",
-            textAlign: "center",
-            textDecoration: "none",
-            fontWeight: "bold",
-            fontSize: "1.1rem",
-          }}
-        >
-          Hogsmeade (Coming Soon)
-        </Link>
-        <Link
-          to="/campaign"
-          style={{
-            background: "#d3c56b",
-            color: "#333",
-            padding: "1rem",
-            borderRadius: "8px",
-            textAlign: "center",
-            textDecoration: "none",
-            fontWeight: "bold",
-            fontSize: "1.1rem",
-          }}
-        >
-          Campaign
-        </Link>
-        <Link
-          to="/help"
-          style={{
-            background: "#b7e4c7",
-            color: "#333",
-            padding: "1rem",
-            borderRadius: "8px",
-            textAlign: "center",
-            textDecoration: "none",
-            fontWeight: "bold",
-            fontSize: "1.1rem",
-          }}
-        >
-          Help (Coming Soon)
-        </Link>
+      </div>
+      {/* Always show sign up/sign in at bottom */}
+      <div style={{ position: "fixed", bottom: 24, left: 0, width: "100%", display: "flex", justifyContent: "center" }}>
+        <div style={{ display: "flex", gap: "1rem" }}>
+          <Link
+            to="/signup"
+            style={{
+              background: "#4287f5",
+              color: "#fff",
+              padding: "0.75rem 2rem",
+              borderRadius: "8px",
+              textAlign: "center",
+              textDecoration: "none",
+              fontWeight: "bold",
+              fontSize: "1rem",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+            }}
+          >
+            Sign Up
+          </Link>
+          <Link
+            to="/login"
+            style={{
+              background: "#4287f5",
+              color: "#fff",
+              padding: "0.75rem 2rem",
+              borderRadius: "8px",
+              textAlign: "center",
+              textDecoration: "none",
+              fontWeight: "bold",
+              fontSize: "1rem",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+            }}
+          >
+            Sign In
+          </Link>
+        </div>
       </div>
     </div>
   );
