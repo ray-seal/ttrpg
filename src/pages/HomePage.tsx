@@ -1,46 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import React from "react";
+import { Link } from "react-router-dom";
 
 interface HomePageProps {
   hasCharacter: boolean;
+  session: any; // Add session as a prop!
 }
 
-const HomePage: React.FC<HomePageProps> = ({ hasCharacter }) => {
-  const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<any>(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Check and set session
-    let isMounted = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (isMounted) setSession(data.session);
-      setLoading(false);
-      // Remove this redirect, so user always sees homepage even if not logged in
-      // if (!data.session) {
-      //   navigate("/signup", { replace: true });
-      // }
-    });
-    return () => {
-      isMounted = false;
-    };
-  }, [navigate]);
-
-  if (loading) {
-    return (
-      <div style={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        fontFamily: "monospace"
-      }}>
-        <h2>Loading Hogwarts Adventure...</h2>
-      </div>
-    );
-  }
-
+const HomePage: React.FC<HomePageProps> = ({ hasCharacter, session }) => {
   return (
     <div
       style={{
@@ -123,43 +89,45 @@ const HomePage: React.FC<HomePageProps> = ({ hasCharacter }) => {
           School
         </Link>
       </div>
-      {/* Always show sign up/sign in at bottom */}
-      <div style={{ position: "fixed", bottom: 24, left: 0, width: "100%", display: "flex", justifyContent: "center" }}>
-        <div style={{ display: "flex", gap: "1rem" }}>
-          <Link
-            to="/signup"
-            style={{
-              background: "#4287f5",
-              color: "#fff",
-              padding: "0.75rem 2rem",
-              borderRadius: "8px",
-              textAlign: "center",
-              textDecoration: "none",
-              fontWeight: "bold",
-              fontSize: "1rem",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-            }}
-          >
-            Sign Up
-          </Link>
-          <Link
-            to="/login"
-            style={{
-              background: "#4287f5",
-              color: "#fff",
-              padding: "0.75rem 2rem",
-              borderRadius: "8px",
-              textAlign: "center",
-              textDecoration: "none",
-              fontWeight: "bold",
-              fontSize: "1rem",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-            }}
-          >
-            Sign In
-          </Link>
+      {/* Only show sign up/sign in at bottom if NOT logged in */}
+      {!session && (
+        <div style={{ position: "fixed", bottom: 24, left: 0, width: "100%", display: "flex", justifyContent: "center" }}>
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <Link
+              to="/signup"
+              style={{
+                background: "#4287f5",
+                color: "#fff",
+                padding: "0.75rem 2rem",
+                borderRadius: "8px",
+                textAlign: "center",
+                textDecoration: "none",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+              }}
+            >
+              Sign Up
+            </Link>
+            <Link
+              to="/login"
+              style={{
+                background: "#4287f5",
+                color: "#fff",
+                padding: "0.75rem 2rem",
+                borderRadius: "8px",
+                textAlign: "center",
+                textDecoration: "none",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+              }}
+            >
+              Sign In
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
