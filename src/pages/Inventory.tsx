@@ -12,12 +12,20 @@ type InventoryItem = {
   quantity?: number;
 };
 
+type CharacterItem = {
+  id: string;
+  character_id: string;
+  item_id: string;
+  quantity: number;
+  items: InventoryItem | null; // from joined 'items'
+};
+
 type InventoryProps = {
   character: Character;
 };
 
 const Inventory: React.FC<InventoryProps> = ({ character }) => {
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [inventory, setInventory] = useState<CharacterItem[]>([]);
   const [loading, setLoading] = useState(true);
   const theme = houseThemes[character.house as House];
   const navigate = useNavigate();
@@ -25,10 +33,23 @@ const Inventory: React.FC<InventoryProps> = ({ character }) => {
   useEffect(() => {
     async function fetchInventory() {
       setLoading(true);
+
+      // Join character_items with items to get details
       const { data, error } = await supabase
-        .from("inventory")
-        .select("*")
+        .from("character_items")
+        .select(`
+          id,
+          character_id,
+          item_id,
+          quantity,
+          items (
+            id,
+            name,
+            description
+          )
+        `)
         .eq("character_id", character.id);
+
       if (!error && data) {
         setInventory(data);
       } else {
@@ -46,43 +67,45 @@ const Inventory: React.FC<InventoryProps> = ({ character }) => {
           fontFamily: "cursive",
           textAlign: "center",
           marginBottom: "1.8rem",
-          color: theme.secondary
+          color: theme.secondary,
+          textShadow: "0 2px 8px #fff"
         }}
       >
         Inventory
       </h2>
       {loading ? (
-        <div style={{ textAlign: "center", color: theme.secondary }}>Loading...</div>
+        <div style={{ textAlign: "center", color: theme.primary, fontWeight: 600 }}>Loading...</div>
       ) : inventory.length === 0 ? (
-        <div style={{ textAlign: "center", color: theme.secondary }}>
+        <div style={{ textAlign: "center", color: theme.primary, fontWeight: 600 }}>
           Your inventory is empty.
         </div>
       ) : (
         <ul style={{ padding: 0, listStyle: "none" }}>
-          {inventory.map((item) => (
+          {inventory.map((ci) => (
             <li
-              key={item.id}
+              key={ci.id}
               style={{
-                background: `${theme.background}99`,
+                background: "#fff",
                 marginBottom: "1.2rem",
                 padding: "1rem 1.2rem",
                 borderRadius: "10px",
                 border: `1.5px solid ${theme.accent}`,
                 color: theme.primary,
-                boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.10)",
                 fontFamily: "serif",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                opacity: 0.95,
+                opacity: 0.98,
+                fontWeight: 600
               }}
             >
               <span>
-                <b>{item.name}</b>
-                {item.quantity ? <> &times;{item.quantity}</> : null}
-                {item.description ? (
+                <b>{ci.items?.name || "Unknown Item"}</b>
+                {ci.quantity ? <> &times;{ci.quantity}</> : null}
+                {ci.items?.description ? (
                   <span style={{ fontStyle: "italic", marginLeft: 8, color: theme.secondary }}>
-                    — {item.description}
+                    — {ci.items.description}
                   </span>
                 ) : null}
               </span>
