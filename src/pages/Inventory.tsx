@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ThemedLayout from "../components/ThemedLayout";
 import { Character } from "../types";
 import { useNavigate } from "react-router-dom";
 import { houseThemes, House } from "../themes";
+import { supabase } from "../supabaseClient";
 
 type InventoryItem = {
   id: string;
@@ -13,12 +14,30 @@ type InventoryItem = {
 
 type InventoryProps = {
   character: Character;
-  inventory: InventoryItem[];
 };
 
-const Inventory: React.FC<InventoryProps> = ({ character, inventory }) => {
+const Inventory: React.FC<InventoryProps> = ({ character }) => {
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const theme = houseThemes[character.house as House];
   const navigate = useNavigate();
+
+  useEffect(() => {
+    async function fetchInventory() {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("inventory")
+        .select("*")
+        .eq("character_id", character.id);
+      if (!error && data) {
+        setInventory(data);
+      } else {
+        setInventory([]);
+      }
+      setLoading(false);
+    }
+    fetchInventory();
+  }, [character.id]);
 
   return (
     <ThemedLayout character={character}>
@@ -32,7 +51,9 @@ const Inventory: React.FC<InventoryProps> = ({ character, inventory }) => {
       >
         Inventory
       </h2>
-      {inventory.length === 0 ? (
+      {loading ? (
+        <div style={{ textAlign: "center", color: theme.secondary }}>Loading...</div>
+      ) : inventory.length === 0 ? (
         <div style={{ textAlign: "center", color: theme.secondary }}>
           Your inventory is empty.
         </div>
