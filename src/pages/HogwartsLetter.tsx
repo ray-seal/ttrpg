@@ -8,9 +8,11 @@ const HogwartsLetter: React.FC<{ character: any }> = ({ character }) => {
 
   async function handleContinue() {
     setLoading(true);
-    // Mark the letter as read
+    // Mark the letter as read in DB
     await supabase.from("characters").update({ letter_read: true }).eq("id", character.id);
     setLoading(false);
+    // You can show supply list as next step if desired, otherwise go straight to Diagon Alley:
+    // navigate("/hogwarts-supply-list");
     navigate("/diagon-alley");
   }
 
@@ -35,8 +37,12 @@ const HogwartsLetter: React.FC<{ character: any }> = ({ character }) => {
       </h2>
       <p>
         Dear {character.name},<br /><br />
-        We are pleased to inform you that you have a place at Hogwarts School of Witchcraft and Wizardry...
-        {/* You can add more of the letter here */}
+        We are pleased to inform you that you have a place at Hogwarts School of Witchcraft and Wizardry.<br /><br />
+        Term begins on 1 September. Please find enclosed a list of all necessary books and equipment.<br /><br />
+        We await your owl by no later than 31 July.<br /><br />
+        Yours sincerely,<br />
+        Minerva McGonagall<br />
+        Deputy Headmistress
       </p>
       <div style={{ textAlign: "center", marginTop: "2rem" }}>
         <button
