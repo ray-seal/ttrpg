@@ -37,17 +37,20 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
   const [cushionSuccess, setCushionSuccess] = useState<boolean|null>(null);
 
   async function markSpellLearnt() {
-    const newUnlocked = Array.from(new Set([...(character.unlockedSpells ?? []), "Wingardium Leviosa"]));
+    await supabase
+      .from("character_spells")
+      .upsert([
+        { character_id: character.id, spell: "Wingardium Leviosa" }
+      ], { onConflict: ["character_id", "spell"] });
+
     const newCompleted = Array.from(new Set([...(character.completedLessons ?? []), "Wingardium Leviosa"]));
-    const newExp = character.experience + 12;
+    const newExp = (character.experience ?? 0) + 10;
     setCharacter({
       ...character,
-      unlockedSpells: newUnlocked,
       completedLessons: newCompleted,
       experience: newExp,
     });
     await supabase.from("characters").update({
-      unlockedSpells: newUnlocked,
       completedLessons: newCompleted,
       experience: newExp
     }).eq("id", character.id);
@@ -280,7 +283,7 @@ const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) =
               <p>
                 {cushionMethod === "magic"
                   ? <>
-                      Professor Flitwick: "Excellent! You've mastered <i>Wingardium Leviosa</i>{completed ? "." : " and earned 12 experience."}"
+                      Professor Flitwick: "Excellent! You've mastered <i>Wingardium Leviosa</i>{completed ? "." : " and earned 10 experience."}"
                     </>
                   : <>
                       Professor Flitwick: <b>"Er... that was, um, unconventional. But the cushion's in!"</b>
