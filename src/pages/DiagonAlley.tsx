@@ -1,13 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import MoneyBanner from "../components/MoneyBanner";
-import { useLocation } from "react-router-dom";
 import { Character } from "../types";
 
-const DiagonAlley: React.FC<{ character?: Character }> = ({ character }) => {
+const DiagonAlley: React.FC<{
+  character?: Character;
+  onComplete?: () => void;
+}> = ({ character, onComplete }) => {
   const navigate = useNavigate();
-  // Optionally, you can get character from context or props
-  // If character prop isn't passed, you may want to fetch from context/store
 
   return (
     <div>
@@ -32,23 +32,28 @@ const DiagonAlley: React.FC<{ character?: Character }> = ({ character }) => {
           <button onClick={() => navigate("/gringotts-bank")} style={buttonStyle}>Gringotts Bank</button>
           <button onClick={() => navigate("/ollivanders")} style={buttonStyle}>Ollivanders - Buy a Wand</button>
           <button onClick={() => navigate("/madam-malkins")} style={buttonStyle}>Madam Malkin’s - Buy Robes</button>
+          {/* Add other shop buttons here */}
         </div>
         <div style={{ textAlign: "center", marginTop: "2rem" }}>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => {
+              if (onComplete) onComplete();
+              else navigate("/hogwarts-express");
+            }}
             style={{
               background: "#4287f5",
               color: "#fff",
-              padding: "0.75rem 2rem",
+              padding: "0.9rem 2.5rem",
               borderRadius: "8px",
               border: "none",
               fontWeight: "bold",
-              fontSize: "1rem",
+              fontSize: "1.15rem",
               cursor: "pointer",
               boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+              marginTop: "2rem"
             }}
           >
-            Back to Home
+            Done Shopping? Head to King's Cross for the Hogwarts Express
           </button>
         </div>
       </div>
