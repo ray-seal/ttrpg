@@ -12,7 +12,9 @@ const classTabs = [
   { key: "creatures", label: "Care of Magical Creatures (Coming Soon)" }
 ];
 const yearTabs = [{ key: "year1", label: "Year One" }];
-const timetableItemId = "year_one_timetable";
+
+// TODO: Update this to the real UUID from your items table for "Year One Timetable"
+const timetableItemId = "b7a8e1a9-bd62-4d50-8e2a-111111111111";
 
 const charmsLessonsYear1 = [
   {
