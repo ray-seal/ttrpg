@@ -69,7 +69,10 @@ const App: React.FC = () => {
 
   // Fetch all characters for this user
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false); // <--- Ensures loading never gets stuck!
+      return;
+    }
     setLoading(true);
     supabase
       .from("characters")
@@ -136,6 +139,21 @@ const App: React.FC = () => {
     metaThemeColor.setAttribute("content", theme.primary);
   }, [theme]);
 
+  // TEMP: Force logout button for debugging stuck sessions
+  // Remove/comment this out after debugging
+  const debugLogout = (
+    <button
+      style={{ position: "fixed", bottom: 10, right: 10, zIndex: 9999, background: "#b71c1c", color: "#fff", padding: "0.5rem 1rem", borderRadius: "8px" }}
+      onClick={async () => {
+        await supabase.auth.signOut();
+        localStorage.clear();
+        window.location.reload();
+      }}
+    >
+      Force Log Out
+    </button>
+  );
+
   if (loading) {
     return (
       <div style={{
@@ -146,225 +164,228 @@ const App: React.FC = () => {
         fontFamily: "monospace"
       }}>
         <h2>Loading Hogwarts Adventure...</h2>
+        {debugLogout}
       </div>
     );
   }
 
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={<HomePage hasCharacter={!!activeCharacter} />}
-      />
-      <Route
-        path="/signup"
-        element={<AuthWizard />}
-      />
-      <Route
-        path="/login"
-        element={<Login />}
-      />
-      <Route
-        path="/character-creation"
-        element={
-          !activeCharacter ? (
-            <CharacterCreation
-              userId={userId!}
-              characters={characters}
-              onCreate={handleCreateCharacter}
-              onSelectCharacter={handleSelectCharacter}
-            />
-          ) : (
-            <Navigate to="/character-sheet" replace />
-          )
-        }
-      />
-      <Route
-        path="/character-sheet"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <h1 style={{ color: "inherit", textAlign: "center" }}>
-                Harry Potter TTRPG
-              </h1>
-              <CharacterSheet
-                character={activeCharacter}
-                setCharacter={handleUpdateCharacter}
-                onSwitchCharacter={handleSelectCharacter}
-                onDeleteCharacter={handleReset}
+    <>
+      {debugLogout}
+      <Routes>
+        <Route
+          path="/"
+          element={<HomePage hasCharacter={!!activeCharacter} />}
+        />
+        <Route
+          path="/signup"
+          element={<AuthWizard />}
+        />
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+        <Route
+          path="/character-creation"
+          element={
+            !activeCharacter ? (
+              <CharacterCreation
+                userId={userId!}
                 characters={characters}
+                onCreate={handleCreateCharacter}
+                onSelectCharacter={handleSelectCharacter}
               />
-              <div style={{ marginTop: "2rem", textAlign: "center" }}>
-                <label htmlFor="reset-input" style={{ marginRight: "1rem" }}>
-                  Type "<b>{RESET_PHRASE}</b>" to reset this character:
-                </label>
-                <input
-                  id="reset-input"
-                  type="text"
-                  value={resetInput}
-                  onChange={(e) => setResetInput(e.target.value)}
-                  style={{
-                    padding: "0.5rem",
-                    fontSize: "1rem",
-                    marginRight: "1rem",
-                  }}
-                  autoComplete="off"
+            ) : (
+              <Navigate to="/character-sheet" replace />
+            )
+          }
+        />
+        <Route
+          path="/character-sheet"
+          element={
+            activeCharacter ? (
+              <ThemedLayout character={activeCharacter}>
+                <h1 style={{ color: "inherit", textAlign: "center" }}>
+                  Harry Potter TTRPG
+                </h1>
+                <CharacterSheet
+                  character={activeCharacter}
+                  setCharacter={handleUpdateCharacter}
+                  onSwitchCharacter={handleSelectCharacter}
+                  onDeleteCharacter={handleReset}
+                  characters={characters}
                 />
-                <button
-                  onClick={handleReset}
-                  disabled={resetInput !== RESET_PHRASE}
+                <div style={{ marginTop: "2rem", textAlign: "center" }}>
+                  <label htmlFor="reset-input" style={{ marginRight: "1rem" }}>
+                    Type "<b>{RESET_PHRASE}</b>" to reset this character:
+                  </label>
+                  <input
+                    id="reset-input"
+                    type="text"
+                    value={resetInput}
+                    onChange={(e) => setResetInput(e.target.value)}
+                    style={{
+                      padding: "0.5rem",
+                      fontSize: "1rem",
+                      marginRight: "1rem",
+                    }}
+                    autoComplete="off"
+                  />
+                  <button
+                    onClick={handleReset}
+                    disabled={resetInput !== RESET_PHRASE}
+                    style={{
+                      background:
+                        resetInput === RESET_PHRASE ? "#b71c1c" : "#e0e0e0",
+                      color: resetInput === RESET_PHRASE ? "#fff" : "#888",
+                      border: "none",
+                      borderRadius: "8px",
+                      padding: "0.5rem 1rem",
+                      cursor:
+                        resetInput === RESET_PHRASE
+                          ? "pointer"
+                          : "not-allowed",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Reset Character
+                  </button>
+                </div>
+                <DiceButton allowedDice={getAllowedDice(activeCharacter)} />
+              </ThemedLayout>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/spellbook"
+          element={
+            activeCharacter ? (
+              <ThemedLayout character={activeCharacter}>
+                <SpellBook character={activeCharacter} setCharacter={handleUpdateCharacter} />
+              </ThemedLayout>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/school"
+          element={
+            activeCharacter ? (
+              <ThemedLayout character={activeCharacter}>
+                <School character={activeCharacter} setCharacter={handleUpdateCharacter} />
+              </ThemedLayout>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/school/alohomora-lesson"
+          element={
+            activeCharacter ? (
+              <ThemedLayout character={activeCharacter}>
+                <AlohomoraLesson character={activeCharacter} setCharacter={handleUpdateCharacter} />
+              </ThemedLayout>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/school/lumos-lesson"
+          element={
+            activeCharacter && hasUnlockedLumos(activeCharacter) ? (
+              <ThemedLayout character={activeCharacter}>
+                <LumosLesson
+                  character={activeCharacter}
+                  unlockedSpells={activeCharacter.completedLessons || []}
+                  setCharacter={handleUpdateCharacter}
+                />
+              </ThemedLayout>
+            ) : (
+              <Navigate to="/school" replace />
+            )
+          }
+        />
+        <Route
+          path="/school/wingardium-leviosa-lesson"
+          element={
+            activeCharacter ? (
+              <ThemedLayout character={activeCharacter}>
+                <WingardiumLeviosaLesson character={activeCharacter} setCharacter={handleUpdateCharacter} />
+              </ThemedLayout>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/peeves-pests"
+          element={
+            activeCharacter ? (
+              <ThemedLayout character={activeCharacter}>
+                <PeevesPests character={activeCharacter} setCharacter={handleUpdateCharacter} />
+              </ThemedLayout>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/detentions"
+          element={
+            activeCharacter ? (
+              <ThemedLayout character={activeCharacter}>
+                <Detentions character={activeCharacter} setCharacter={handleUpdateCharacter} />
+              </ThemedLayout>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/campaign"
+          element={
+            activeCharacter ? (
+              <ThemedLayout character={activeCharacter}>
+                <CampaignPage character={activeCharacter} setCharacter={handleUpdateCharacter} />
+              </ThemedLayout>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/help"
+          element={
+            activeCharacter ? (
+              <ThemedLayout character={activeCharacter}>
+                <div
                   style={{
-                    background:
-                      resetInput === RESET_PHRASE ? "#b71c1c" : "#e0e0e0",
-                    color: resetInput === RESET_PHRASE ? "#fff" : "#888",
-                    border: "none",
-                    borderRadius: "8px",
-                    padding: "0.5rem 1rem",
-                    cursor:
-                      resetInput === RESET_PHRASE
-                        ? "pointer"
-                        : "not-allowed",
-                    fontWeight: "bold",
+                    minHeight: "100vh",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontFamily: "monospace",
                   }}
                 >
-                  Reset Character
-                </button>
-              </div>
-              <DiceButton allowedDice={getAllowedDice(activeCharacter)} />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      <Route
-        path="/spellbook"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <SpellBook character={activeCharacter} setCharacter={handleUpdateCharacter} />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      <Route
-        path="/school"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <School character={activeCharacter} setCharacter={handleUpdateCharacter} />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      <Route
-        path="/school/alohomora-lesson"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <AlohomoraLesson character={activeCharacter} setCharacter={handleUpdateCharacter} />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      <Route
-        path="/school/lumos-lesson"
-        element={
-          activeCharacter && hasUnlockedLumos(activeCharacter) ? (
-            <ThemedLayout character={activeCharacter}>
-              <LumosLesson
-                character={activeCharacter}
-                unlockedSpells={activeCharacter.completedLessons || []}
-                setCharacter={handleUpdateCharacter}
-              />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/school" replace />
-          )
-        }
-      />
-      <Route
-        path="/school/wingardium-leviosa-lesson"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <WingardiumLeviosaLesson character={activeCharacter} setCharacter={handleUpdateCharacter} />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      <Route
-        path="/peeves-pests"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <PeevesPests character={activeCharacter} setCharacter={handleUpdateCharacter} />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      <Route
-        path="/detentions"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <Detentions character={activeCharacter} setCharacter={handleUpdateCharacter} />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      <Route
-        path="/campaign"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <CampaignPage character={activeCharacter} setCharacter={handleUpdateCharacter} />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      <Route
-        path="/help"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <div
-                style={{
-                  minHeight: "100vh",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontFamily: "monospace",
-                }}
-              >
-                <h2>Help</h2>
-                <p>Coming soon!</p>
-                <a href="/" style={{ marginTop: "2rem" }}>Back to Home</a>
-              </div>
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      {/* Fallback: go to signup */}
-      <Route path="*" element={<Navigate to="/signup" />} />
-    </Routes>
+                  <h2>Help</h2>
+                  <p>Coming soon!</p>
+                  <a href="/" style={{ marginTop: "2rem" }}>Back to Home</a>
+                </div>
+              </ThemedLayout>
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route path="*" element={<Navigate to="/signup" />} />
+      </Routes>
+    </>
   );
 };
 
