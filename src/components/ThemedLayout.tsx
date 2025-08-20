@@ -11,11 +11,11 @@ interface ThemedLayoutProps {
   children: React.ReactNode;
 }
 
-const boxStyle = (theme: typeof houseThemes.Gryffindor) => ({
+export const boxStyle = (theme: typeof houseThemes.Gryffindor) => ({
   maxWidth: 700,
   margin: "2rem auto",
   padding: "2.5rem",
-  background: theme.primary + "99", // 0.6 opacity in hex
+  background: `${theme.primary}99`, // 0.6 opacity in hex
   borderRadius: 14,
   fontFamily: "serif",
   color: theme.secondary,
