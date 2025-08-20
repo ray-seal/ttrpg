@@ -1,6 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Character } from "../types";
 import { supabase } from "../supabaseClient";
+
+type Character = {
+  id: string;
+  name: string;
+  house: string;
+  wizarding_money: number;
+  experience?: number;
+  magic: number;
+  knowledge: number;
+  courage: number;
+  agility: number;
+  charisma: number;
+};
 
 type HousePoints = {
   id: string;
@@ -33,9 +45,6 @@ const CharacterSheet: React.FC<{ character: Character }> = ({ character }) => {
     fetchHousePoints();
   }, [character.house]);
 
-  if (!character) {
-    return <div style={{ textAlign: "center", marginTop: "2rem" }}>No character loaded.</div>;
-  }
   if (
     !character.house ||
     character.magic == null ||
@@ -112,7 +121,6 @@ const CharacterSheet: React.FC<{ character: Character }> = ({ character }) => {
           </li>
         </ul>
       </div>
-      {/* Add more character info here if needed */}
     </div>
   );
 };
