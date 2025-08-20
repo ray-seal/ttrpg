@@ -19,6 +19,7 @@ import DiagonAlley from "./pages/DiagonAlley";
 import GringottsBank from "./pages/GringottsBank";
 import Ollivanders from "./pages/Ollivanders";
 import MadamMalkins from "./pages/MadamMalkins";
+import SchoolGate from "./components/SchoolGate";
 
 const CHARACTER_KEY = "activeCharacterId";
 const RESET_PHRASE = "reset-my-game";
@@ -231,9 +232,11 @@ export default function App() {
         path="/school"
         element={
           activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <School character={activeCharacter} setCharacter={handleUpdateCharacter} />
-            </ThemedLayout>
+            <SchoolGate character={activeCharacter}>
+              <ThemedLayout character={activeCharacter}>
+                <School character={activeCharacter} setCharacter={handleUpdateCharacter} />
+              </ThemedLayout>
+            </SchoolGate>
           ) : (
             <Navigate to="/" replace />
           )
