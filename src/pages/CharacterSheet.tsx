@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import { useNavigate } from "react-router-dom";
 
 type Character = {
   id: string;
@@ -23,6 +24,7 @@ type HousePoints = {
 const CharacterSheet: React.FC<{ character: Character }> = ({ character }) => {
   const [housePoints, setHousePoints] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Fetch house points from Supabase
@@ -120,6 +122,23 @@ const CharacterSheet: React.FC<{ character: Character }> = ({ character }) => {
             <b>Charisma:</b> {character.charisma}
           </li>
         </ul>
+      </div>
+      <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
+        <button
+          onClick={() => navigate("/")}
+          style={{
+            background: "#b79b5a",
+            color: "#fff",
+            padding: "0.8rem 2rem",
+            borderRadius: "8px",
+            fontWeight: "bold",
+            fontSize: "1rem",
+            border: "none",
+            cursor: "pointer"
+          }}
+        >
+          Back to Home
+        </button>
       </div>
     </div>
   );
