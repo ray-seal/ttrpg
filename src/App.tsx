@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import CharacterCreation from "./pages/CharacterCreation";
 import CharacterSheet from "./pages/CharacterSheet";
@@ -21,7 +21,6 @@ import AuthWizard from "./pages/AuthWizard";
 import Login from "./pages/Login";
 
 const CHARACTER_KEY = "activeCharacterId";
-
 const RESET_PHRASE = "reset-my-game";
 
 function getAllowedDice(character: Character | null): number[] {
@@ -97,27 +96,22 @@ const App: React.FC = () => {
     if (activeCharacterId) localStorage.setItem(CHARACTER_KEY, activeCharacterId);
   }, [activeCharacterId]);
 
-  // Add a new character to state
   function handleCreateCharacter(newChar: Character) {
     setCharacters((prev) => [...prev, newChar]);
     setActiveCharacterId(newChar.id);
   }
 
-  // Switch active character
   function handleSelectCharacter(id: string) {
     setActiveCharacterId(id);
   }
 
-  // Update a character in characters array
   function handleUpdateCharacter(updatedChar: Character) {
     setCharacters(chars => chars.map(c => (c.id === updatedChar.id ? updatedChar : c)));
     if (updatedChar.id === activeCharacterId) {
-      // Also update active character
       setActiveCharacterId(updatedChar.id);
     }
   }
 
-  // Delete (reset) current character
   function handleReset() {
     if (!activeCharacterId) return;
     supabase.from("characters").delete().eq("id", activeCharacterId).then(() => {
@@ -129,12 +123,9 @@ const App: React.FC = () => {
   }
 
   const activeCharacter = characters.find(c => c.id === activeCharacterId) || null;
-
-  // Theming
   const currentHouse = activeCharacter?.house as House | undefined;
   const theme = currentHouse ? houseThemes[currentHouse] : houseThemes.Gryffindor;
 
-  // Set meta theme color
   useEffect(() => {
     let metaThemeColor = document.querySelector("meta[name=theme-color]");
     if (!metaThemeColor) {
@@ -145,7 +136,6 @@ const App: React.FC = () => {
     metaThemeColor.setAttribute("content", theme.primary);
   }, [theme]);
 
-  // Global loading UI
   if (loading) {
     return (
       <div style={{
@@ -204,7 +194,6 @@ const App: React.FC = () => {
                 onDeleteCharacter={handleReset}
                 characters={characters}
               />
-              {/* Reset game section */}
               <div style={{ marginTop: "2rem", textAlign: "center" }}>
                 <label htmlFor="reset-input" style={{ marginRight: "1rem" }}>
                   Type "<b>{RESET_PHRASE}</b>" to reset this character:
@@ -263,12 +252,12 @@ const App: React.FC = () => {
       <Route
         path="/school"
         element={
-          activeCharacter && activeCharacter.hasTimetable ? (
+          activeCharacter ? (
             <ThemedLayout character={activeCharacter}>
               <School character={activeCharacter} setCharacter={handleUpdateCharacter} />
             </ThemedLayout>
           ) : (
-            <Navigate to="/campaign" />
+            <Navigate to="/" replace />
           )
         }
       />
