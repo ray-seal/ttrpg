@@ -63,17 +63,17 @@ const School: React.FC<{
           <b>Charms</b>
           <ul style={{ marginTop: "0.5rem" }}>
             <li>
-              <Link to="/charms/alohomora" style={{ color: theme.accent, textDecoration: "none" }}>
-                Alohomora
-              </Link>
-            </li>
-            <li>
-              <Link to="/charms/wingardium-leviosa" style={{ color: theme.accent, textDecoration: "none" }}>
+              <Link to="/wingardium-leviosa-lesson" style={{ color: theme.accent, textDecoration: "none" }}>
                 Wingardium Leviosa
               </Link>
             </li>
             <li>
-              <Link to="/charms/lumos" style={{ color: theme.accent, textDecoration: "none" }}>
+              <Link to="/alohomora-lesson" style={{ color: theme.accent, textDecoration: "none" }}>
+                Alohomora
+              </Link>
+            </li>
+            <li>
+              <Link to="/lumos-lesson" style={{ color: theme.accent, textDecoration: "none" }}>
                 Lumos
               </Link>
             </li>
