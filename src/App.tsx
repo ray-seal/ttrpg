@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import CharacterCreation from "./pages/CharacterCreation";
 import CharacterSheet from "./pages/CharacterSheet";
@@ -20,6 +20,8 @@ import GringottsBank from "./pages/GringottsBank";
 import Ollivanders from "./pages/Ollivanders";
 import MadamMalkins from "./pages/MadamMalkins";
 import SchoolGate from "./components/SchoolGate";
+import SortingHat from "./pages/SortingHat";
+import HogwartsExpress from "./pages/HogwartsExpress";
 
 const CHARACTER_KEY = "activeCharacterId";
 
@@ -32,7 +34,6 @@ export default function App() {
 
   const location = useLocation();
 
-  // Get auth session on mount and on change
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -47,7 +48,6 @@ export default function App() {
     };
   }, []);
 
-  // Fetch character list for user
   useEffect(() => {
     if (!userId) {
       setLoading(false);
@@ -89,10 +89,22 @@ export default function App() {
   }
 
   const activeCharacter = characters.find(c => c.id === activeCharacterId) || null;
-  const currentHouse = activeCharacter?.house as House | undefined;
-  const theme = currentHouse ? houseThemes[currentHouse] : houseThemes.Gryffindor;
 
-  // Loading guard to prevent premature redirects
+  // Defensive: If character missing name or house, require creation flow
+  if (
+    session &&
+    activeCharacter &&
+    (!activeCharacter.name || !activeCharacter.house) &&
+    !["/character-creation", "/sorting-hat", "/hogwarts-express"].includes(location.pathname)
+  ) {
+    // If missing house, force to sorting hat after Diagon Alley/Hogwarts Express; if missing name, force to character-creation
+    if (!activeCharacter.name) {
+      return <Navigate to="/character-creation" replace />;
+    } else if (!activeCharacter.house) {
+      return <Navigate to="/hogwarts-express" replace />;
+    }
+  }
+
   if (loading) {
     return (
       <div style={{
@@ -107,7 +119,7 @@ export default function App() {
     );
   }
 
-  // Route guards for authentication and onboarding flow
+  // Auth and onboarding gating
   if (!session && location.pathname !== "/signup" && location.pathname !== "/login") {
     return <Navigate to="/signup" replace />;
   }
@@ -169,7 +181,7 @@ export default function App() {
         path="/diagon-alley"
         element={
           activeCharacter ? (
-            <DiagonAlley character={activeCharacter} />
+            <DiagonAlley character={activeCharacter} onComplete={() => window.location.href = "/hogwarts-express"} />
           ) : (
             <Navigate to="/" replace />
           )
@@ -216,6 +228,33 @@ export default function App() {
         }
       />
       <Route
+        path="/hogwarts-express"
+        element={
+          activeCharacter ? (
+            <HogwartsExpress character={activeCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/sorting-hat"
+        element={
+          activeCharacter ? (
+            <SortingHat
+              character={activeCharacter}
+              onSorted={async (house: string) => {
+                // update house in db and refresh
+                await supabase.from("characters").update({ house }).eq("id", activeCharacter.id);
+                window.location.href = "/hogwarts-letter";
+              }}
+            />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
         path="/school"
         element={
           activeCharacter ? (
@@ -241,7 +280,6 @@ export default function App() {
           )
         }
       />
-      {/* Add other routes as needed */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
