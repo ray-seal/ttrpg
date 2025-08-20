@@ -91,14 +91,27 @@ export default function LumosLesson({
   }, []);
 
   async function markSpellLearnt() {
-    if (!setCharacter) return;
-    const unlocked = Array.from(new Set([...(character.unlockedSpells || []), "Lumos", "Nox"]));
-    setCharacter({ ...character, unlockedSpells: unlocked });
-    setSpellsUnlockedThisSession(true);
-    // Persist to Supabase
+    // Add both Lumos and Nox to character_spells
+    const spellsToAdd = ["Lumos", "Nox"];
+    await Promise.all(spellsToAdd.map(spell =>
+      supabase
+        .from("character_spells")
+        .upsert([{ character_id: character.id, spell }], { onConflict: ["character_id", "spell"] })
+    ));
+
+    // Add lesson completion/XP
+    const newCompleted = Array.from(new Set([...(character.completedLessons ?? []), "Lumos"]));
+    const newExp = (character.experience ?? 0) + 10;
+    setCharacter({
+      ...character,
+      completedLessons: newCompleted,
+      experience: newExp,
+    });
     await supabase.from("characters").update({
-      unlockedSpells: unlocked
+      completedLessons: newCompleted,
+      experience: newExp
     }).eq("id", character.id);
+    setSpellsUnlockedThisSession(true);
   }
 
   function handleCastSpell(spell) {
