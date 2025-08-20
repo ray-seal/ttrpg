@@ -31,7 +31,6 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [resetInput, setResetInput] = useState("");
 
-  // fetch session on mount and listen for changes
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -46,7 +45,6 @@ export default function App() {
     };
   }, []);
 
-  // fetch characters for user
   useEffect(() => {
     if (!userId) {
       setLoading(false);
@@ -105,14 +103,6 @@ export default function App() {
   const currentHouse = activeCharacter?.house as House | undefined;
   const theme = currentHouse ? houseThemes[currentHouse] : houseThemes.Gryffindor;
 
-  // Gating: must have both wand and robes before school is accessible
-  // (move calls to async functions to pages themselves if needed)
-
-  // Route guards for auth/character creation flow
-  // 1. If not logged in, redirect everything except /signup and /login to /signup
-  // 2. If logged in and no character, redirect everything except /character-creation to /character-creation
-  // 3. If logged in and has character, let them proceed
-
   const location = useLocation();
 
   if (loading) {
@@ -130,17 +120,12 @@ export default function App() {
   }
 
   // AUTH GUARDS
-  // 1. Not logged in: can only see /signup and /login, else redirect to /signup
   if (!session && location.pathname !== "/signup" && location.pathname !== "/login") {
     return <Navigate to="/signup" replace />;
   }
-
-  // 2. Logged in, but no character: can only see /character-creation, else redirect there
   if (session && !activeCharacter && location.pathname !== "/character-creation" && location.pathname !== "/logout") {
     return <Navigate to="/character-creation" replace />;
   }
-
-  // 3. Signed in & has character: don't let them see /signup or /login or /character-creation
   if (
     session &&
     activeCharacter &&
@@ -196,7 +181,7 @@ export default function App() {
         path="/diagon-alley"
         element={
           activeCharacter ? (
-            <DiagonAlley />
+            <DiagonAlley character={activeCharacter} />
           ) : (
             <Navigate to="/" replace />
           )
