@@ -19,6 +19,7 @@ import PeevesPests from "./pages/PeevesPests";
 import Detentions from "./pages/Detentions";
 import AuthWizard from "./pages/AuthWizard";
 import Login from "./pages/Login";
+import Inventory from "./pages/Inventory"; // <-- new import
 
 const CHARACTER_KEY = "activeCharacterId";
 const RESET_PHRASE = "reset-my-game";
@@ -45,13 +46,11 @@ const App: React.FC = () => {
 
   // Get session and listen for auth events
   useEffect(() => {
-    // Initial session fetch
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setUserId(data.session?.user.id ?? null);
     });
 
-    // Listen for auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUserId(session?.user.id ?? null);
@@ -78,7 +77,6 @@ const App: React.FC = () => {
       .order("created_at", { ascending: true })
       .then(({ data }) => {
         setCharacters(data || []);
-        // Set active from localStorage if exists, else first character
         const stored = localStorage.getItem(CHARACTER_KEY);
         if (stored && data?.some(c => c.id === stored)) {
           setActiveCharacterId(stored);
@@ -91,7 +89,6 @@ const App: React.FC = () => {
       });
   }, [userId]);
 
-  // Save active character to localStorage
   useEffect(() => {
     if (activeCharacterId) localStorage.setItem(CHARACTER_KEY, activeCharacterId);
   }, [activeCharacterId]);
@@ -154,7 +151,13 @@ const App: React.FC = () => {
     <Routes>
       <Route
         path="/"
-        element={<HomePage hasCharacter={!!activeCharacter} session={session} />}
+        element={
+          <HomePage
+            hasCharacter={!!activeCharacter}
+            character={activeCharacter}
+            session={session}
+          />
+        }
       />
       <Route
         path="/signup"
@@ -238,6 +241,16 @@ const App: React.FC = () => {
         }
       />
       <Route
+        path="/inventory"
+        element={
+          activeCharacter ? (
+            <Inventory character={activeCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
         path="/spellbook"
         element={
           activeCharacter ? (
@@ -269,7 +282,7 @@ const App: React.FC = () => {
               <AlohomoraLesson character={activeCharacter} setCharacter={handleUpdateCharacter} />
             </ThemedLayout>
           ) : (
-            <Navigate to="/" replace />
+            <Navigate to="/school" replace />
           )
         }
       />
