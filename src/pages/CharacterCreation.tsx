@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { Character, House } from "../types";
 
+// You can set default spells by their spell_id or key
+const DEFAULT_STARTING_SPELLS: string[] = []; // Example: ['alohomora', 'lumos']
+
 const DEFAULT_ATTRIBUTE = 5;
 const STARTING_POINTS = 5;
 const BONUS = 1;
 
-const houseOptions: House[] = ["Gryffindor", "Hufflepuff", "Ravenclaw", "Slytherin"];
 const houseByChoice: Record<string, House> = {
   success: "Hufflepuff",
   courage: "Gryffindor",
@@ -284,7 +286,8 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({
       setLoading(true);
       setError(null);
       try {
-        const { data, error: dbError } = await supabase
+        // Insert character (no spells/items arrays)
+        const { data: charData, error: dbError } = await supabase
           .from("characters")
           .insert([{
             user_id: userId,
@@ -299,10 +302,6 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({
             level: 1,
             hit_points: 10,
             scene_id: "wakeup",
-            unlockedSpells: [],
-            completedLessons: [],
-            equippedSpells: [],
-            items: [],
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           }])
@@ -310,13 +309,25 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({
           .single();
 
         if (dbError) throw dbError;
-        if (!data) {
+        if (!charData) {
           setError("Failed to create character: No data returned from Supabase.");
           setLoading(false);
           return;
         }
-        onCreate(data as Character);
-        onSelectCharacter(data.id);
+
+        // Optionally give starting spells using the character_spells table
+        if (DEFAULT_STARTING_SPELLS.length > 0) {
+          const spellInserts = DEFAULT_STARTING_SPELLS.map(spell_id => ({
+            character_id: charData.id,
+            spell_id,
+            equipped: false,
+          }));
+          const { error: spellsError } = await supabase.from("character_spells").insert(spellInserts);
+          if (spellsError) throw spellsError;
+        }
+
+        onCreate(charData as Character);
+        onSelectCharacter(charData.id);
       } catch (err: any) {
         setError("Failed to create character: " + (err.message || err));
       }
