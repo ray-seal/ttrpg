@@ -22,9 +22,26 @@ const DiagonAlley: React.FC = () => {
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem", marginTop: "2rem" }}>
         <button onClick={() => navigate("/gringotts-bank")} style={buttonStyle}>Gringotts Bank</button>
-        <button onClick={() => navigate("/buy-wand")} style={buttonStyle}>Ollivanders</button>
-        <button onClick={() => navigate("/buy-robes")} style={buttonStyle}>Madam Malkin’s</button>
-        {/* Add more locations as desired */}
+        <button onClick={() => navigate("/ollivanders")} style={buttonStyle}>Ollivanders - Buy a Wand</button>
+        <button onClick={() => navigate("/madam-malkins")} style={buttonStyle}>Madam Malkin’s - Buy Robes</button>
+      </div>
+      <div style={{ textAlign: "center", marginTop: "2rem" }}>
+        <button
+          onClick={() => navigate("/")}
+          style={{
+            background: "#4287f5",
+            color: "#fff",
+            padding: "0.75rem 2rem",
+            borderRadius: "8px",
+            border: "none",
+            fontWeight: "bold",
+            fontSize: "1rem",
+            cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+          }}
+        >
+          Back to Home
+        </button>
       </div>
     </div>
   );
