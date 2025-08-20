@@ -1,12 +1,16 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Character } from "../types";
 
 interface HomePageProps {
   hasCharacter: boolean;
-  session: any; // Add session as a prop!
+  character?: Character | null;
+  session: any;
 }
 
-const HomePage: React.FC<HomePageProps> = ({ hasCharacter, session }) => {
+const HomePage: React.FC<HomePageProps> = ({ hasCharacter, character, session }) => {
+  const navigate = useNavigate();
+
   return (
     <div
       style={{
@@ -39,21 +43,40 @@ const HomePage: React.FC<HomePageProps> = ({ hasCharacter, session }) => {
         }}
       >
         {session && hasCharacter && (
-          <Link
-            to="/character-sheet"
-            style={{
-              background: "#4287f5",
-              color: "#fff",
-              padding: "1rem",
-              borderRadius: "8px",
-              textAlign: "center",
-              textDecoration: "none",
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-            }}
-          >
-            Character Sheet
-          </Link>
+          <>
+            <Link
+              to="/character-sheet"
+              style={{
+                background: "#4287f5",
+                color: "#fff",
+                padding: "1rem",
+                borderRadius: "8px",
+                textAlign: "center",
+                textDecoration: "none",
+                fontWeight: "bold",
+                fontSize: "1.1rem",
+              }}
+            >
+              Character Sheet
+            </Link>
+            <button
+              onClick={() => navigate("/inventory")}
+              style={{
+                background: "#6b41a1",
+                color: "#fff",
+                padding: "1rem",
+                borderRadius: "8px",
+                textAlign: "center",
+                fontWeight: "bold",
+                fontSize: "1.1rem",
+                border: "none",
+                cursor: "pointer",
+                marginBottom: "0.5rem",
+              }}
+            >
+              Inventory
+            </button>
+          </>
         )}
         {session && !hasCharacter && (
           <Link
@@ -89,7 +112,6 @@ const HomePage: React.FC<HomePageProps> = ({ hasCharacter, session }) => {
           School
         </Link>
       </div>
-      {/* Only show sign up/sign in at bottom if NOT logged in */}
       {!session && (
         <div style={{ position: "fixed", bottom: 24, left: 0, width: "100%", display: "flex", justifyContent: "center" }}>
           <div style={{ display: "flex", gap: "1rem" }}>
