@@ -37,8 +37,11 @@ const DiagonAlley: React.FC<{
         <div style={{ textAlign: "center", marginTop: "2rem" }}>
           <button
             onClick={() => {
-              if (onComplete) onComplete();
-              else navigate("/hogwarts-express");
+              if (onComplete) {
+                onComplete();
+              } else {
+                navigate("/hogwarts-express");
+              }
             }}
             style={{
               background: "#4287f5",
