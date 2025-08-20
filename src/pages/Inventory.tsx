@@ -26,37 +26,31 @@ type InventoryProps = {
 const Inventory: React.FC<InventoryProps> = ({ character }) => {
   const [inventory, setInventory] = useState<CharacterItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const theme = houseThemes[character.house as House];
   const navigate = useNavigate();
+  // Note: theme is only used for the back button color
+  const theme = houseThemes[character.house as House] || houseThemes.Gryffindor;
 
   useEffect(() => {
-    async function fetchInventory() {
-      setLoading(true);
-
-      // Join character_items with items to get details
-      const { data, error } = await supabase
-        .from("character_items")
-        .select(`
+    if (!character.id) return;
+    setLoading(true);
+    supabase
+      .from("character_items")
+      .select(`
+        id,
+        character_id,
+        item_id,
+        quantity,
+        items (
           id,
-          character_id,
-          item_id,
-          quantity,
-          items (
-            id,
-            name,
-            description
-          )
-        `)
-        .eq("character_id", character.id);
-
-      if (!error && data) {
-        setInventory(data);
-      } else {
-        setInventory([]);
-      }
-      setLoading(false);
-    }
-    fetchInventory();
+          name,
+          description
+        )
+      `)
+      .eq("character_id", character.id)
+      .then(({ data, error }) => {
+        setInventory(data || []);
+        setLoading(false);
+      });
   }, [character.id]);
 
   return (
@@ -71,6 +65,7 @@ const Inventory: React.FC<InventoryProps> = ({ character }) => {
       >
         Inventory
       </h2>
+      {/* <pre style={{fontSize:12, background:"#eee", color:"#000", overflowX:"auto"}}>{JSON.stringify(inventory, null, 2)}</pre> */}
       {loading ? (
         <div style={{ textAlign: "center", color: "#000", fontWeight: 600 }}>Loading...</div>
       ) : inventory.length === 0 ? (
@@ -79,36 +74,38 @@ const Inventory: React.FC<InventoryProps> = ({ character }) => {
         </div>
       ) : (
         <ul style={{ padding: 0, listStyle: "none" }}>
-          {inventory.map((ci) => (
-            <li
-              key={ci.id}
-              style={{
-                background: "#fff",
-                marginBottom: "1.2rem",
-                padding: "1rem 1.2rem",
-                borderRadius: "10px",
-                border: `1.5px solid ${theme.accent}`,
-                color: "#000",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.10)",
-                fontFamily: "serif",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                opacity: 0.98,
-                fontWeight: 600
-              }}
-            >
-              <span>
-                <b>{ci.items?.name || "Unknown Item"}</b>
-                {ci.quantity ? <> &times;{ci.quantity}</> : null}
-                {ci.items?.description ? (
-                  <span style={{ fontStyle: "italic", marginLeft: 8, color: "#000" }}>
-                    — {ci.items.description}
-                  </span>
-                ) : null}
-              </span>
-            </li>
-          ))}
+          {inventory
+            .filter((ci) => ci.items && ci.quantity > 0)
+            .map((ci) => (
+              <li
+                key={ci.id}
+                style={{
+                  background: "#fff",
+                  marginBottom: "1.2rem",
+                  padding: "1rem 1.2rem",
+                  borderRadius: "10px",
+                  border: `1.5px solid ${theme.accent}`,
+                  color: "#000",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.10)",
+                  fontFamily: "serif",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  opacity: 0.98,
+                  fontWeight: 600
+                }}
+              >
+                <span>
+                  <b>{ci.items?.name || "Unknown Item"}</b>
+                  {ci.quantity ? <> &times;{ci.quantity}</> : null}
+                  {ci.items?.description ? (
+                    <span style={{ fontStyle: "italic", marginLeft: 8, color: "#000" }}>
+                      — {ci.items.description}
+                    </span>
+                  ) : null}
+                </span>
+              </li>
+            ))}
         </ul>
       )}
       <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
