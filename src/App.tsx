@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import CharacterCreation from "./pages/CharacterCreation";
 import CharacterSheet from "./pages/CharacterSheet";
@@ -31,6 +31,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [resetInput, setResetInput] = useState("");
 
+  // fetch session on mount and listen for changes
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -45,6 +46,7 @@ export default function App() {
     };
   }, []);
 
+  // fetch characters for user
   useEffect(() => {
     if (!userId) {
       setLoading(false);
@@ -98,29 +100,20 @@ export default function App() {
       setResetInput("");
     });
   }
+
   const activeCharacter = characters.find(c => c.id === activeCharacterId) || null;
   const currentHouse = activeCharacter?.house as House | undefined;
   const theme = currentHouse ? houseThemes[currentHouse] : houseThemes.Gryffindor;
 
   // Gating: must have both wand and robes before school is accessible
-  const hasWand = async (character: Character) => {
-    const { data } = await supabase
-      .from("character_items")
-      .select("id")
-      .eq("character_id", character.id)
-      .eq("item_id", "9c1c1a36-8f3f-4c0e-b9b1-222222222222") // wand UUID
-      .maybeSingle();
-    return !!data;
-  };
-  const hasRobes = async (character: Character) => {
-    const { data } = await supabase
-      .from("character_items")
-      .select("id")
-      .eq("character_id", character.id)
-      .eq("item_id", "37e9c6fb-3f81-4d7d-9c3c-444444444444") // robes UUID
-      .maybeSingle();
-    return !!data;
-  };
+  // (move calls to async functions to pages themselves if needed)
+
+  // Route guards for auth/character creation flow
+  // 1. If not logged in, redirect everything except /signup and /login to /signup
+  // 2. If logged in and no character, redirect everything except /character-creation to /character-creation
+  // 3. If logged in and has character, let them proceed
+
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -134,6 +127,26 @@ export default function App() {
         <h2>Loading Hogwarts Adventure...</h2>
       </div>
     );
+  }
+
+  // AUTH GUARDS
+  // 1. Not logged in: can only see /signup and /login, else redirect to /signup
+  if (!session && location.pathname !== "/signup" && location.pathname !== "/login") {
+    return <Navigate to="/signup" replace />;
+  }
+
+  // 2. Logged in, but no character: can only see /character-creation, else redirect there
+  if (session && !activeCharacter && location.pathname !== "/character-creation" && location.pathname !== "/logout") {
+    return <Navigate to="/character-creation" replace />;
+  }
+
+  // 3. Signed in & has character: don't let them see /signup or /login or /character-creation
+  if (
+    session &&
+    activeCharacter &&
+    ["/signup", "/login", "/character-creation"].includes(location.pathname)
+  ) {
+    return <Navigate to="/hogwarts-letter" replace />;
   }
 
   return (
@@ -229,7 +242,6 @@ export default function App() {
           )
         }
       />
-      {/* Gated: Only allow school if player has both wand and robes */}
       <Route
         path="/school"
         element={
@@ -255,7 +267,7 @@ export default function App() {
         }
       />
       {/* Add other routes as needed */}
-      <Route path="*" element={<Navigate to="/signup" />} />
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }
