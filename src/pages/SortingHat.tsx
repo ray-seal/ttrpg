@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Character } from "../types";
 
 type Question = {
   text: string;
@@ -60,7 +61,10 @@ const houseDescriptions: Record<string, string> = {
   Slytherin: "Cunning and ambitious, resourceful, and determined."
 };
 
-const SortingHat: React.FC<{ onSort: (house: string) => void }> = ({ onSort }) => {
+const SortingHat: React.FC<{
+  character: Character,
+  onSorted: (house: string) => void
+}> = ({ character, onSorted }) => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [finalHouse, setFinalHouse] = useState<string | null>(null);
@@ -89,8 +93,8 @@ const SortingHat: React.FC<{ onSort: (house: string) => void }> = ({ onSort }) =
       });
       setFinalHouse(selectedHouse);
       setTimeout(() => {
-        onSort(selectedHouse);
-      }, 1750); // dramatic pause before advancing
+        onSorted(selectedHouse);
+      }, 1750); // dramatic pause
     }
   }
 
