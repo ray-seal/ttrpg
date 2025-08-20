@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
-import { Character } from "../types";
 import { useNavigate } from "react-router-dom";
 
 type Attributes = {
@@ -89,7 +88,7 @@ const houseDescriptions: Record<House, string> = {
 };
 
 const SortingHat: React.FC<{
-  character: Character,
+  character: any,
   onSorted?: (house: string) => void
 }> = ({ character, onSorted }) => {
   const [step, setStep] = useState(0);
