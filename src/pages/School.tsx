@@ -1,27 +1,23 @@
 import React from "react";
 import { Character } from "../types";
-import { Link } from "react-router-dom";
+import ThemedLayout from "../components/ThemedLayout";
+import { houseThemes, House } from "../themes";
+import { Link, useNavigate } from "react-router-dom";
 
 const School: React.FC<{
   character: Character;
   setCharacter: (c: Character) => void;
 }> = ({ character }) => {
+  const theme = houseThemes[character.house as House];
+  const navigate = useNavigate();
+
   return (
-    <div style={{
-      maxWidth: 700,
-      margin: "2rem auto",
-      padding: "2.5rem",
-      background: "#f5efd9",
-      borderRadius: 14,
-      fontFamily: "serif",
-      color: "#432c15",
-      border: "2px solid #b79b5a",
-    }}>
+    <ThemedLayout character={character}>
       <h2 style={{
         fontFamily: "cursive",
         textAlign: "center",
         marginBottom: "1.8rem",
-        color: "#1e1c17"
+        color: theme.secondary
       }}>
         Hogwarts School
       </h2>
@@ -32,13 +28,13 @@ const School: React.FC<{
       <h3 style={{ marginTop: "2rem", marginBottom: "0.7rem" }}>Key Locations</h3>
       <ul>
         <li>
-          <b>Owlery</b> <span style={{ color: "#b79b5a" }}>(coming soon)</span>
+          <b>Owlery</b> <span style={{ color: theme.accent }}>(coming soon)</span>
         </li>
         <li>
-          <b>Common Room</b> <span style={{ color: "#b79b5a" }}>(coming soon)</span>
+          <b>Common Room</b> <span style={{ color: theme.accent }}>(coming soon)</span>
         </li>
         <li>
-          <b>Great Hall</b> <span style={{ color: "#b79b5a" }}>(coming soon)</span>
+          <b>Great Hall</b> <span style={{ color: theme.accent }}>(coming soon)</span>
         </li>
       </ul>
 
@@ -48,43 +44,61 @@ const School: React.FC<{
           <b>Charms</b>
           <ul style={{ marginTop: "0.5rem" }}>
             <li>
-              <Link to="/charms/alohomora" style={{ color: "#4287f5", textDecoration: "none" }}>
+              <Link to="/charms/alohomora" style={{ color: theme.accent, textDecoration: "none" }}>
                 Alohomora
               </Link>
             </li>
             <li>
-              <Link to="/charms/wingardium-leviosa" style={{ color: "#4287f5", textDecoration: "none" }}>
+              <Link to="/charms/wingardium-leviosa" style={{ color: theme.accent, textDecoration: "none" }}>
                 Wingardium Leviosa
               </Link>
             </li>
             <li>
-              <Link to="/charms/lumos" style={{ color: "#4287f5", textDecoration: "none" }}>
+              <Link to="/charms/lumos" style={{ color: theme.accent, textDecoration: "none" }}>
                 Lumos
               </Link>
             </li>
           </ul>
         </li>
         <li>
-          <b>Transfiguration</b> <span style={{ color: "#b79b5a" }}>(coming soon)</span>
+          <b>Transfiguration</b> <span style={{ color: theme.accent }}>(coming soon)</span>
         </li>
         <li>
-          <b>Potions</b> <span style={{ color: "#b79b5a" }}>(coming soon)</span>
+          <b>Potions</b> <span style={{ color: theme.accent }}>(coming soon)</span>
         </li>
         <li>
-          <b>Defence Against the Dark Arts</b> <span style={{ color: "#b79b5a" }}>(coming soon)</span>
+          <b>Defence Against the Dark Arts</b> <span style={{ color: theme.accent }}>(coming soon)</span>
         </li>
         <li>
-          <b>Herbology</b> <span style={{ color: "#b79b5a" }}>(coming soon)</span>
+          <b>Herbology</b> <span style={{ color: theme.accent }}>(coming soon)</span>
         </li>
         <li>
-          <b>Care of Magical Creatures</b> <span style={{ color: "#b79b5a" }}>(coming soon)</span>
+          <b>Care of Magical Creatures</b> <span style={{ color: theme.accent }}>(coming soon)</span>
         </li>
       </ul>
 
+      <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
+        <button
+          onClick={() => navigate("/")}
+          style={{
+            background: theme.accent,
+            color: theme.primary,
+            padding: "0.8rem 2rem",
+            borderRadius: "8px",
+            fontWeight: "bold",
+            fontSize: "1rem",
+            border: "none",
+            cursor: "pointer",
+            transition: "background 0.2s",
+          }}
+        >
+          Back to Home
+        </button>
+      </div>
       <div style={{ marginTop: "2rem", textAlign: "center" }}>
         <span role="img" aria-label="castle" style={{ fontSize: "2.5rem" }}>🏰</span>
       </div>
-    </div>
+    </ThemedLayout>
   );
 };
 
