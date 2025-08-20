@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Character, House } from "../types";
 import { supabase } from "../supabaseClient";
+import { Character, House } from "../types";
 
 const DEFAULT_ATTRIBUTE = 5;
 const STARTING_POINTS = 5;
@@ -22,6 +22,9 @@ const attributeByHouse: Record<House, keyof Character> = {
 
 interface CharacterCreationProps {
   onCreate: (character: Character) => void;
+  userId: string;
+  onSelectCharacter: (characterId: string) => void;
+  characters: Character[];
 }
 
 const placeholderStudents = [
@@ -31,10 +34,14 @@ const placeholderStudents = [
   { name: "Lavender Brown", house: "Gryffindor" }
 ];
 
-const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
+const CharacterCreation: React.FC<CharacterCreationProps> = ({
+  onCreate,
+  userId,
+  onSelectCharacter,
+  characters,
+}) => {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [name, setName] = useState("");
-  const [userId, setUserId] = useState<string | null>(null);
   const [chosenWord, setChosenWord] = useState<"success" | "courage" | "intelligence" | "power" | null>(null);
   const [house, setHouse] = useState<House | "">("");
   const [attributes, setAttributes] = useState({
@@ -45,18 +52,16 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
     charisma: DEFAULT_ATTRIBUTE,
   });
   const [pointsLeft, setPointsLeft] = useState(STARTING_POINTS);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  // Autofill name from the user profile in Supabase
+  // Autofill name from the user profile in Supabase (if available)
   useEffect(() => {
     async function fetchUserData() {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-        // Try to get name from user metadata
-        if (user.user_metadata && user.user_metadata.name) {
-          setName(user.user_metadata.name);
-          setStep(2); // Skip name entry if we have it
-        }
+      if (user && user.user_metadata && user.user_metadata.name) {
+        setName(user.user_metadata.name);
+        setStep(2);
       }
     }
     fetchUserData();
@@ -74,52 +79,10 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
     // eslint-disable-next-line
   }, [house, step]);
 
-  // When user finishes, update Supabase character row
-  async function createOrUpdateCharacterInSupabase(newChar: Character) {
-    if (!userId) return;
-    // Check if character exists for user_id
-    const { data: existing, error: fetchError } = await supabase
-      .from("characters")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
+  // Character count check
+  const reachedCharacterLimit = characters.length >= 4;
 
-    if (existing) {
-      // Update existing character
-      await supabase.from("characters").update({
-        name: newChar.name,
-        house: newChar.house,
-        magic: newChar.magic,
-        knowledge: newChar.knowledge,
-        courage: newChar.courage,
-        agility: newChar.agility,
-        charisma: newChar.charisma,
-        experience: newChar.experience,
-        level: newChar.level,
-        updated_at: new Date().toISOString(),
-      }).eq("user_id", userId);
-    } else {
-      // Insert new character
-      await supabase.from("characters").insert([{
-        user_id: userId,
-        name: newChar.name,
-        house: newChar.house,
-        magic: newChar.magic,
-        knowledge: newChar.knowledge,
-        courage: newChar.courage,
-        agility: newChar.agility,
-        charisma: newChar.charisma,
-        experience: newChar.experience,
-        level: newChar.level,
-        hit_points: 10,
-        scene_id: "wakeup",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }]);
-    }
-  }
-
-  // Step 1: Enter name
+  // Step 1: Enter name or show character limit
   if (step === 1) {
     return (
       <div style={{
@@ -131,41 +94,69 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
         margin: "2rem auto"
       }}>
         <h2 style={{ textAlign: "center" }}>Create Your Character</h2>
-        <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
-          <input
-            type="text"
-            placeholder="Enter your name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            style={{
-              padding: "0.75rem",
-              fontSize: "1.1rem",
-              borderRadius: "8px",
-              border: "1px solid #ccc",
-              width: "80%",
-              marginBottom: "1rem"
-            }}
-            onKeyDown={e => { if (e.key === "Enter" && name.trim()) setStep(2); }}
-            disabled={!!name} // if autofilled, don't allow editing
-          />
-        </div>
-        <button
-          onClick={() => setStep(2)}
-          disabled={!name.trim()}
-          style={{
-            width: "100%",
-            padding: "0.75rem",
-            fontSize: "1.1rem",
-            background: name.trim() ? "#4287f5" : "#eee",
-            color: name.trim() ? "#fff" : "#999",
-            border: "none",
-            borderRadius: "8px",
-            fontWeight: "bold",
-            cursor: name.trim() ? "pointer" : "not-allowed"
-          }}
-        >
-          Continue
-        </button>
+        {reachedCharacterLimit ? (
+          <div style={{ color: "#b91c1c", marginBottom: "1.5rem", textAlign: "center" }}>
+            <strong>You already have 4 characters.</strong>
+            <div>Please delete a character or switch to another to create a new one.</div>
+            <div style={{ marginTop: "1.2rem" }}>
+              {characters.map(char => (
+                <button
+                  key={char.id}
+                  style={{
+                    margin: "0.3rem",
+                    padding: "0.6rem 1.1rem",
+                    borderRadius: "8px",
+                    background: "#ececec",
+                    border: "1px solid #bbb",
+                    fontWeight: "bold",
+                    cursor: "pointer"
+                  }}
+                  onClick={() => onSelectCharacter(char.id)}
+                >
+                  Switch to {char.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            <div style={{ marginBottom: "1.5rem", textAlign: "center" }}>
+              <input
+                type="text"
+                placeholder="Enter your name"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                style={{
+                  padding: "0.75rem",
+                  fontSize: "1.1rem",
+                  borderRadius: "8px",
+                  border: "1px solid #ccc",
+                  width: "80%",
+                  marginBottom: "1rem"
+                }}
+                onKeyDown={e => { if (e.key === "Enter" && name.trim()) setStep(2); }}
+                disabled={!!name}
+              />
+            </div>
+            <button
+              onClick={() => setStep(2)}
+              disabled={!name.trim()}
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                fontSize: "1.1rem",
+                background: name.trim() ? "#4287f5" : "#eee",
+                color: name.trim() ? "#fff" : "#999",
+                border: "none",
+                borderRadius: "8px",
+                fontWeight: "bold",
+                cursor: name.trim() ? "pointer" : "not-allowed"
+              }}
+            >
+              Continue
+            </button>
+          </>
+        )}
       </div>
     );
   }
@@ -275,25 +266,49 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
   // Step 4: Distribute Attribute Points (+1 bonus already applied)
   if (step === 4 && house) {
     async function handleAttributeChange(attr: keyof typeof attributes, delta: number) {
-      const newValue = attributes[attr] + delta;
       const min = DEFAULT_ATTRIBUTE + ((attributeByHouse[house] === attr) ? BONUS : 0);
       if (delta > 0 && pointsLeft > 0) {
         setAttributes(prev => ({ ...prev, [attr]: prev[attr] + 1 }));
         setPointsLeft(pointsLeft - 1);
-        // Save to Supabase
-        await updateAttributeInSupabase(attr, newValue);
       }
       if (delta < 0 && attributes[attr] > min) {
         setAttributes(prev => ({ ...prev, [attr]: prev[attr] - 1 }));
         setPointsLeft(pointsLeft + 1);
-        // Save to Supabase
-        await updateAttributeInSupabase(attr, newValue);
       }
     }
 
-    async function updateAttributeInSupabase(attr: keyof typeof attributes, value: number) {
-      if (!userId) return;
-      await supabase.from("characters").update({ [attr]: value, updated_at: new Date().toISOString() }).eq("user_id", userId);
+    async function handleCreateCharacter() {
+      setLoading(true);
+      setError(null);
+      try {
+        // Insert new character
+        const { data, error: dbError } = await supabase.from("characters").insert([{
+          user_id: userId,
+          name,
+          house,
+          magic: attributes.magic,
+          knowledge: attributes.knowledge,
+          courage: attributes.courage,
+          agility: attributes.agility,
+          charisma: attributes.charisma,
+          experience: 0,
+          level: 1,
+          hit_points: 10,
+          scene_id: "wakeup",
+          unlockedSpells: [],
+          completedLessons: [],
+          equippedSpells: [],
+          items: [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }]).select("*").single();
+        if (dbError) throw dbError;
+        onCreate(data as Character);
+        onSelectCharacter(data.id);
+      } catch (err: any) {
+        setError("Failed to create character: " + (err.message || err));
+      }
+      setLoading(false);
     }
 
     return (
@@ -340,32 +355,19 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({ onCreate }) => {
           ))}
         </div>
         <button
-          onClick={async () => {
-            const characterObj: Character = {
-              name,
-              house: house as House,
-              magic: attributes.magic,
-              knowledge: attributes.knowledge,
-              courage: attributes.courage,
-              agility: attributes.agility,
-              charisma: attributes.charisma,
-              level: 1,
-              experience: 0,
-            };
-            await createOrUpdateCharacterInSupabase(characterObj);
-            onCreate(characterObj);
-          }}
-          disabled={pointsLeft !== 0}
+          onClick={handleCreateCharacter}
+          disabled={pointsLeft !== 0 || loading}
           style={{
             width: "100%", padding: "0.75rem", fontSize: "1.1rem", marginTop: "1rem",
-            background: pointsLeft === 0 ? "#4287f5" : "#eee",
-            color: pointsLeft === 0 ? "#fff" : "#999",
+            background: pointsLeft === 0 && !loading ? "#4287f5" : "#eee",
+            color: pointsLeft === 0 && !loading ? "#fff" : "#999",
             border: "none", borderRadius: "8px", fontWeight: "bold",
-            cursor: pointsLeft === 0 ? "pointer" : "not-allowed"
+            cursor: pointsLeft === 0 && !loading ? "pointer" : "not-allowed"
           }}
         >
-          Create Character
+          {loading ? "Creating..." : "Create Character"}
         </button>
+        {error && <div style={{ color: "#b91c1c", marginTop: 10 }}>{error}</div>}
       </div>
     );
   }
