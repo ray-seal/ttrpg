@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { supabase } from "./supabaseClient";
 import CharacterCreation from "./pages/CharacterCreation";
 import CharacterSheet from "./pages/CharacterSheet";
 import HomePage from "./pages/HomePage";
@@ -17,18 +18,11 @@ import CampaignPage from "./pages/CampaignPage";
 import PeevesPests from "./pages/PeevesPests";
 import Detentions from "./pages/Detentions";
 import AuthWizard from "./pages/AuthWizard";
-import Login from "./pages/Login"; // <-- create this page if not already
+import Login from "./pages/Login";
 
-const CHARACTER_KEY = "character";
+const CHARACTER_KEY = "activeCharacterId";
 
-function loadCharacter(): Character | null {
-  const saved = localStorage.getItem(CHARACTER_KEY);
-  return saved ? JSON.parse(saved) : null;
-}
-
-function saveCharacter(char: Character) {
-  localStorage.setItem(CHARACTER_KEY, JSON.stringify(char));
-}
+const RESET_PHRASE = "reset-my-game";
 
 function getAllowedDice(character: Character | null): number[] {
   if (!character) return [4, 6, 8, 10, 12, 20];
@@ -38,9 +32,6 @@ function getAllowedDice(character: Character | null): number[] {
   return [4, 6, 8, 10, 12, 20];
 }
 
-const RESET_PHRASE = "reset-my-game";
-
-// Returns total XP required to reach the given level (level 1 = 0 XP, level 2 = 100 XP, level 3 = 300 XP, ...)
 function getTotalXpForLevel(level: number): number {
   let xp = 0;
   for (let l = 1; l < level; l++) {
@@ -49,7 +40,6 @@ function getTotalXpForLevel(level: number): number {
   return xp;
 }
 
-// Calculates the character's level based on total XP
 function getLevelForExperience(exp: number): number {
   let level = 1;
   while (exp >= getTotalXpForLevel(level + 1)) {
@@ -58,23 +48,93 @@ function getLevelForExperience(exp: number): number {
   return level;
 }
 
-// Helper to check if school_termtwo flag is set
 function hasUnlockedLumos(character: Character) {
   return !!(character.flags && character.flags.school_termtwo);
 }
 
 const App: React.FC = () => {
-  const [character, setCharacter] = useState<Character | null>(loadCharacter());
+  const [session, setSession] = useState<any>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [activeCharacterId, setActiveCharacterId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [resetInput, setResetInput] = useState("");
 
+  // Get session/user
   useEffect(() => {
-    if (character) saveCharacter(character);
-  }, [character]);
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      setUserId(data.session?.user.id ?? null);
+    });
+  }, []);
 
-  const currentHouse = character?.house as House | undefined;
+  // Fetch all characters for this user
+  useEffect(() => {
+    if (!userId) return;
+    setLoading(true);
+    supabase
+      .from("characters")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        setCharacters(data || []);
+        // Set active from localStorage if exists, else first character
+        const stored = localStorage.getItem(CHARACTER_KEY);
+        if (stored && data?.some(c => c.id === stored)) {
+          setActiveCharacterId(stored);
+        } else if (data && data.length > 0) {
+          setActiveCharacterId(data[0].id);
+        } else {
+          setActiveCharacterId(null);
+        }
+        setLoading(false);
+      });
+  }, [userId]);
+
+  // Save active character to localStorage
+  useEffect(() => {
+    if (activeCharacterId) localStorage.setItem(CHARACTER_KEY, activeCharacterId);
+  }, [activeCharacterId]);
+
+  // Add a new character to state
+  function handleCreateCharacter(newChar: Character) {
+    setCharacters((prev) => [...prev, newChar]);
+    setActiveCharacterId(newChar.id);
+  }
+
+  // Switch active character
+  function handleSelectCharacter(id: string) {
+    setActiveCharacterId(id);
+  }
+
+  // Update a character in characters array
+  function handleUpdateCharacter(updatedChar: Character) {
+    setCharacters(chars => chars.map(c => (c.id === updatedChar.id ? updatedChar : c)));
+    if (updatedChar.id === activeCharacterId) {
+      // Also update active character
+      setActiveCharacterId(updatedChar.id);
+    }
+  }
+
+  // Delete (reset) current character
+  function handleReset() {
+    if (!activeCharacterId) return;
+    supabase.from("characters").delete().eq("id", activeCharacterId).then(() => {
+      setCharacters(chars => chars.filter(c => c.id !== activeCharacterId));
+      setActiveCharacterId(null);
+      localStorage.removeItem(CHARACTER_KEY);
+      setResetInput("");
+    });
+  }
+
+  const activeCharacter = characters.find(c => c.id === activeCharacterId) || null;
+
+  // Theming
+  const currentHouse = activeCharacter?.house as House | undefined;
   const theme = currentHouse ? houseThemes[currentHouse] : houseThemes.Gryffindor;
 
-  // Dynamically update the PWA/browser theme color based on the current house
+  // Set meta theme color
   useEffect(() => {
     let metaThemeColor = document.querySelector("meta[name=theme-color]");
     if (!metaThemeColor) {
@@ -85,26 +145,26 @@ const App: React.FC = () => {
     metaThemeColor.setAttribute("content", theme.primary);
   }, [theme]);
 
-  function addExperience(points: number) {
-    setCharacter((prev) => {
-      if (!prev) return prev;
-      const newExp = prev.experience + points;
-      const newLevel = getLevelForExperience(newExp);
-      return { ...prev, experience: newExp, level: newLevel };
-    });
-  }
-
-  function handleReset() {
-    localStorage.clear();
-    setCharacter(null);
-    setResetInput("");
+  // Global loading UI
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        fontFamily: "monospace"
+      }}>
+        <h2>Loading Hogwarts Adventure...</h2>
+      </div>
+    );
   }
 
   return (
     <Routes>
       <Route
         path="/"
-        element={<HomePage hasCharacter={!!character} />}
+        element={<HomePage hasCharacter={!!activeCharacter} />}
       />
       <Route
         path="/signup"
@@ -117,8 +177,13 @@ const App: React.FC = () => {
       <Route
         path="/character-creation"
         element={
-          !character ? (
-            <CharacterCreation onCreate={setCharacter} />
+          !activeCharacter ? (
+            <CharacterCreation
+              userId={userId!}
+              characters={characters}
+              onCreate={handleCreateCharacter}
+              onSelectCharacter={handleSelectCharacter}
+            />
           ) : (
             <Navigate to="/character-sheet" replace />
           )
@@ -127,16 +192,22 @@ const App: React.FC = () => {
       <Route
         path="/character-sheet"
         element={
-          character ? (
-            <ThemedLayout character={character}>
+          activeCharacter ? (
+            <ThemedLayout character={activeCharacter}>
               <h1 style={{ color: "inherit", textAlign: "center" }}>
                 Harry Potter TTRPG
               </h1>
-              <CharacterSheet character={character} setCharacter={setCharacter} />
+              <CharacterSheet
+                character={activeCharacter}
+                setCharacter={handleUpdateCharacter}
+                onSwitchCharacter={handleSelectCharacter}
+                onDeleteCharacter={handleReset}
+                characters={characters}
+              />
               {/* Reset game section */}
               <div style={{ marginTop: "2rem", textAlign: "center" }}>
                 <label htmlFor="reset-input" style={{ marginRight: "1rem" }}>
-                  Type "<b>{RESET_PHRASE}</b>" to reset your game:
+                  Type "<b>{RESET_PHRASE}</b>" to reset this character:
                 </label>
                 <input
                   id="reset-input"
@@ -167,10 +238,10 @@ const App: React.FC = () => {
                     fontWeight: "bold",
                   }}
                 >
-                  Reset Game
+                  Reset Character
                 </button>
               </div>
-              <DiceButton allowedDice={getAllowedDice(character)} />
+              <DiceButton allowedDice={getAllowedDice(activeCharacter)} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
@@ -180,9 +251,9 @@ const App: React.FC = () => {
       <Route
         path="/spellbook"
         element={
-          character ? (
-            <ThemedLayout character={character}>
-              <SpellBook character={character} setCharacter={setCharacter} />
+          activeCharacter ? (
+            <ThemedLayout character={activeCharacter}>
+              <SpellBook character={activeCharacter} setCharacter={handleUpdateCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
@@ -192,9 +263,9 @@ const App: React.FC = () => {
       <Route
         path="/school"
         element={
-          character && character.hasTimetable ? (
-            <ThemedLayout character={character}>
-              <School character={character} setCharacter={setCharacter} />
+          activeCharacter && activeCharacter.hasTimetable ? (
+            <ThemedLayout character={activeCharacter}>
+              <School character={activeCharacter} setCharacter={handleUpdateCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/campaign" />
@@ -204,9 +275,9 @@ const App: React.FC = () => {
       <Route
         path="/school/alohomora-lesson"
         element={
-          character ? (
-            <ThemedLayout character={character}>
-              <AlohomoraLesson character={character} setCharacter={setCharacter} />
+          activeCharacter ? (
+            <ThemedLayout character={activeCharacter}>
+              <AlohomoraLesson character={activeCharacter} setCharacter={handleUpdateCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
@@ -216,12 +287,12 @@ const App: React.FC = () => {
       <Route
         path="/school/lumos-lesson"
         element={
-          character && hasUnlockedLumos(character) ? (
-            <ThemedLayout character={character}>
+          activeCharacter && hasUnlockedLumos(activeCharacter) ? (
+            <ThemedLayout character={activeCharacter}>
               <LumosLesson
-                character={character}
-                unlockedSpells={character.completedLessons || []}
-                setCharacter={setCharacter}
+                character={activeCharacter}
+                unlockedSpells={activeCharacter.completedLessons || []}
+                setCharacter={handleUpdateCharacter}
               />
             </ThemedLayout>
           ) : (
@@ -232,9 +303,9 @@ const App: React.FC = () => {
       <Route
         path="/school/wingardium-leviosa-lesson"
         element={
-          character ? (
-            <ThemedLayout character={character}>
-              <WingardiumLeviosaLesson character={character} setCharacter={setCharacter} />
+          activeCharacter ? (
+            <ThemedLayout character={activeCharacter}>
+              <WingardiumLeviosaLesson character={activeCharacter} setCharacter={handleUpdateCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
@@ -244,9 +315,9 @@ const App: React.FC = () => {
       <Route
         path="/peeves-pests"
         element={
-          character ? (
-            <ThemedLayout character={character}>
-              <PeevesPests character={character} setCharacter={setCharacter} />
+          activeCharacter ? (
+            <ThemedLayout character={activeCharacter}>
+              <PeevesPests character={activeCharacter} setCharacter={handleUpdateCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
@@ -256,9 +327,9 @@ const App: React.FC = () => {
       <Route
         path="/detentions"
         element={
-          character ? (
-            <ThemedLayout character={character}>
-              <Detentions character={character} setCharacter={setCharacter} />
+          activeCharacter ? (
+            <ThemedLayout character={activeCharacter}>
+              <Detentions character={activeCharacter} setCharacter={handleUpdateCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
@@ -268,9 +339,9 @@ const App: React.FC = () => {
       <Route
         path="/campaign"
         element={
-          character ? (
-            <ThemedLayout character={character}>
-              <CampaignPage character={character} setCharacter={setCharacter} />
+          activeCharacter ? (
+            <ThemedLayout character={activeCharacter}>
+              <CampaignPage character={activeCharacter} setCharacter={handleUpdateCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
@@ -280,8 +351,8 @@ const App: React.FC = () => {
       <Route
         path="/help"
         element={
-          character ? (
-            <ThemedLayout character={character}>
+          activeCharacter ? (
+            <ThemedLayout character={activeCharacter}>
               <div
                 style={{
                   minHeight: "100vh",
