@@ -52,7 +52,7 @@ interface Props {
   setCharacter?: (c: Character) => void;
 }
 
-const School: React.FC<Props> = ({ character, setCharacter }) => {
+const School: React.FC<Props> = ({ character }) => {
   const theme = houseThemes[character.house];
   const [selectedClass, setSelectedClass] = useState("charms");
   const [selectedYear, setSelectedYear] = useState("year1");
@@ -62,28 +62,26 @@ const School: React.FC<Props> = ({ character, setCharacter }) => {
 
   const completedLessons: string[] = character.completedLessons || [];
 
-  // 1. Check if character owns the timetable item
+  // Check for timetable item
+  async function checkTimetable() {
+    setHasTimetable(null);
+    setError(null);
+    const { data, error } = await supabase
+      .from("character_items")
+      .select("id")
+      .eq("character_id", character.id)
+      .eq("item_id", timetableItemId)
+      .maybeSingle();
+    if (error) setError("Could not check timetable ownership.");
+    setHasTimetable(!!data);
+  }
+
   useEffect(() => {
-    let isMounted = true;
-    async function checkTimetable() {
-      setHasTimetable(null);
-      setError(null);
-      const { data, error } = await supabase
-        .from("character_items")
-        .select("id")
-        .eq("character_id", character.id)
-        .eq("item_id", timetableItemId)
-        .maybeSingle();
-      if (isMounted) {
-        if (error) setError("Could not check timetable ownership.");
-        setHasTimetable(!!data);
-      }
-    }
     checkTimetable();
-    return () => { isMounted = false; };
+    // eslint-disable-next-line
   }, [character.id]);
 
-  // 2. Handler to give the timetable and update Supabase
+  // Handler to give timetable
   async function handleGiveTimetable() {
     setGivingTimetable(true);
     setError(null);
@@ -92,13 +90,15 @@ const School: React.FC<Props> = ({ character, setCharacter }) => {
       .insert([{ character_id: character.id, item_id: timetableItemId }]);
     if (error) {
       setError("Could not give timetable. Try again.");
-    } else {
-      setHasTimetable(true);
+      setGivingTimetable(false);
+      return;
     }
+    // Double-check by re-querying
+    await checkTimetable();
     setGivingTimetable(false);
   }
 
-  // 3. Charms lessons: unlock in order, only next available
+  // Charms lessons: unlock in order, only next available
   function renderCharmsLessons() {
     let unlockedIndex = 0;
     for (let i = 0; i < charmsLessonsYear1.length; i++) {
@@ -211,7 +211,7 @@ const School: React.FC<Props> = ({ character, setCharacter }) => {
     );
   }
 
-  // 4. Main render
+  // Main render
   if (hasTimetable === null) {
     return (
       <div style={{ textAlign: "center", margin: "3rem" }}>Loading School...</div>
