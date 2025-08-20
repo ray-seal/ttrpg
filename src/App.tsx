@@ -19,6 +19,10 @@ import MadamMalkins from "./pages/MadamMalkins";
 import SchoolGate from "./components/SchoolGate";
 import SortingHat from "./pages/SortingHat";
 import HogwartsExpress from "./pages/HogwartsExpress";
+// Import lesson components:
+import AlohomoraLesson from "./pages/AlohomoraLesson";
+import WingardiumLeviosaLesson from "./pages/WingardiumLeviosaLesson";
+import LumosLesson from "./pages/LumosLesson";
 
 const CHARACTER_KEY = "activeCharacterId";
 
@@ -144,6 +148,7 @@ export default function App() {
   }
 
   // After sorting, never show onboarding steps again
+  // Only redirect to /character-sheet if user is currently on an onboarding route
   if (
     session &&
     activeCharacter &&
@@ -292,6 +297,37 @@ export default function App() {
                 <School character={activeCharacter} setCharacter={handleUpdateCharacter} />
               </ThemedLayout>
             </SchoolGate>
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      {/* LESSON ROUTES ADDED */}
+      <Route
+        path="/alohomora-lesson"
+        element={
+          activeCharacter ? (
+            <AlohomoraLesson character={activeCharacter} setCharacter={handleUpdateCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/wingardium-leviosa-lesson"
+        element={
+          activeCharacter ? (
+            <WingardiumLeviosaLesson character={activeCharacter} setCharacter={handleUpdateCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/lumos-lesson"
+        element={
+          activeCharacter ? (
+            <LumosLesson character={activeCharacter} setCharacter={handleUpdateCharacter} />
           ) : (
             <Navigate to="/" replace />
           )
