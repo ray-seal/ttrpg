@@ -21,10 +21,10 @@ const attributeByHouse: Record<House, keyof Character> = {
 };
 
 interface CharacterCreationProps {
-  onCreate: (character: Character) => void;
   userId: string;
-  onSelectCharacter: (characterId: string) => void;
   characters: Character[];
+  onCreate: (character: Character) => void;
+  onSelectCharacter: (characterId: string) => void;
 }
 
 const placeholderStudents = [
@@ -35,10 +35,10 @@ const placeholderStudents = [
 ];
 
 const CharacterCreation: React.FC<CharacterCreationProps> = ({
-  onCreate,
   userId,
-  onSelectCharacter,
   characters,
+  onCreate,
+  onSelectCharacter,
 }) => {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [name, setName] = useState("");
@@ -55,19 +55,23 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Autofill name from the user profile in Supabase (if available)
+  // Autofill name from user profile (if available)
   useEffect(() => {
     async function fetchUserData() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && user.user_metadata && user.user_metadata.name) {
-        setName(user.user_metadata.name);
-        setStep(2);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && user.user_metadata && user.user_metadata.name) {
+          setName(user.user_metadata.name);
+          setStep(2);
+        }
+      } catch {
+        // ignore
       }
     }
     fetchUserData();
   }, []);
 
-  // When house is set, apply bonus point once!
+  // Give house bonus exactly once
   useEffect(() => {
     if (house && step === 3) {
       const attr = attributeByHouse[house as House];
@@ -79,7 +83,7 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({
     // eslint-disable-next-line
   }, [house, step]);
 
-  // Character count check
+  // Character limit
   const reachedCharacterLimit = characters.length >= 4;
 
   // Step 1: Enter name or show character limit
@@ -196,9 +200,8 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({
     );
   }
 
-  // Step 3: Sorting Ceremony + story
+  // Step 3: Sorting Ceremony
   if (step === 3 && chosenWord && name) {
-    // Determine house by choice
     const sortedHouse = houseByChoice[chosenWord];
     if (house !== sortedHouse) setHouse(sortedHouse);
 
@@ -265,7 +268,7 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({
 
   // Step 4: Distribute Attribute Points (+1 bonus already applied)
   if (step === 4 && house) {
-    async function handleAttributeChange(attr: keyof typeof attributes, delta: number) {
+    function handleAttributeChange(attr: keyof typeof attributes, delta: number) {
       const min = DEFAULT_ATTRIBUTE + ((attributeByHouse[house] === attr) ? BONUS : 0);
       if (delta > 0 && pointsLeft > 0) {
         setAttributes(prev => ({ ...prev, [attr]: prev[attr] + 1 }));
@@ -281,28 +284,37 @@ const CharacterCreation: React.FC<CharacterCreationProps> = ({
       setLoading(true);
       setError(null);
       try {
-        // Insert new character
-        const { data, error: dbError } = await supabase.from("characters").insert([{
-          user_id: userId,
-          name,
-          house,
-          magic: attributes.magic,
-          knowledge: attributes.knowledge,
-          courage: attributes.courage,
-          agility: attributes.agility,
-          charisma: attributes.charisma,
-          experience: 0,
-          level: 1,
-          hit_points: 10,
-          scene_id: "wakeup",
-          unlockedSpells: [],
-          completedLessons: [],
-          equippedSpells: [],
-          items: [],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }]).select("*").single();
+        const { data, error: dbError } = await supabase
+          .from("characters")
+          .insert([{
+            user_id: userId,
+            name,
+            house,
+            magic: attributes.magic,
+            knowledge: attributes.knowledge,
+            courage: attributes.courage,
+            agility: attributes.agility,
+            charisma: attributes.charisma,
+            experience: 0,
+            level: 1,
+            hit_points: 10,
+            scene_id: "wakeup",
+            unlockedSpells: [],
+            completedLessons: [],
+            equippedSpells: [],
+            items: [],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }])
+          .select("*")
+          .single();
+
         if (dbError) throw dbError;
+        if (!data) {
+          setError("Failed to create character: No data returned from Supabase.");
+          setLoading(false);
+          return;
+        }
         onCreate(data as Character);
         onSelectCharacter(data.id);
       } catch (err: any) {
