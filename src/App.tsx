@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import CharacterCreation from "./pages/CharacterCreation";
 import CharacterSheet from "./pages/CharacterSheet";
@@ -19,7 +19,6 @@ import MadamMalkins from "./pages/MadamMalkins";
 import SchoolGate from "./components/SchoolGate";
 import SortingHat from "./pages/SortingHat";
 import HogwartsExpress from "./pages/HogwartsExpress";
-// Import lesson components:
 import AlohomoraLesson from "./pages/AlohomoraLesson";
 import WingardiumLeviosaLesson from "./pages/WingardiumLeviosaLesson";
 import LumosLesson from "./pages/LumosLesson";
@@ -91,7 +90,7 @@ export default function App() {
 
   const activeCharacter = characters.find(c => c.id === activeCharacterId) || null;
 
-  // Guard: Wait for loading
+  // Wait for loading
   if (loading) {
     return <div style={{
       minHeight: "100vh",
@@ -102,17 +101,17 @@ export default function App() {
     }}><h2>Loading Hogwarts Adventure...</h2></div>;
   }
 
-  // Guard: Not logged in? Go to signup/login
+  // Not logged in? Go to signup/login
   if (!session && location.pathname !== "/signup" && location.pathname !== "/login") {
     return <Navigate to="/signup" replace />;
   }
 
-  // Guard: No character? Force creation
+  // No character? Force creation
   if (session && !activeCharacter && location.pathname !== "/character-creation") {
     return <Navigate to="/character-creation" replace />;
   }
 
-  // Guard: Check character status for onboarding
+  // Check character status for onboarding
   const missingName = !activeCharacter?.name;
   const missingSorting =
     !activeCharacter?.house ||
@@ -147,8 +146,7 @@ export default function App() {
     return <Navigate to="/diagon-alley" replace />;
   }
 
-  // After sorting, never show onboarding steps again
-  // Only redirect to /character-sheet if user is currently on an onboarding route
+  // After sorting, never show onboarding steps again, but only redirect if on onboarding path
   if (
     session &&
     activeCharacter &&
@@ -159,6 +157,7 @@ export default function App() {
     return <Navigate to="/character-sheet" replace />;
   }
 
+  // All other pages: allow refresh to land on correct page!
   return (
     <Routes>
       <Route
@@ -269,7 +268,6 @@ export default function App() {
             <SortingHat
               character={activeCharacter}
               onSorted={() => {
-                // Optionally refresh character state here
                 window.location.href = "/character-sheet";
               }}
             />
@@ -302,7 +300,7 @@ export default function App() {
           )
         }
       />
-      {/* LESSON ROUTES ADDED */}
+      {/* Lesson routes */}
       <Route
         path="/alohomora-lesson"
         element={
