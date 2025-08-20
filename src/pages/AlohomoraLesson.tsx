@@ -31,19 +31,22 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
   const [success, setSuccess] = useState<boolean | null>(null);
 
   async function markSpellLearnt() {
-    // Update character in Supabase with new unlockedSpells, completedLessons, and +10 XP
-    const newUnlocked = Array.from(new Set([...(character.unlockedSpells ?? []), "Alohomora"]));
+    // Add spell to character_spells if not already present
+    await supabase
+      .from("character_spells")
+      .upsert([
+        { character_id: character.id, spell: "Alohomora" }
+      ], { onConflict: ["character_id", "spell"] });
+
+    // Update character experience and completedLessons
     const newCompleted = Array.from(new Set([...(character.completedLessons ?? []), "Alohomora"]));
-    const newExp = character.experience + 10;
+    const newExp = (character.experience ?? 0) + 10;
     setCharacter({
       ...character,
-      unlockedSpells: newUnlocked,
       completedLessons: newCompleted,
       experience: newExp,
     });
-    // Persist to Supabase
     await supabase.from("characters").update({
-      unlockedSpells: newUnlocked,
       completedLessons: newCompleted,
       experience: newExp
     }).eq("id", character.id);
