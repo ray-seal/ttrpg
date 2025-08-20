@@ -64,7 +64,7 @@ const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character
       setError("Failed to deduct money.");
       return;
     }
-    // 2. Add wand to inventory in DB
+    // 2. Add wand to inventory in DB (UPsert to avoid duplicate error)
     const { error: wandError } = await supabase
       .from("character_items")
       .upsert(
@@ -81,7 +81,6 @@ const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character
       return;
     }
     setPurchased(true);
-    // 3. Update local state to reflect changes immediately
     setLocalCharacter((lc) => ({
       ...lc,
       wizarding_money: lc.wizarding_money - WAND_COST,
@@ -94,6 +93,8 @@ const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character
     }
     await fetchCharacter(); // re-sync from DB
     await checkAlreadyHasWand();
+    // Immediately go back to Diagon Alley!
+    navigate("/diagon-alley");
   };
 
   return (
