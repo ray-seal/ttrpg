@@ -4,9 +4,6 @@ import { supabase } from "./supabaseClient";
 import CharacterCreation from "./pages/CharacterCreation";
 import CharacterSheet from "./pages/CharacterSheet";
 import HomePage from "./pages/HomePage";
-import { houseThemes, House } from "./themes";
-import { Character } from "./types";
-import DiceButton from "./components/DiceButton";
 import ThemedLayout from "./components/ThemedLayout";
 import School from "./pages/School";
 import SpellBook from "./pages/Spellbook";
@@ -28,7 +25,7 @@ const CHARACTER_KEY = "activeCharacterId";
 export default function App() {
   const [session, setSession] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [characters, setCharacters] = useState<Character[]>([]);
+  const [characters, setCharacters] = useState<any[]>([]);
   const [activeCharacterId, setActiveCharacterId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -79,59 +76,82 @@ export default function App() {
     if (activeCharacterId) localStorage.setItem(CHARACTER_KEY, activeCharacterId);
   }, [activeCharacterId]);
 
-  function handleCreateCharacter(newChar: Character) {
+  function handleCreateCharacter(newChar: any) {
     setCharacters((prev) => [...prev, newChar]);
     setActiveCharacterId(newChar.id);
   }
-  function handleUpdateCharacter(updatedChar: Character) {
+  function handleUpdateCharacter(updatedChar: any) {
     setCharacters(chars => chars.map(c => (c.id === updatedChar.id ? updatedChar : c)));
     if (updatedChar.id === activeCharacterId) setActiveCharacterId(updatedChar.id);
   }
 
   const activeCharacter = characters.find(c => c.id === activeCharacterId) || null;
 
-  // Defensive: If character missing name or house, require creation flow
-  if (
-    session &&
-    activeCharacter &&
-    (!activeCharacter.name || !activeCharacter.house) &&
-    !["/character-creation", "/sorting-hat", "/hogwarts-express"].includes(location.pathname)
-  ) {
-    // If missing house, force to sorting hat after Diagon Alley/Hogwarts Express; if missing name, force to character-creation
-    if (!activeCharacter.name) {
-      return <Navigate to="/character-creation" replace />;
-    } else if (!activeCharacter.house) {
-      return <Navigate to="/hogwarts-express" replace />;
-    }
-  }
-
+  // Guard: Wait for loading
   if (loading) {
-    return (
-      <div style={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        fontFamily: "monospace"
-      }}>
-        <h2>Loading Hogwarts Adventure...</h2>
-      </div>
-    );
+    return <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      fontFamily: "monospace"
+    }}><h2>Loading Hogwarts Adventure...</h2></div>;
   }
 
-  // Auth and onboarding gating
+  // Guard: Not logged in? Go to signup/login
   if (!session && location.pathname !== "/signup" && location.pathname !== "/login") {
     return <Navigate to="/signup" replace />;
   }
-  if (session && !activeCharacter && location.pathname !== "/character-creation" && location.pathname !== "/logout") {
+
+  // Guard: No character? Force creation
+  if (session && !activeCharacter && location.pathname !== "/character-creation") {
     return <Navigate to="/character-creation" replace />;
   }
+
+  // Guard: Check character status for onboarding
+  const missingName = !activeCharacter?.name;
+  const missingSorting =
+    !activeCharacter?.house ||
+    activeCharacter.magic == null ||
+    activeCharacter.knowledge == null ||
+    activeCharacter.courage == null ||
+    activeCharacter.agility == null ||
+    activeCharacter.charisma == null;
+  const letterRead = !!activeCharacter?.letter_read;
+
+  // Should see letter if: name present, not sorted, and letter_read is false
   if (
     session &&
     activeCharacter &&
-    ["/signup", "/login", "/character-creation"].includes(location.pathname)
+    !missingName &&
+    missingSorting &&
+    !letterRead &&
+    location.pathname !== "/hogwarts-letter"
   ) {
     return <Navigate to="/hogwarts-letter" replace />;
+  }
+
+  // After reading letter, go to Diagon Alley
+  if (
+    session &&
+    activeCharacter &&
+    !missingName &&
+    missingSorting &&
+    letterRead &&
+    ["/hogwarts-letter", "/signup", "/login", "/character-creation"].includes(location.pathname)
+  ) {
+    return <Navigate to="/diagon-alley" replace />;
+  }
+
+  // After sorting, never show onboarding steps again
+  if (
+    session &&
+    activeCharacter &&
+    !missingName &&
+    !missingSorting &&
+    ["/signup", "/login", "/character-creation", "/hogwarts-letter", "/hogwarts-express", "/sorting-hat", "/diagon-alley"].includes(location.pathname)
+  ) {
+    return <Navigate to="/character-sheet" replace />;
   }
 
   return (
@@ -243,12 +263,21 @@ export default function App() {
           activeCharacter ? (
             <SortingHat
               character={activeCharacter}
-              onSorted={async (house: string) => {
-                // update house in db and refresh
-                await supabase.from("characters").update({ house }).eq("id", activeCharacter.id);
-                window.location.href = "/hogwarts-letter";
+              onSorted={() => {
+                // Optionally refresh character state here
+                window.location.href = "/character-sheet";
               }}
             />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/character-sheet"
+        element={
+          activeCharacter ? (
+            <CharacterSheet character={activeCharacter} />
           ) : (
             <Navigate to="/" replace />
           )
