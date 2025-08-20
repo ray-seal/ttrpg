@@ -1,9 +1,36 @@
 import React, { useState } from "react";
+import { supabase } from "../supabaseClient";
 import { Character } from "../types";
+import { useNavigate } from "react-router-dom";
+
+type Attributes = {
+  magic: number;
+  knowledge: number;
+  courage: number;
+  agility: number;
+  charisma: number;
+};
+
+const BASE_ATTRIBUTES: Attributes = {
+  magic: 5,
+  knowledge: 5,
+  courage: 5,
+  agility: 5,
+  charisma: 5,
+};
+
+const houseBonus: Record<string, Partial<Attributes>> = {
+  Gryffindor: { courage: 6 },
+  Ravenclaw: { knowledge: 6 },
+  Hufflepuff: { charisma: 6 },
+  Slytherin: { agility: 6 },
+};
+
+type House = keyof typeof houseBonus;
 
 type Question = {
   text: string;
-  options: { label: string; house: "Gryffindor" | "Ravenclaw" | "Hufflepuff" | "Slytherin" }[];
+  options: { label: string; house: House }[];
 };
 
 const questions: Question[] = [
@@ -54,7 +81,7 @@ const questions: Question[] = [
   }
 ];
 
-const houseDescriptions: Record<string, string> = {
+const houseDescriptions: Record<House, string> = {
   Gryffindor: "Brave at heart, daring, chivalrous, and full of nerve.",
   Ravenclaw: "Wit beyond measure, intelligent, creative, and wise.",
   Hufflepuff: "Just and loyal, patient, honest, and unafraid of toil.",
@@ -63,11 +90,31 @@ const houseDescriptions: Record<string, string> = {
 
 const SortingHat: React.FC<{
   character: Character,
-  onSorted: (house: string) => void
+  onSorted?: (house: string) => void
 }> = ({ character, onSorted }) => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
-  const [finalHouse, setFinalHouse] = useState<string | null>(null);
+  const [finalHouse, setFinalHouse] = useState<House | null>(null);
+  const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
+
+  async function applySorting(house: House) {
+    setSaving(true);
+    // Apply all base (5) and the house bonus
+    const attributes: Attributes = { ...BASE_ATTRIBUTES, ...(houseBonus[house] as Partial<Attributes>) };
+    await supabase.from("characters").update({
+      house,
+      magic: attributes.magic,
+      knowledge: attributes.knowledge,
+      courage: attributes.courage,
+      agility: attributes.agility,
+      charisma: attributes.charisma
+    }).eq("id", character.id);
+
+    setSaving(false);
+    if (onSorted) onSorted(house);
+    navigate("/character-sheet");
+  }
 
   function next(answerIdx: number) {
     setAnswers(ans => [...ans, answerIdx]);
@@ -75,7 +122,7 @@ const SortingHat: React.FC<{
       setStep(step + 1);
     } else {
       // Tally answers
-      const houseCount: Record<string, number> = {
+      const houseCount: Record<House, number> = {
         Gryffindor: 0, Ravenclaw: 0, Hufflepuff: 0, Slytherin: 0
       };
       [...answers, answerIdx].forEach((ans, i) => {
@@ -84,21 +131,26 @@ const SortingHat: React.FC<{
       });
       // Find max
       let max = 0;
-      let selectedHouse = "Gryffindor";
+      let selectedHouse: House = "Gryffindor";
       Object.entries(houseCount).forEach(([house, count]) => {
         if (count > max) {
           max = count;
-          selectedHouse = house;
+          selectedHouse = house as House;
         }
       });
       setFinalHouse(selectedHouse);
       setTimeout(() => {
-        onSorted(selectedHouse);
-      }, 1750); // dramatic pause
+        applySorting(selectedHouse);
+      }, 1800); // dramatic pause
     }
   }
 
+  if (saving) {
+    return <div style={{ textAlign: "center", marginTop: "4rem" }}>Saving your house and attributes...</div>;
+  }
+
   if (finalHouse) {
+    const attributes = { ...BASE_ATTRIBUTES, ...(houseBonus[finalHouse] as Partial<Attributes>) };
     return (
       <div style={{ textAlign: "center", marginTop: "4rem" }}>
         <h2>The Sorting Hat has decided...</h2>
@@ -112,6 +164,16 @@ const SortingHat: React.FC<{
         </div>
         <div style={{ fontStyle: "italic", marginBottom: "2rem" }}>
           {houseDescriptions[finalHouse]}
+        </div>
+        <div>
+          <strong>Your Attributes:</strong>
+          <ul style={{ display: "inline-block", textAlign: "left", margin: "1rem auto" }}>
+            <li><b>Magic:</b> {attributes.magic}</li>
+            <li><b>Knowledge:</b> {attributes.knowledge}</li>
+            <li><b>Courage:</b> {attributes.courage}</li>
+            <li><b>Agility:</b> {attributes.agility}</li>
+            <li><b>Charisma:</b> {attributes.charisma}</li>
+          </ul>
         </div>
         <div>Good luck at Hogwarts!</div>
       </div>
