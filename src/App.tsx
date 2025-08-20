@@ -19,7 +19,11 @@ import PeevesPests from "./pages/PeevesPests";
 import Detentions from "./pages/Detentions";
 import AuthWizard from "./pages/AuthWizard";
 import Login from "./pages/Login";
-import Inventory from "./pages/Inventory"; // <-- new import
+import Inventory from "./pages/Inventory";
+import HogwartsLetter from "./pages/HogwartsLetter";
+import HogwartsSupplyList from "./pages/HogwartsSupplyList";
+import DiagonAlley from "./pages/DiagonAlley";
+// (Add more Diagon Alley shop imports as you create them)
 
 const CHARACTER_KEY = "activeCharacterId";
 const RESET_PHRASE = "reset-my-game";
@@ -44,7 +48,6 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [resetInput, setResetInput] = useState("");
 
-  // Get session and listen for auth events
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -61,7 +64,6 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // Fetch all characters for this user
   useEffect(() => {
     if (!userId) {
       setLoading(false);
@@ -159,14 +161,8 @@ const App: React.FC = () => {
           />
         }
       />
-      <Route
-        path="/signup"
-        element={<AuthWizard />}
-      />
-      <Route
-        path="/login"
-        element={<Login />}
-      />
+      <Route path="/signup" element={<AuthWizard />} />
+      <Route path="/login" element={<Login />} />
       <Route
         path="/character-creation"
         element={
@@ -250,6 +246,38 @@ const App: React.FC = () => {
           )
         }
       />
+      {/* Hogwarts Letter and supply list routes */}
+      <Route
+        path="/hogwarts-letter"
+        element={
+          activeCharacter ? (
+            <HogwartsLetter character={activeCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/hogwarts-supply-list"
+        element={
+          activeCharacter ? (
+            <HogwartsSupplyList />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/diagon-alley"
+        element={
+          activeCharacter ? (
+            <DiagonAlley />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      {/* Add more Diagon Alley shop routes here as you implement them */}
       <Route
         path="/spellbook"
         element={
