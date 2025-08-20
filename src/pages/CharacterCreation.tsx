@@ -1,84 +1,78 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { Character } from "../types";
+import { useNavigate } from "react-router-dom";
 
-const houseList = ["Gryffindor", "Hufflepuff", "Ravenclaw", "Slytherin"];
-
-const CharacterCreation: React.FC<{ userId: string; onCreate: (c: any) => void; }> = ({ userId, onCreate }) => {
-  const [step, setStep] = useState<"name" | "sorting" | "done">("name");
+const CharacterCreation: React.FC<{ userId: string; onCreate: (char: Character) => void }> = ({ userId, onCreate }) => {
   const [name, setName] = useState("");
-  const [sortingResult, setSortingResult] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  function randomHouse() {
-    const idx = Math.floor(Math.random() * houseList.length);
-    return houseList[idx];
-  }
-
-  const handleNameSubmit = (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
-    setStep("sorting");
-  };
-
-  const handleSort = async () => {
-    const house = randomHouse();
-    setSortingResult(house);
-    // Create character in DB with 0 wizarding_money and no items
-    const { data, error } = await supabase
-      .from("characters")
-      .insert([{ name, house, user_id: userId, wizarding_money: 0 }])
-      .select()
-      .single();
-    if (error || !data) {
-      setError("Could not create character.");
+    if (!name.trim()) {
+      setError("Please enter your name.");
       return;
     }
-    // Callback for parent
-    onCreate(data);
-    setStep("done");
-    setTimeout(() => navigate("/hogwarts-letter"), 1500);
-  };
+    setLoading(true);
+    setError(null);
+    // Insert character without house (will sort later)
+    const { data, error: dbError } = await supabase
+      .from("characters")
+      .insert([{ user_id: userId, name: name.trim(), house: null, wizarding_money: 0 }])
+      .select()
+      .single();
+    setLoading(false);
+    if (dbError || !data) {
+      setError("Could not create character. Try again.");
+      return;
+    }
+    onCreate(data as Character);
+    navigate("/hogwarts-letter");
+  }
 
-  if (step === "name") {
-    return (
-      <form onSubmit={handleNameSubmit} style={{ textAlign: "center", marginTop: "4rem" }}>
-        <h2>What is your name?</h2>
+  return (
+    <div style={{
+      maxWidth: 430, margin: "3rem auto", padding: "2.5rem",
+      background: "#f5efd9", borderRadius: 14, fontFamily: "serif", color: "#432c15", border: "2px solid #b79b5a"
+    }}>
+      <h2 style={{ fontFamily: "cursive", textAlign: "center", marginBottom: "1.5rem", color: "#1e1c17" }}>
+        Create Your Character
+      </h2>
+      <form onSubmit={handleSubmit}>
+        <label style={{ fontWeight: "bold" }}>Your Name:</label>
         <input
           type="text"
           value={name}
           onChange={e => setName(e.target.value)}
-          autoFocus
-          style={{ fontSize: "1.2rem", padding: "0.6rem", borderRadius: 8 }}
+          maxLength={32}
+          required
+          style={{
+            width: "100%", padding: "0.7rem", margin: "0.75rem 0 1.5rem 0",
+            borderRadius: 7, border: "1.5px solid #b79b5a", fontSize: "1.1em"
+          }}
         />
-        <br />
-        <button type="submit" style={{ marginTop: "1.5rem", fontSize: "1.1em" }}>
-          Continue
+        {error && <div style={{ color: "crimson", marginBottom: 10 }}>{error}</div>}
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            background: "#b79b5a",
+            color: "#fff",
+            padding: "1rem 2.2rem",
+            borderRadius: "8px",
+            fontWeight: "bold",
+            fontSize: "1.1rem",
+            border: "none",
+            cursor: loading ? "not-allowed" : "pointer"
+          }}
+        >
+          {loading ? "Creating..." : "Start Your Journey"}
         </button>
       </form>
-    );
-  }
-  if (step === "sorting") {
-    return (
-      <div style={{ textAlign: "center", marginTop: "4rem" }}>
-        <h2>The Sorting Hat is thinking...</h2>
-        {!sortingResult ? (
-          <button onClick={handleSort} style={{ marginTop: 32, fontSize: "1.2em" }}>Reveal my house!</button>
-        ) : (
-          <h2 style={{ marginTop: 32 }}>Welcome to <span style={{ color: "#b79b5a" }}>{sortingResult}!</span></h2>
-        )}
-        {error && <div style={{ color: "crimson" }}>{error}</div>}
-      </div>
-    );
-  }
-  if (step === "done") {
-    return (
-      <div style={{ textAlign: "center", marginTop: "6rem", fontSize: "1.3em" }}>
-        Your adventure begins...
-      </div>
-    );
-  }
-  return null;
+    </div>
+  );
 };
+
 export default CharacterCreation;
