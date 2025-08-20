@@ -9,7 +9,6 @@ type InventoryItem = {
   id: string;
   name: string;
   description?: string;
-  quantity?: number;
 };
 
 type CharacterItem = {
@@ -17,7 +16,7 @@ type CharacterItem = {
   character_id: string;
   item_id: string;
   quantity: number;
-  items: InventoryItem | null; // from joined 'items'
+  items: InventoryItem | null;
 };
 
 type InventoryProps = {
@@ -67,16 +66,15 @@ const Inventory: React.FC<InventoryProps> = ({ character }) => {
           fontFamily: "cursive",
           textAlign: "center",
           marginBottom: "1.8rem",
-          color: theme.secondary,
-          textShadow: "0 2px 8px #fff"
+          color: "#000",
         }}
       >
         Inventory
       </h2>
       {loading ? (
-        <div style={{ textAlign: "center", color: theme.primary, fontWeight: 600 }}>Loading...</div>
+        <div style={{ textAlign: "center", color: "#000", fontWeight: 600 }}>Loading...</div>
       ) : inventory.length === 0 ? (
-        <div style={{ textAlign: "center", color: theme.primary, fontWeight: 600 }}>
+        <div style={{ textAlign: "center", color: "#000", fontWeight: 600 }}>
           Your inventory is empty.
         </div>
       ) : (
@@ -90,7 +88,7 @@ const Inventory: React.FC<InventoryProps> = ({ character }) => {
                 padding: "1rem 1.2rem",
                 borderRadius: "10px",
                 border: `1.5px solid ${theme.accent}`,
-                color: theme.primary,
+                color: "#000",
                 boxShadow: "0 2px 6px rgba(0,0,0,0.10)",
                 fontFamily: "serif",
                 display: "flex",
@@ -104,7 +102,7 @@ const Inventory: React.FC<InventoryProps> = ({ character }) => {
                 <b>{ci.items?.name || "Unknown Item"}</b>
                 {ci.quantity ? <> &times;{ci.quantity}</> : null}
                 {ci.items?.description ? (
-                  <span style={{ fontStyle: "italic", marginLeft: 8, color: theme.secondary }}>
+                  <span style={{ fontStyle: "italic", marginLeft: 8, color: "#000" }}>
                     — {ci.items.description}
                   </span>
                 ) : null}
@@ -118,7 +116,7 @@ const Inventory: React.FC<InventoryProps> = ({ character }) => {
           onClick={() => navigate("/")}
           style={{
             background: theme.accent,
-            color: theme.primary,
+            color: "#000",
             padding: "0.8rem 2rem",
             borderRadius: "8px",
             fontWeight: "bold",
