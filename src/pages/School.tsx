@@ -62,7 +62,6 @@ const School: React.FC<Props> = ({ character }) => {
 
   const completedLessons: string[] = character.completedLessons || [];
 
-  // Check for timetable item
   async function checkTimetable() {
     setHasTimetable(null);
     setError(null);
@@ -81,7 +80,6 @@ const School: React.FC<Props> = ({ character }) => {
     // eslint-disable-next-line
   }, [character.id]);
 
-  // Handler to give timetable
   async function handleGiveTimetable() {
     setGivingTimetable(true);
     setError(null);
@@ -93,12 +91,10 @@ const School: React.FC<Props> = ({ character }) => {
       setGivingTimetable(false);
       return;
     }
-    // Double-check by re-querying
     await checkTimetable();
     setGivingTimetable(false);
   }
 
-  // Charms lessons: unlock in order, only next available
   function renderCharmsLessons() {
     let unlockedIndex = 0;
     for (let i = 0; i < charmsLessonsYear1.length; i++) {
@@ -211,7 +207,6 @@ const School: React.FC<Props> = ({ character }) => {
     );
   }
 
-  // Main render
   if (hasTimetable === null) {
     return (
       <div style={{ textAlign: "center", margin: "3rem" }}>Loading School...</div>
@@ -231,10 +226,10 @@ const School: React.FC<Props> = ({ character }) => {
         fontFamily: "serif",
         textAlign: "center",
       }}>
-        <h2>Timetable Required</h2>
+        <h2>Speak to Your Head of House</h2>
         <p>
-          You need your Year One Timetable to attend classes.<br />
-          (Your head of house can give you your timetable.)
+          Your head of house is waiting and will give you your Year One Timetable.<br />
+          Without it, you can't attend classes!
         </p>
         {error && <div style={{ color: "#b91c1c", margin: "0.5rem 0" }}>{error}</div>}
         <button
@@ -254,7 +249,7 @@ const School: React.FC<Props> = ({ character }) => {
             display: "block"
           }}
         >
-          {givingTimetable ? "Handing you your timetable..." : "Thank your Head of House"}
+          {givingTimetable ? "Receiving your timetable..." : "Receive Timetable"}
         </button>
         <Link
           to="/"
