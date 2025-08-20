@@ -1,24 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-interface HogwartsLetterProps {
-  character: { name: string };
-}
-
-const HogwartsLetter: React.FC<HogwartsLetterProps> = ({ character }) => {
+const HogwartsLetter: React.FC<{ character: { name: string } }> = ({ character }) => {
   const navigate = useNavigate();
-
   return (
     <div style={{
-      maxWidth: 600,
-      margin: "2rem auto",
-      padding: "2.5rem",
-      background: "#f5efd9",
-      borderRadius: 14,
-      boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
-      fontFamily: "serif",
-      color: "#432c15",
-      border: "2px solid #b79b5a"
+      maxWidth: 600, margin: "2rem auto", padding: "2.5rem",
+      background: "#f5efd9", borderRadius: 14, boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
+      fontFamily: "serif", color: "#432c15", border: "2px solid #b79b5a"
     }}>
       <h2 style={{ fontFamily: "cursive", textAlign: "center", marginBottom: "1.8rem", color: "#1e1c17", letterSpacing: ".06em" }}>
         Hogwarts School of Witchcraft and Wizardry
@@ -29,26 +18,18 @@ const HogwartsLetter: React.FC<HogwartsLetterProps> = ({ character }) => {
         Please find enclosed a list of all necessary books and equipment.
       </p>
       <p>
-        Students shall be required to report to the chamber of reception upon arrival, the date for commencement of term being <b>September 1st</b>.
-        The Hogwarts Express will leave from <b>Platform 9 ¾</b> at 11:00am. We await your owl by no later than July 31st.
-      </p>
-      <p>
         To prepare for your journey, you must first visit <b>Diagon Alley</b> to purchase your school supplies.
         Muggle currency may be exchanged for wizarding money at <b>Gringotts Bank</b>.
+      </p>
+      <p>
+        The Hogwarts Express will leave from <b>Platform 9 ¾</b> at 11:00am on September 1st.
       </p>
       <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
         <button
           onClick={() => navigate("/hogwarts-supply-list")}
           style={{
-            background: "#b79b5a",
-            color: "#fff",
-            padding: "1rem 2.2rem",
-            borderRadius: "8px",
-            fontWeight: "bold",
-            fontSize: "1.1rem",
-            border: "none",
-            cursor: "pointer",
-            boxShadow: "0 2px 6px #b79b5a44"
+            background: "#b79b5a", color: "#fff", padding: "1rem 2.2rem",
+            borderRadius: "8px", fontWeight: "bold", fontSize: "1.1rem", border: "none", cursor: "pointer"
           }}
         >
           Read Supply List
@@ -59,8 +40,25 @@ const HogwartsLetter: React.FC<HogwartsLetterProps> = ({ character }) => {
         <b>Minerva McGonagall</b><br />
         Deputy Headmistress
       </div>
+      <div style={{ textAlign: "center", marginTop: "2rem" }}>
+        <button
+          onClick={() => navigate("/")}
+          style={{
+            background: "#4287f5",
+            color: "#fff",
+            padding: "0.75rem 2rem",
+            borderRadius: "8px",
+            border: "none",
+            fontWeight: "bold",
+            fontSize: "1rem",
+            cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+          }}
+        >
+          Back to Home
+        </button>
+      </div>
     </div>
   );
 };
-
 export default HogwartsLetter;
