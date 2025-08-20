@@ -11,7 +11,6 @@ const School: React.FC<{
   const theme = houseThemes[character.house as House];
   const navigate = useNavigate();
 
-  // Example timetable (could be part of character in future)
   const timetable = [
     { day: "Monday", lesson: "Charms: Wingardium Leviosa" },
     { day: "Tuesday", lesson: "Charms: Alohomora" },
@@ -26,16 +25,16 @@ const School: React.FC<{
         fontFamily: "cursive",
         textAlign: "center",
         marginBottom: "1.8rem",
-        color: theme.secondary,
-        textShadow: "0 3px 8px rgba(0,0,0,0.35),0 0 1px #fff"
+        color: "#000",
+        textShadow: "0 3px 8px rgba(255,255,255,0.15)"
       }}>
         Hogwarts School
       </h2>
       <p style={{
-        color: theme.primary,
+        color: "#000",
         fontWeight: 600,
         fontSize: "1.15rem",
-        background: "rgba(255,255,255,0.88)",
+        background: "#fff",
         borderRadius: 8,
         padding: "0.6em 1em",
         marginBottom: "1.2em",
@@ -47,10 +46,10 @@ const School: React.FC<{
       <h3 style={{
         marginTop: "2rem",
         marginBottom: "0.7rem",
-        color: theme.primary,
+        color: "#000",
         textShadow: "0 2px 5px #fff"
       }}>Key Locations</h3>
-      <ul style={{ fontWeight: 500, color: theme.primary }}>
+      <ul style={{ fontWeight: 500, color: "#000" }}>
         <li>
           <b>Owlery</b> <span style={{ color: theme.accent }}>(coming soon)</span>
         </li>
@@ -65,10 +64,10 @@ const School: React.FC<{
       <h3 style={{
         marginTop: "2rem",
         marginBottom: "0.7rem",
-        color: theme.primary,
+        color: "#000",
         textShadow: "0 2px 5px #fff"
       }}>Your Timetable</h3>
-      <ul style={{ background: "#fff", borderRadius: 8, padding: "0.8em 1.2em", color: theme.primary }}>
+      <ul style={{ background: "#fff", borderRadius: 8, padding: "0.8em 1.2em", color: "#000" }}>
         {timetable.map((entry, i) => (
           <li key={i} style={{ margin: "0.3em 0" }}>
             <b>{entry.day}: </b>
@@ -80,7 +79,7 @@ const School: React.FC<{
       <h3 style={{
         marginTop: "2rem",
         marginBottom: "0.7rem",
-        color: theme.primary,
+        color: "#000",
         textShadow: "0 2px 5px #fff"
       }}>Classes</h3>
       <ul>
@@ -147,7 +146,7 @@ const School: React.FC<{
           onClick={() => navigate("/")}
           style={{
             background: theme.accent,
-            color: theme.primary,
+            color: "#000",
             padding: "0.8rem 2rem",
             borderRadius: "8px",
             fontWeight: "bold",
