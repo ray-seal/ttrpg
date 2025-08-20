@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import ThemedLayout, { boxStyle } from "../components/ThemedLayout";
 import { useNavigate } from "react-router-dom";
+import { houseThemes, House } from "../themes";
 
 type Character = {
   id: string;
   name: string;
-  house: string;
+  house: House;
   wizarding_money: number;
   experience?: number;
   magic: number;
@@ -16,7 +18,6 @@ type Character = {
 };
 
 type HousePoints = {
-  id: string;
   house: string;
   points: number;
 };
@@ -25,6 +26,7 @@ const CharacterSheet: React.FC<{ character: Character }> = ({ character }) => {
   const [housePoints, setHousePoints] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const theme = houseThemes[character.house as House];
 
   useEffect(() => {
     // Fetch house points from Supabase
@@ -56,31 +58,40 @@ const CharacterSheet: React.FC<{ character: Character }> = ({ character }) => {
     character.charisma == null
   ) {
     return (
-      <div style={{ textAlign: "center", marginTop: "2rem" }}>
-        Your sorting is not complete. Please finish the sorting ceremony.
-      </div>
+      <ThemedLayout character={character}>
+        <div style={{ textAlign: "center", marginTop: "2rem" }}>
+          Your sorting is not complete. Please finish the sorting ceremony.
+        </div>
+        <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
+          <button
+            onClick={() => navigate("/")}
+            style={{
+              background: theme.accent,
+              color: theme.primary,
+              padding: "0.8rem 2rem",
+              borderRadius: "8px",
+              fontWeight: "bold",
+              fontSize: "1rem",
+              border: "none",
+              cursor: "pointer",
+              transition: "background 0.2s",
+            }}
+          >
+            Back to Home
+          </button>
+        </div>
+      </ThemedLayout>
     );
   }
 
   return (
-    <div
-      style={{
-        maxWidth: 600,
-        margin: "2rem auto",
-        padding: "2.5rem",
-        background: "#f5efd9",
-        borderRadius: 14,
-        fontFamily: "serif",
-        color: "#432c15",
-        border: "2px solid #b79b5a"
-      }}
-    >
+    <ThemedLayout character={character}>
       <h2
         style={{
           fontFamily: "cursive",
           textAlign: "center",
           marginBottom: "1.5rem",
-          color: "#1e1c17"
+          color: theme.secondary,
         }}
       >
         {character.name} — {character.house}
@@ -127,20 +138,21 @@ const CharacterSheet: React.FC<{ character: Character }> = ({ character }) => {
         <button
           onClick={() => navigate("/")}
           style={{
-            background: "#b79b5a",
-            color: "#fff",
+            background: theme.accent,
+            color: theme.primary,
             padding: "0.8rem 2rem",
             borderRadius: "8px",
             fontWeight: "bold",
             fontSize: "1rem",
             border: "none",
-            cursor: "pointer"
+            cursor: "pointer",
+            transition: "background 0.2s",
           }}
         >
           Back to Home
         </button>
       </div>
-    </div>
+    </ThemedLayout>
   );
 };
 
