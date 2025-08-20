@@ -22,7 +22,6 @@ import MadamMalkins from "./pages/MadamMalkins";
 import SchoolGate from "./components/SchoolGate";
 
 const CHARACTER_KEY = "activeCharacterId";
-const RESET_PHRASE = "reset-my-game";
 
 export default function App() {
   const [session, setSession] = useState<any>(null);
@@ -30,8 +29,10 @@ export default function App() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [activeCharacterId, setActiveCharacterId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [resetInput, setResetInput] = useState("");
 
+  const location = useLocation();
+
+  // Get auth session on mount and on change
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -46,6 +47,7 @@ export default function App() {
     };
   }, []);
 
+  // Fetch character list for user
   useEffect(() => {
     if (!userId) {
       setLoading(false);
@@ -81,31 +83,16 @@ export default function App() {
     setCharacters((prev) => [...prev, newChar]);
     setActiveCharacterId(newChar.id);
   }
-  function handleSelectCharacter(id: string) {
-    setActiveCharacterId(id);
-  }
   function handleUpdateCharacter(updatedChar: Character) {
     setCharacters(chars => chars.map(c => (c.id === updatedChar.id ? updatedChar : c)));
-    if (updatedChar.id === activeCharacterId) {
-      setActiveCharacterId(updatedChar.id);
-    }
-  }
-  function handleReset() {
-    if (!activeCharacterId) return;
-    supabase.from("characters").delete().eq("id", activeCharacterId).then(() => {
-      setCharacters(chars => chars.filter(c => c.id !== activeCharacterId));
-      setActiveCharacterId(null);
-      localStorage.removeItem(CHARACTER_KEY);
-      setResetInput("");
-    });
+    if (updatedChar.id === activeCharacterId) setActiveCharacterId(updatedChar.id);
   }
 
   const activeCharacter = characters.find(c => c.id === activeCharacterId) || null;
   const currentHouse = activeCharacter?.house as House | undefined;
   const theme = currentHouse ? houseThemes[currentHouse] : houseThemes.Gryffindor;
 
-  const location = useLocation();
-
+  // Loading guard to prevent premature redirects
   if (loading) {
     return (
       <div style={{
@@ -120,7 +107,7 @@ export default function App() {
     );
   }
 
-  // AUTH GUARDS
+  // Route guards for authentication and onboarding flow
   if (!session && location.pathname !== "/signup" && location.pathname !== "/login") {
     return <Navigate to="/signup" replace />;
   }
