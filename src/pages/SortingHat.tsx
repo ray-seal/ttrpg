@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
+import ThemedLayout from "../components/ThemedLayout";
+import { houseThemes, House } from "../themes";
 
 type Attributes = {
   magic: number;
@@ -18,18 +20,18 @@ const BASE_ATTRIBUTES: Attributes = {
   charisma: 5,
 };
 
-const houseBonus: Record<string, Partial<Attributes>> = {
+const houseBonus: Record<House, Partial<Attributes>> = {
   Gryffindor: { courage: 6 },
   Ravenclaw: { knowledge: 6 },
   Hufflepuff: { charisma: 6 },
   Slytherin: { agility: 6 },
 };
 
-type House = keyof typeof houseBonus;
+type HouseType = keyof typeof houseBonus;
 
 type Question = {
   text: string;
-  options: { label: string; house: House }[];
+  options: { label: string; house: HouseType }[];
 };
 
 const questions: Question[] = [
@@ -80,7 +82,7 @@ const questions: Question[] = [
   }
 ];
 
-const houseDescriptions: Record<House, string> = {
+const houseDescriptions: Record<HouseType, string> = {
   Gryffindor: "Brave at heart, daring, chivalrous, and full of nerve.",
   Ravenclaw: "Wit beyond measure, intelligent, creative, and wise.",
   Hufflepuff: "Just and loyal, patient, honest, and unafraid of toil.",
@@ -93,11 +95,11 @@ const SortingHat: React.FC<{
 }> = ({ character, onSorted }) => {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
-  const [finalHouse, setFinalHouse] = useState<House | null>(null);
+  const [finalHouse, setFinalHouse] = useState<HouseType | null>(null);
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
 
-  async function applySorting(house: House) {
+  async function applySorting(house: HouseType) {
     setSaving(true);
     // Apply all base (5) and the house bonus
     const attributes: Attributes = { ...BASE_ATTRIBUTES, ...(houseBonus[house] as Partial<Attributes>) };
@@ -112,7 +114,9 @@ const SortingHat: React.FC<{
 
     setSaving(false);
     if (onSorted) onSorted(house);
-    navigate("/character-sheet");
+    setTimeout(() => {
+      setFinalHouse(house);
+    }, 500); // Slight pause to show "Saving..."
   }
 
   function next(answerIdx: number) {
@@ -121,7 +125,7 @@ const SortingHat: React.FC<{
       setStep(step + 1);
     } else {
       // Tally answers
-      const houseCount: Record<House, number> = {
+      const houseCount: Record<HouseType, number> = {
         Gryffindor: 0, Ravenclaw: 0, Hufflepuff: 0, Slytherin: 0
       };
       [...answers, answerIdx].forEach((ans, i) => {
@@ -130,62 +134,94 @@ const SortingHat: React.FC<{
       });
       // Find max
       let max = 0;
-      let selectedHouse: House = "Gryffindor";
+      let selectedHouse: HouseType = "Gryffindor";
       Object.entries(houseCount).forEach(([house, count]) => {
         if (count > max) {
           max = count;
-          selectedHouse = house as House;
+          selectedHouse = house as HouseType;
         }
       });
-      setFinalHouse(selectedHouse);
-      setTimeout(() => {
-        applySorting(selectedHouse);
-      }, 1800); // dramatic pause
+      applySorting(selectedHouse);
     }
   }
 
-  if (saving) {
+  if (saving && finalHouse == null) {
     return <div style={{ textAlign: "center", marginTop: "4rem" }}>Saving your house and attributes...</div>;
   }
 
   if (finalHouse) {
     const attributes = { ...BASE_ATTRIBUTES, ...(houseBonus[finalHouse] as Partial<Attributes>) };
+    const theme = houseThemes[finalHouse as House];
     return (
-      <div style={{ textAlign: "center", marginTop: "4rem" }}>
-        <h2>The Sorting Hat has decided...</h2>
-        <div style={{
-          fontSize: "2.2rem",
-          margin: "2rem 0",
-          fontWeight: "bold",
-          color: "#b79b5a"
-        }}>
-          {finalHouse}
+      <ThemedLayout character={{...character, house: finalHouse}}>
+        <div style={{ textAlign: "center", marginTop: "1rem" }}>
+          <h2>The Sorting Hat has decided...</h2>
+          <div style={{
+            fontSize: "2.2rem",
+            margin: "2rem 0",
+            fontWeight: "bold",
+            color: theme.accent
+          }}>
+            {finalHouse}
+          </div>
+          <div style={{ fontStyle: "italic", marginBottom: "2rem" }}>
+            {houseDescriptions[finalHouse]}
+          </div>
+          <div>
+            <strong>Your Attributes:</strong>
+            <ul style={{ display: "inline-block", textAlign: "left", margin: "1rem auto" }}>
+              <li><b>Magic:</b> {attributes.magic}</li>
+              <li><b>Knowledge:</b> {attributes.knowledge}</li>
+              <li><b>Courage:</b> {attributes.courage}</li>
+              <li><b>Agility:</b> {attributes.agility}</li>
+              <li><b>Charisma:</b> {attributes.charisma}</li>
+            </ul>
+          </div>
+          <div style={{ margin: "2.5rem 0", fontSize: "1.1rem" }}>
+            <b>Your friend from the train has also been sorted into {finalHouse}!</b>
+          </div>
+          <div style={{ margin: "2.5rem 0", fontSize: "1.1rem" }}>
+            <b>
+              The newly appointed Head of {finalHouse} greets you warmly, presents you with a {finalHouse} scarf, and hands you your first-year timetable.
+            </b>
+          </div>
+          <div>
+            <h4>Your Timetable:</h4>
+            <ul style={{ display: "inline-block", textAlign: "left", margin: "1rem auto" }}>
+              <li><b>Monday:</b> Charms: Wingardium Leviosa</li>
+              <li><b>Tuesday:</b> Charms: Alohomora</li>
+              <li><b>Wednesday:</b> Charms: Lumos</li>
+              <li><b>Thursday:</b> Potions (coming soon)</li>
+              <li><b>Friday:</b> Transfiguration (coming soon)</li>
+            </ul>
+          </div>
+          <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
+            <button
+              onClick={() => navigate("/character-sheet")}
+              style={{
+                background: theme.accent,
+                color: theme.primary,
+                padding: "0.8rem 2rem",
+                borderRadius: "8px",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                border: "none",
+                cursor: "pointer",
+                transition: "background 0.2s",
+              }}
+            >
+              Continue to your Character Sheet
+            </button>
+          </div>
         </div>
-        <div style={{ fontStyle: "italic", marginBottom: "2rem" }}>
-          {houseDescriptions[finalHouse]}
-        </div>
-        <div>
-          <strong>Your Attributes:</strong>
-          <ul style={{ display: "inline-block", textAlign: "left", margin: "1rem auto" }}>
-            <li><b>Magic:</b> {attributes.magic}</li>
-            <li><b>Knowledge:</b> {attributes.knowledge}</li>
-            <li><b>Courage:</b> {attributes.courage}</li>
-            <li><b>Agility:</b> {attributes.agility}</li>
-            <li><b>Charisma:</b> {attributes.charisma}</li>
-          </ul>
-        </div>
-        <div>Good luck at Hogwarts!</div>
-      </div>
+      </ThemedLayout>
     );
   }
 
   const q = questions[step];
   return (
-    <div style={{
-      maxWidth: 600, margin: "2rem auto", padding: "2.5rem",
-      background: "#f5efd9", borderRadius: 14, fontFamily: "serif", color: "#432c15", border: "2px solid #b79b5a"
-    }}>
-      <h2 style={{ fontFamily: "cursive", textAlign: "center", marginBottom: "1.8rem", color: "#1e1c17" }}>
+    <ThemedLayout character={character}>
+      <h2 style={{ fontFamily: "cursive", textAlign: "center", marginBottom: "1.8rem" }}>
         The Sorting Hat Ceremony
       </h2>
       <div style={{ fontWeight: "bold", marginBottom: "1.5rem" }}>
@@ -214,7 +250,7 @@ const SortingHat: React.FC<{
       <div style={{ marginTop: "2rem", textAlign: "center", color: "#87724a" }}>
         Question {step + 1} of {questions.length}
       </div>
-    </div>
+    </ThemedLayout>
   );
 };
 
