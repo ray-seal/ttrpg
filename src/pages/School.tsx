@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { Character } from "../types";
 import { houseThemes } from "../themes";
 
-// Constants
 const classTabs = [
   { key: "charms", label: "Charms" },
   { key: "potions", label: "Potions (Coming Soon)" },
@@ -15,7 +14,6 @@ const classTabs = [
 const yearTabs = [{ key: "year1", label: "Year One" }];
 const timetableItemId = "year_one_timetable";
 
-// Lessons must be done in order; lock all except first, and then each until previous is complete.
 const charmsLessonsYear1 = [
   {
     title: "Alohomora",
@@ -56,60 +54,169 @@ interface Props {
 
 const School: React.FC<Props> = ({ character, setCharacter }) => {
   const theme = houseThemes[character.house];
-  const navigate = useNavigate();
-
-  // UI state for tabs
   const [selectedClass, setSelectedClass] = useState("charms");
   const [selectedYear, setSelectedYear] = useState("year1");
-  const [hasTimetable, setHasTimetable] = useState(false);
+  const [hasTimetable, setHasTimetable] = useState<boolean | null>(null);
   const [givingTimetable, setGivingTimetable] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Assume completedLessons is a string[] of lesson titles
   const completedLessons: string[] = character.completedLessons || [];
 
-  // 1. Check for timetable item on mount
+  // 1. Check if character owns the timetable item
   useEffect(() => {
-    let active = true;
+    let isMounted = true;
     async function checkTimetable() {
-      setLoading(true);
+      setHasTimetable(null);
+      setError(null);
       const { data, error } = await supabase
         .from("character_items")
-        .select("*")
+        .select("id")
         .eq("character_id", character.id)
         .eq("item_id", timetableItemId)
         .maybeSingle();
-      if (active) setHasTimetable(!!data);
-      setLoading(false);
+      if (isMounted) {
+        if (error) setError("Could not check timetable ownership.");
+        setHasTimetable(!!data);
+      }
     }
     checkTimetable();
-    return () => {
-      active = false;
-    };
+    return () => { isMounted = false; };
   }, [character.id]);
 
   // 2. Handler to give the timetable and update Supabase
   async function handleGiveTimetable() {
     setGivingTimetable(true);
-    // Add to character_items
+    setError(null);
     const { error } = await supabase
       .from("character_items")
       .insert([{ character_id: character.id, item_id: timetableItemId }]);
-    if (!error) {
+    if (error) {
+      setError("Could not give timetable. Try again.");
+    } else {
       setHasTimetable(true);
-      // Optionally, update character in parent if needed
-      if (setCharacter) {
-        setCharacter({ ...character });
-      }
     }
     setGivingTimetable(false);
   }
 
-  // 3. Rendering when timetable not owned
-  if (loading) {
-    return <div style={{ textAlign: "center", margin: "3rem" }}>Loading School...</div>;
+  // 3. Charms lessons: unlock in order, only next available
+  function renderCharmsLessons() {
+    let unlockedIndex = 0;
+    for (let i = 0; i < charmsLessonsYear1.length; i++) {
+      if (charmsLessonsYear1[i].comingSoon) break;
+      if (completedLessons.includes(charmsLessonsYear1[i].title)) {
+        unlockedIndex = i + 1;
+      } else {
+        break;
+      }
+    }
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "1.1rem",
+          justifyContent: "center",
+          margin: "2rem 0 1rem",
+        }}
+      >
+        {charmsLessonsYear1.map((lesson, idx) => {
+          const isUnlocked = !lesson.comingSoon && idx <= unlockedIndex;
+          const isCompleted = completedLessons.includes(lesson.title);
+
+          if (lesson.comingSoon) {
+            return (
+              <button
+                key={lesson.title}
+                disabled
+                style={{
+                  background: theme.accent,
+                  color: "#fff",
+                  padding: "1rem 1.4rem",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  fontSize: "1.1rem",
+                  minWidth: "175px",
+                  border: "none",
+                  opacity: 0.7,
+                  cursor: "not-allowed",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+                  marginBottom: "0.5rem"
+                }}
+                title="Coming Soon"
+              >
+                {lesson.title}
+                <div style={{ fontWeight: "normal", fontSize: "0.95em", marginTop: "0.3em", color: theme.secondary }}>
+                  {lesson.desc} <br /><span style={{ fontSize: "0.9em" }}>Coming Soon</span>
+                </div>
+              </button>
+            );
+          }
+          if (isUnlocked) {
+            return (
+              <Link
+                key={lesson.title}
+                to={lesson.path}
+                style={{
+                  background: isCompleted ? "#76b852" : theme.primary,
+                  color: "#fff",
+                  padding: "1rem 1.4rem",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  fontSize: "1.1rem",
+                  textDecoration: "none",
+                  minWidth: "175px",
+                  marginBottom: "0.5rem",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.07)",
+                  transition: "background .15s"
+                }}
+              >
+                {lesson.title}
+                <div style={{ fontWeight: "normal", fontSize: "0.95em", marginTop: "0.3em", color: theme.accent }}>
+                  {lesson.desc}
+                  {isCompleted && (
+                    <span style={{ color: "#eee", marginLeft: "0.5em", fontWeight: "bold" }}>✓</span>
+                  )}
+                </div>
+              </Link>
+            );
+          }
+          return (
+            <button
+              key={lesson.title}
+              disabled
+              style={{
+                background: theme.accent,
+                color: "#fff",
+                padding: "1rem 1.4rem",
+                borderRadius: "8px",
+                fontWeight: "bold",
+                fontSize: "1.1rem",
+                minWidth: "175px",
+                border: "none",
+                opacity: 0.7,
+                cursor: "not-allowed",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+                marginBottom: "0.5rem"
+              }}
+              title="Complete previous lesson to unlock"
+            >
+              {lesson.title}
+              <div style={{ fontWeight: "normal", fontSize: "0.95em", marginTop: "0.3em", color: theme.secondary }}>
+                {lesson.desc}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
   }
 
+  // 4. Main render
+  if (hasTimetable === null) {
+    return (
+      <div style={{ textAlign: "center", margin: "3rem" }}>Loading School...</div>
+    );
+  }
   if (!hasTimetable) {
     return (
       <div style={{
@@ -129,6 +236,7 @@ const School: React.FC<Props> = ({ character, setCharacter }) => {
           You need your Year One Timetable to attend classes.<br />
           (Your head of house can give you your timetable.)
         </p>
+        {error && <div style={{ color: "#b91c1c", margin: "0.5rem 0" }}>{error}</div>}
         <button
           onClick={handleGiveTimetable}
           disabled={givingTimetable}
@@ -168,124 +276,6 @@ const School: React.FC<Props> = ({ character, setCharacter }) => {
     );
   }
 
-  // 4. Charms lessons with lock order (must complete previous to unlock next)
-  function renderCharmsLessons() {
-    let unlockedIndex = 0;
-    for (let i = 0; i < charmsLessonsYear1.length; i++) {
-      if (charmsLessonsYear1[i].comingSoon) break;
-      if (completedLessons.includes(charmsLessonsYear1[i].title)) {
-        unlockedIndex = i + 1;
-      } else {
-        break;
-      }
-    }
-
-    return (
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "1.1rem",
-          justifyContent: "center",
-          margin: "2rem 0 1rem",
-        }}
-      >
-        {charmsLessonsYear1.map((lesson, idx) => {
-          // Only unlock in order and not if lesson is coming soon
-          const isUnlocked = !lesson.comingSoon && idx <= unlockedIndex;
-          const isCompleted = completedLessons.includes(lesson.title);
-
-          if (lesson.comingSoon) {
-            return (
-              <button
-                key={lesson.title}
-                disabled
-                style={{
-                  background: theme.accent,
-                  color: "#fff",
-                  padding: "1rem 1.4rem",
-                  borderRadius: "8px",
-                  fontWeight: "bold",
-                  fontSize: "1.1rem",
-                  minWidth: "175px",
-                  border: "none",
-                  opacity: 0.7,
-                  cursor: "not-allowed",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
-                  marginBottom: "0.5rem"
-                }}
-                title="Coming Soon"
-              >
-                {lesson.title}
-                <div style={{ fontWeight: "normal", fontSize: "0.95em", marginTop: "0.3em", color: theme.secondary }}>
-                  {lesson.desc} <br /><span style={{ fontSize: "0.9em" }}>Coming Soon</span>
-                </div>
-              </button>
-            );
-          }
-
-          if (isUnlocked) {
-            return (
-              <Link
-                key={lesson.title}
-                to={lesson.path}
-                style={{
-                  background: isCompleted ? "#76b852" : theme.primary,
-                  color: "#fff",
-                  padding: "1rem 1.4rem",
-                  borderRadius: "8px",
-                  fontWeight: "bold",
-                  fontSize: "1.1rem",
-                  textDecoration: "none",
-                  minWidth: "175px",
-                  marginBottom: "0.5rem",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.07)",
-                  transition: "background .15s"
-                }}
-              >
-                {lesson.title}
-                <div style={{ fontWeight: "normal", fontSize: "0.95em", marginTop: "0.3em", color: theme.accent }}>
-                  {lesson.desc}
-                  {isCompleted && (
-                    <span style={{ color: "#eee", marginLeft: "0.5em", fontWeight: "bold" }}>✓</span>
-                  )}
-                </div>
-              </Link>
-            );
-          }
-          // Locked (not completed previous)
-          return (
-            <button
-              key={lesson.title}
-              disabled
-              style={{
-                background: theme.accent,
-                color: "#fff",
-                padding: "1rem 1.4rem",
-                borderRadius: "8px",
-                fontWeight: "bold",
-                fontSize: "1.1rem",
-                minWidth: "175px",
-                border: "none",
-                opacity: 0.7,
-                cursor: "not-allowed",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
-                marginBottom: "0.5rem"
-              }}
-              title="Complete previous lesson to unlock"
-            >
-              {lesson.title}
-              <div style={{ fontWeight: "normal", fontSize: "0.95em", marginTop: "0.3em", color: theme.secondary }}>
-                {lesson.desc}
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-
-  // 5. Main render
   return (
     <div
       style={{
