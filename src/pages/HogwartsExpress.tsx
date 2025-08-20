@@ -16,7 +16,7 @@ const HogwartsExpress: React.FC<{ character: Character }> = ({ character }) => {
       <div style={cardStyle}>
         <h2 style={titleStyle}>King's Cross Station</h2>
         <p>
-          Steam billows from the scarlet engine as you weave through the crowd. With a deep breath, you dash at the barrier between platforms 9 and 10—and find yourself at Platform 9¾! You board the Hogwarts Express, heart pounding with excitement.
+          Steam billows from the scarlet engine as you weave through the crowd. With a deep breath, you dash at the barrier between platforms 9 and 10—and find yourself at Platform 9¾! You board the Hogwarts Express, heart pounding with anticipation.
         </p>
         <div style={centered}><button style={btnStyle} onClick={advance}>Find a seat</button></div>
       </div>
@@ -41,7 +41,7 @@ const HogwartsExpress: React.FC<{ character: Character }> = ({ character }) => {
     <div style={cardStyle}>
       <h2 style={titleStyle}>Arrival at Hogwarts</h2>
       <p>
-        The train winds its way through the countryside. You and {FRIEND_NAME} share hopes and nerves about the Sorting Ceremony. As dusk falls, you catch your first glimpse of Hogwarts, perched atop a mountain, windows glowing with golden light.
+        The train winds its way through the countryside. You and {FRIEND_NAME} share hopes and nerves about the Sorting Ceremony. As dusk falls, you catch your first glimpse of Hogwarts, perched atop a mountain and wreathed in mist.
       </p>
       <p>
         It's time to face the Sorting Hat!
