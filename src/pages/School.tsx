@@ -11,6 +11,15 @@ const School: React.FC<{
   const theme = houseThemes[character.house as House];
   const navigate = useNavigate();
 
+  // Example timetable (could be part of character in future)
+  const timetable = [
+    { day: "Monday", lesson: "Charms: Wingardium Leviosa" },
+    { day: "Tuesday", lesson: "Charms: Alohomora" },
+    { day: "Wednesday", lesson: "Charms: Lumos" },
+    { day: "Thursday", lesson: "Potions (coming soon)" },
+    { day: "Friday", lesson: "Transfiguration (coming soon)" },
+  ];
+
   return (
     <ThemedLayout character={character}>
       <h2 style={{
@@ -36,6 +45,16 @@ const School: React.FC<{
         <li>
           <b>Great Hall</b> <span style={{ color: theme.accent }}>(coming soon)</span>
         </li>
+      </ul>
+
+      <h3 style={{ marginTop: "2rem", marginBottom: "0.7rem" }}>Your Timetable</h3>
+      <ul>
+        {timetable.map((entry, i) => (
+          <li key={i}>
+            <b>{entry.day}: </b>
+            {entry.lesson}
+          </li>
+        ))}
       </ul>
 
       <h3 style={{ marginTop: "2rem", marginBottom: "0.7rem" }}>Classes</h3>
