@@ -7,40 +7,23 @@ import HomePage from "./pages/HomePage";
 import { houseThemes, House } from "./themes";
 import { Character } from "./types";
 import DiceButton from "./components/DiceButton";
-import HouseShield from "./components/HouseShield";
-import AlohomoraLesson from "./pages/AlohomoraLesson";
-import WingardiumLeviosaLesson from "./pages/WingardiumLeviosaLesson";
-import LumosLesson from "./pages/LumosLesson";
-import School from "./pages/School";
 import ThemedLayout from "./components/ThemedLayout";
+import School from "./pages/School";
 import SpellBook from "./pages/Spellbook";
-import CampaignPage from "./pages/CampaignPage";
-import PeevesPests from "./pages/PeevesPests";
-import Detentions from "./pages/Detentions";
 import AuthWizard from "./pages/AuthWizard";
 import Login from "./pages/Login";
 import Inventory from "./pages/Inventory";
 import HogwartsLetter from "./pages/HogwartsLetter";
 import HogwartsSupplyList from "./pages/HogwartsSupplyList";
 import DiagonAlley from "./pages/DiagonAlley";
-// (Add more Diagon Alley shop imports as you create them)
+import GringottsBank from "./pages/GringottsBank";
+import Ollivanders from "./pages/Ollivanders";
+import MadamMalkins from "./pages/MadamMalkins";
 
 const CHARACTER_KEY = "activeCharacterId";
 const RESET_PHRASE = "reset-my-game";
 
-function getAllowedDice(character: Character | null): number[] {
-  if (!character) return [4, 6, 8, 10, 12, 20];
-  if (character.magic <= 6) return [4, 6];
-  if (character.magic <= 8) return [4, 6, 8];
-  if (character.magic >= 10) return [4, 6, 8, 10, 12, 20];
-  return [4, 6, 8, 10, 12, 20];
-}
-
-function hasUnlockedLumos(character: Character) {
-  return !!(character.flags && character.flags.school_termtwo);
-}
-
-const App: React.FC = () => {
+export default function App() {
   const [session, setSession] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -53,12 +36,10 @@ const App: React.FC = () => {
       setSession(data.session);
       setUserId(data.session?.user.id ?? null);
     });
-
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUserId(session?.user.id ?? null);
     });
-
     return () => {
       authListener.subscription.unsubscribe();
     };
@@ -99,18 +80,15 @@ const App: React.FC = () => {
     setCharacters((prev) => [...prev, newChar]);
     setActiveCharacterId(newChar.id);
   }
-
   function handleSelectCharacter(id: string) {
     setActiveCharacterId(id);
   }
-
   function handleUpdateCharacter(updatedChar: Character) {
     setCharacters(chars => chars.map(c => (c.id === updatedChar.id ? updatedChar : c)));
     if (updatedChar.id === activeCharacterId) {
       setActiveCharacterId(updatedChar.id);
     }
   }
-
   function handleReset() {
     if (!activeCharacterId) return;
     supabase.from("characters").delete().eq("id", activeCharacterId).then(() => {
@@ -120,20 +98,29 @@ const App: React.FC = () => {
       setResetInput("");
     });
   }
-
   const activeCharacter = characters.find(c => c.id === activeCharacterId) || null;
   const currentHouse = activeCharacter?.house as House | undefined;
   const theme = currentHouse ? houseThemes[currentHouse] : houseThemes.Gryffindor;
 
-  useEffect(() => {
-    let metaThemeColor = document.querySelector("meta[name=theme-color]");
-    if (!metaThemeColor) {
-      metaThemeColor = document.createElement("meta");
-      metaThemeColor.setAttribute("name", "theme-color");
-      document.head.appendChild(metaThemeColor);
-    }
-    metaThemeColor.setAttribute("content", theme.primary);
-  }, [theme]);
+  // Gating: must have both wand and robes before school is accessible
+  const hasWand = async (character: Character) => {
+    const { data } = await supabase
+      .from("character_items")
+      .select("id")
+      .eq("character_id", character.id)
+      .eq("item_id", "9c1c1a36-8f3f-4c0e-b9b1-222222222222") // wand UUID
+      .maybeSingle();
+    return !!data;
+  };
+  const hasRobes = async (character: Character) => {
+    const { data } = await supabase
+      .from("character_items")
+      .select("id")
+      .eq("character_id", character.id)
+      .eq("item_id", "37e9c6fb-3f81-4d7d-9c3c-444444444444") // robes UUID
+      .maybeSingle();
+    return !!data;
+  };
 
   if (loading) {
     return (
@@ -166,87 +153,12 @@ const App: React.FC = () => {
       <Route
         path="/character-creation"
         element={
-          !activeCharacter ? (
-            <CharacterCreation
-              userId={userId!}
-              characters={characters}
-              onCreate={handleCreateCharacter}
-              onSelectCharacter={handleSelectCharacter}
-            />
-          ) : (
-            <Navigate to="/character-sheet" replace />
-          )
+          <CharacterCreation
+            userId={userId!}
+            onCreate={handleCreateCharacter}
+          />
         }
       />
-      <Route
-        path="/character-sheet"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <h1 style={{ color: "inherit", textAlign: "center" }}>
-                Harry Potter TTRPG
-              </h1>
-              <CharacterSheet
-                character={activeCharacter}
-                setCharacter={handleUpdateCharacter}
-                onSwitchCharacter={handleSelectCharacter}
-                onDeleteCharacter={handleReset}
-                characters={characters}
-              />
-              <div style={{ marginTop: "2rem", textAlign: "center" }}>
-                <label htmlFor="reset-input" style={{ marginRight: "1rem" }}>
-                  Type "<b>{RESET_PHRASE}</b>" to reset this character:
-                </label>
-                <input
-                  id="reset-input"
-                  type="text"
-                  value={resetInput}
-                  onChange={(e) => setResetInput(e.target.value)}
-                  style={{
-                    padding: "0.5rem",
-                    fontSize: "1rem",
-                    marginRight: "1rem",
-                  }}
-                  autoComplete="off"
-                />
-                <button
-                  onClick={handleReset}
-                  disabled={resetInput !== RESET_PHRASE}
-                  style={{
-                    background:
-                      resetInput === RESET_PHRASE ? "#b71c1c" : "#e0e0e0",
-                    color: resetInput === RESET_PHRASE ? "#fff" : "#888",
-                    border: "none",
-                    borderRadius: "8px",
-                    padding: "0.5rem 1rem",
-                    cursor:
-                      resetInput === RESET_PHRASE
-                        ? "pointer"
-                        : "not-allowed",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Reset Character
-                </button>
-              </div>
-              <DiceButton allowedDice={getAllowedDice(activeCharacter)} />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      <Route
-        path="/inventory"
-        element={
-          activeCharacter ? (
-            <Inventory character={activeCharacter} />
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      {/* Hogwarts Letter and supply list routes */}
       <Route
         path="/hogwarts-letter"
         element={
@@ -277,19 +189,47 @@ const App: React.FC = () => {
           )
         }
       />
-      {/* Add more Diagon Alley shop routes here as you implement them */}
       <Route
-        path="/spellbook"
+        path="/gringotts-bank"
         element={
           activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <SpellBook character={activeCharacter} setCharacter={handleUpdateCharacter} />
-            </ThemedLayout>
+            <GringottsBank character={activeCharacter} />
           ) : (
             <Navigate to="/" replace />
           )
         }
       />
+      <Route
+        path="/ollivanders"
+        element={
+          activeCharacter ? (
+            <Ollivanders character={activeCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/madam-malkins"
+        element={
+          activeCharacter ? (
+            <MadamMalkins character={activeCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/inventory"
+        element={
+          activeCharacter ? (
+            <Inventory character={activeCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      {/* Gated: Only allow school if player has both wand and robes */}
       <Route
         path="/school"
         element={
@@ -303,109 +243,19 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="/school/alohomora-lesson"
+        path="/spellbook"
         element={
           activeCharacter ? (
             <ThemedLayout character={activeCharacter}>
-              <AlohomoraLesson character={activeCharacter} setCharacter={handleUpdateCharacter} />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/school" replace />
-          )
-        }
-      />
-      <Route
-        path="/school/lumos-lesson"
-        element={
-          activeCharacter && hasUnlockedLumos(activeCharacter) ? (
-            <ThemedLayout character={activeCharacter}>
-              <LumosLesson
-                character={activeCharacter}
-                unlockedSpells={activeCharacter.completedLessons || []}
-                setCharacter={handleUpdateCharacter}
-              />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/school" replace />
-          )
-        }
-      />
-      <Route
-        path="/school/wingardium-leviosa-lesson"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <WingardiumLeviosaLesson character={activeCharacter} setCharacter={handleUpdateCharacter} />
+              <SpellBook character={activeCharacter} setCharacter={handleUpdateCharacter} />
             </ThemedLayout>
           ) : (
             <Navigate to="/" replace />
           )
         }
       />
-      <Route
-        path="/peeves-pests"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <PeevesPests character={activeCharacter} setCharacter={handleUpdateCharacter} />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      <Route
-        path="/detentions"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <Detentions character={activeCharacter} setCharacter={handleUpdateCharacter} />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      <Route
-        path="/campaign"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <CampaignPage character={activeCharacter} setCharacter={handleUpdateCharacter} />
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
-      <Route
-        path="/help"
-        element={
-          activeCharacter ? (
-            <ThemedLayout character={activeCharacter}>
-              <div
-                style={{
-                  minHeight: "100vh",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontFamily: "monospace",
-                }}
-              >
-                <h2>Help</h2>
-                <p>Coming soon!</p>
-                <a href="/" style={{ marginTop: "2rem" }}>Back to Home</a>
-              </div>
-            </ThemedLayout>
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
-      />
+      {/* Add other routes as needed */}
       <Route path="*" element={<Navigate to="/signup" />} />
     </Routes>
   );
-};
-
-export default App;
+}
