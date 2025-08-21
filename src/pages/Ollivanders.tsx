@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Character } from "../types";
 import MoneyBanner from "../components/MoneyBanner";
 
-const WAND_ITEM_ID = "9c1c1a36-8f3f-4c0e-b9b1-222222222222"; // Verified from screenshot
+const WAND_ITEM_ID = "9c1c1a36-8f3f-4c0e-b9b1-222222222222"; // From your screenshot
 const WAND_COST = 15;
 
 const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character) => void }> = ({
@@ -43,7 +43,7 @@ const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character
       setError("You already have a wand!");
       return;
     }
-    // 1. Deduct money in DB FIRST
+    // Deduct money in DB FIRST
     const { error: moneyError } = await supabase
       .from("characters")
       .update({ wizarding_money: localCharacter.wizarding_money - WAND_COST })
@@ -52,7 +52,7 @@ const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character
       setError("Failed to deduct money.");
       return;
     }
-    // 2. Add wand to inventory in DB
+    // Add wand to inventory in DB
     const { error: wandError } = await supabase
       .from("character_items")
       .upsert(
@@ -60,7 +60,7 @@ const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character
           {
             character_id: character.id,
             item_id: WAND_ITEM_ID,
-            quantity: 1
+            quantity: 1,
           }
         ],
         { onConflict: ["character_id", "item_id"] }
@@ -78,11 +78,10 @@ const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character
     // Update local + parent state
     const updatedChar = {
       ...localCharacter,
-      wizarding_money: localCharacter.wizarding_money - WAND_COST
+      wizarding_money: localCharacter.wizarding_money - WAND_COST,
     };
     setLocalCharacter(updatedChar);
     if (setCharacter) setCharacter(updatedChar);
-
     setAlreadyOwned(true);
   };
 
