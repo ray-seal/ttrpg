@@ -20,7 +20,7 @@ interface Props {
 }
 
 const DICE_SIDES = 12;
-const PASS_THRESHOLD = 12; // You can tweak for true 50/50 if you want
+const PASS_THRESHOLD = 12; // 50/50 pass/fail for d12+magic
 
 const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
   const navigate = useNavigate();
@@ -34,8 +34,63 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
   const [rolling, setRolling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if already learned
+  // Already learned guard
   const alreadyLearned = (character?.completedLessons ?? []).includes("Alohomora");
+
+  // Debug logging helper
+  function debugLog(msg: string, data?: any) {
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.log("[AlohomoraLesson]", msg, data);
+    }
+  }
+
+  // Award XP & spell function
+  async function awardSpellAndXP() {
+    setError(null);
+    // Double-check before calling
+    if (alreadyLearned) {
+      debugLog("Lesson already marked complete, skipping DB update.");
+      return;
+    }
+    try {
+      debugLog("Attempting to upsert Alohomora spell...");
+      const { error: spellError } = await supabase
+        .from("character_spells")
+        .insert([{ character_id: character.id, spell: "Alohomora" }]);
+      if (spellError) {
+        debugLog("Spell insert error", spellError);
+        if (!String(spellError.message).includes("duplicate")) setError("Could not unlock spell.");
+      } else {
+        debugLog("Spell insert successful");
+      }
+
+      debugLog("Attempting to update XP and completedLessons...");
+      const newExp = (character.experience ?? 0) + 10;
+      const newCompleted = Array.from(new Set([...(character.completedLessons ?? []), "Alohomora"]));
+      const { error: updateError } = await supabase
+        .from("characters")
+        .update({ completedLessons: newCompleted, experience: newExp })
+        .eq("id", character.id);
+      if (updateError) {
+        debugLog("Character update error", updateError);
+        setError("Could not award experience.");
+      } else {
+        debugLog("XP and lesson update successful");
+      }
+      // Always update state if success
+      setCharacter({
+        ...character,
+        completedLessons: newCompleted,
+        experience: newExp,
+      });
+    } catch (e) {
+      debugLog("Exception in awardSpellAndXP", e);
+      setError("Unexpected error. Try refreshing the page.");
+    }
+  }
+
+  // UI components
 
   // Spellbook floating button, bottom left
   const SpellbookButton = (
@@ -96,11 +151,15 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
           setRollResult(roll);
           const totalRoll = roll + (character.magic || 0);
           setTotal(totalRoll);
-          // 50/50 pass/fail: set threshold so half the outcomes pass
           const didPass = totalRoll >= PASS_THRESHOLD;
           setPass(didPass);
           setRolling(false);
           setStep("result");
+          debugLog("Rolled dice", { roll, magic: character.magic, total: totalRoll, pass: didPass });
+          // If pass, award spell/xp (but only once)
+          if (didPass && !alreadyLearned) {
+            awardSpellAndXP();
+          }
         }, 900);
       }}
       aria-label="Roll d12"
@@ -108,30 +167,6 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
       🎲<br />d12
     </button>
   );
-
-  async function handleSuccess() {
-    try {
-      // Upsert spell
-      await supabase
-        .from("character_spells")
-        .upsert([{ character_id: character.id, spell: "Alohomora" }], { onConflict: ["character_id", "spell"] });
-      // Add experience, mark lesson complete
-      const newExp = (character.experience ?? 0) + 10;
-      const newCompleted = Array.from(new Set([...(character.completedLessons ?? []), "Alohomora"]));
-      setCharacter({
-        ...character,
-        completedLessons: newCompleted,
-        experience: newExp,
-      });
-      await supabase
-        .from("characters")
-        .update({ completedLessons: newCompleted, experience: newExp })
-        .eq("id", character.id);
-      setStep("success");
-    } catch (e: any) {
-      setError("Failed to update your character. Try refreshing.");
-    }
-  }
 
   // Spellbook Modal
   function SpellbookModal() {
@@ -291,7 +326,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
                   fontSize: "1.1rem",
                   cursor: "pointer"
                 }}
-                onClick={handleSuccess}
+                onClick={() => setStep("success")}
                 disabled={rolling}
               >
                 Finish Lesson
