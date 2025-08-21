@@ -7,7 +7,8 @@ import MoneyBanner from "../components/MoneyBanner";
 const PARENT_MONEY = 200; // muggle pounds for flavor
 const INITIAL_WIZARDING_MONEY = 50; // Give 50 galleons
 
-const GringottsBank: React.FC<{ character: Character }> = ({ character }) => {
+// Add setCharacter prop for local+global state updates
+const GringottsBank: React.FC<{ character: Character; setCharacter?: (c: Character) => void }> = ({ character, setCharacter }) => {
   const navigate = useNavigate();
   const [done, setDone] = useState(false);
   const [localCharacter, setLocalCharacter] = useState<Character>(character);
@@ -19,15 +20,13 @@ const GringottsBank: React.FC<{ character: Character }> = ({ character }) => {
           .from("characters")
           .update({ wizarding_money: INITIAL_WIZARDING_MONEY })
           .eq("id", character.id);
-        // Fetch updated character
-        const { data } = await supabase
-          .from("characters")
-          .select("*")
-          .eq("id", character.id)
-          .single();
-        if (data) setLocalCharacter(data);
+        // Update local state and parent/global state
+        const newChar = { ...character, wizarding_money: INITIAL_WIZARDING_MONEY };
+        setLocalCharacter(newChar);
+        if (setCharacter) setCharacter(newChar);
       } else {
         setLocalCharacter(character);
+        if (setCharacter) setCharacter(character);
       }
       setDone(true);
     }
