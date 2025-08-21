@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import HomePage from "./pages/HomePage";
 import CharacterCreation from "./pages/CharacterCreation";
@@ -21,16 +21,48 @@ import LumosLesson from "./pages/LumosLesson";
 import AlohomoraLesson from "./pages/AlohomoraLesson";
 import WingardiumLeviosaLesson from "./pages/WingardiumLeviosaLesson";
 import Detentions from "./pages/Detentions";
-// ...import any other lesson/pages you need
+import RequireWandAndRobes from "./components/RequireWandAndRobes";
+import AuthWizard from "./pages/AuthWizard";
+import Login from "./pages/Login";
 
-// Replace with your session/auth logic
+// --- Real session hook using Supabase Auth ---
 function useSession() {
-  // Your auth/session hook/state
-  // Returns { session, userId }
-  return { session: true, userId: "dummy" };
+  const [session, setSession] = useState(null);
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    let authListener;
+    async function getCurrentSession() {
+      // For Supabase JS v2
+      if (supabase.auth.getSession) {
+        const { data: { session } } = await supabase.auth.getSession();
+        setSession(session);
+        setUserId(session?.user?.id || null);
+      } else {
+        // For v1
+        const session = supabase.auth.session();
+        setSession(session);
+        setUserId(session?.user?.id || null);
+      }
+    }
+    getCurrentSession();
+
+    authListener = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUserId(session?.user?.id || null);
+    });
+
+    return () => {
+      if (authListener?.data?.subscription) {
+        authListener.data.subscription.unsubscribe();
+      }
+    };
+  }, []);
+
+  return { session, userId };
 }
 
-const fetchCharacterWithItems = async (userId: string) => {
+const fetchCharacterWithItems = async (userId) => {
   const { data: character, error } = await supabase
     .from("characters")
     .select("*")
@@ -45,18 +77,15 @@ const fetchCharacterWithItems = async (userId: string) => {
     .select("*")
     .eq("character_id", character.id);
 
-  // Optionally fetch spells, flags, etc, if you want
-  // const { data: spells } = await supabase.from("character_spells").select("*").eq("character_id", character.id);
-
   return { ...character, items: items || [] };
 };
 
 function App() {
   const { session, userId } = useSession();
-  const [activeCharacter, setActiveCharacter] = useState<any>(null);
+  const [activeCharacter, setActiveCharacter] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // On mount or userId/session change, always fetch character + items
+  // Load character and items on login/session/userId change
   useEffect(() => {
     async function loadCharacter() {
       if (session && userId) {
@@ -70,12 +99,10 @@ function App() {
       }
     }
     loadCharacter();
-    // Optionally, add session/userId to deps if they change
   }, [session, userId]);
 
-  // Update character and refetch items after any change
-  const handleUpdateCharacter = async (newChar: any) => {
-    // Refetch items to ensure up-to-date
+  // Make sure to always refresh items after any character update
+  const handleUpdateCharacter = async (newChar) => {
     const { data: items } = await supabase
       .from("character_items")
       .select("*")
@@ -103,7 +130,7 @@ function App() {
         path="/character-creation"
         element={
           <CharacterCreation
-            userId={userId!}
+            userId={userId}
             onCreate={handleUpdateCharacter}
           />
         }
@@ -283,7 +310,6 @@ function App() {
           )
         }
       />
-      {/* Add other routes as needed */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
