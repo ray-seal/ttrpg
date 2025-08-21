@@ -48,7 +48,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
     }
   }
 
-  // Award XP & spell function
+  // Award XP & spell function with detailed error logging
   async function awardSpellAndXP() {
     setError(null);
 
@@ -82,7 +82,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
           .insert([{ character_id: character.id, spell_id: ALOHOMORA_SPELL_ID }]);
         if (spellError) {
           debugLog("Spell insert error", spellError);
-          setError("Could not unlock spell.");
+          setError("Could not unlock spell: " + spellError.message);
           return;
         }
       } else {
@@ -99,7 +99,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
           .eq("id", character.id);
         if (updateError) {
           debugLog("Character update error", updateError);
-          setError("Could not award experience.");
+          setError("Could not award experience: " + updateError.message);
           return;
         }
         setCharacter({
@@ -110,9 +110,9 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
       } else {
         debugLog("Lesson already marked complete, not awarding experience.");
       }
-    } catch (e) {
+    } catch (e: any) {
       debugLog("Exception in awardSpellAndXP", e);
-      setError("Unexpected error. Try refreshing the page.");
+      setError("Unexpected error. Try refreshing the page. " + (e && e.message ? e.message : ""));
     }
   }
 
