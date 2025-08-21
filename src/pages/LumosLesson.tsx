@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import DiceButton from "../components/DiceButton";
 import { supabase } from "../supabaseClient";
 
+// Require timetable to access
+const YEAR_ONE_TIMETABLE_ID = "b7a8e1a9-bd62-4d50-8e2a-111111111111";
+
 // Maze generation and helpers
 const GRID_SIZE = 12;
 const INIT_VISION = 1;
@@ -68,6 +71,49 @@ export default function LumosLesson({
   character = {},
 }) {
   const navigate = useNavigate();
+
+  // --- GUARD: Require Year One Timetable to access lesson ---
+  if (
+    !character.items ||
+    !character.items.some((item) => item.item_id === YEAR_ONE_TIMETABLE_ID)
+  ) {
+    return (
+      <div
+        style={{
+          maxWidth: 400,
+          margin: "4rem auto",
+          padding: "2rem",
+          background: "#fffbe9",
+          borderRadius: 12,
+          textAlign: "center",
+          border: "2px solid #e3ce7d",
+          color: "#222",
+          fontSize: "1.3rem",
+        }}
+      >
+        <h2>Access Restricted</h2>
+        <p>
+          You need your <strong>Year One Timetable</strong> before you can attend this lesson.
+        </p>
+        <button
+          style={{
+            marginTop: "1.2rem",
+            padding: "0.6em 1.5em",
+            borderRadius: 8,
+            border: "2px solid #e3ce7d",
+            background: "#f8e7b8",
+            fontWeight: "bold",
+            cursor: "pointer",
+            fontSize: "1rem",
+          }}
+          onClick={() => navigate("/school")}
+        >
+          Return to School
+        </button>
+      </div>
+    );
+  }
+
   // Always allow Lumos in this lesson!
   const spells = Array.from(new Set([...(unlockedSpells || []), "Lumos"]));
 
