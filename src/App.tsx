@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";
+
+// Page imports
 import CharacterCreation from "./pages/CharacterCreation";
 import HogwartsLetter from "./pages/HogwartsLetter";
+import Gringotts from "./pages/Gringotts";
 import DiagonAlley from "./pages/DiagonAlley";
+import Ollivanders from "./pages/Ollivanders";
+import MadamMalkins from "./pages/MadamMalkins";
 import HogwartsExpress from "./pages/HogwartsExpress";
 import HomePage from "./pages/HomePage";
 import School from "./pages/School";
 import CharacterSheet from "./pages/CharacterSheet";
 import Inventory from "./pages/Inventory";
+
+// Component imports
 import RequireWandAndRobes from "./components/RequireWandAndRobes";
 import { Character } from "./types";
 
@@ -71,7 +78,10 @@ function App() {
         <Route path="/" element={<Navigate to="/hogwarts-letter" replace />} />
         <Route path="/character-creation" element={<CharacterCreation onCharacterCreated={setActiveCharacter} />} />
         <Route path="/hogwarts-letter" element={<HogwartsLetter character={activeCharacter} />} />
+        <Route path="/gringotts" element={<Gringotts character={activeCharacter} setCharacter={setActiveCharacter} />} />
         <Route path="/diagon-alley" element={<DiagonAlley character={activeCharacter} />} />
+        <Route path="/ollivanders" element={<Ollivanders character={activeCharacter} setCharacter={setActiveCharacter} />} />
+        <Route path="/madam-malkins" element={<MadamMalkins character={activeCharacter} setCharacter={setActiveCharacter} />} />
         <Route
           path="/hogwarts-express"
           element={
