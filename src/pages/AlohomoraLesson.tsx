@@ -14,6 +14,9 @@ const GRADE1_SPELLS = [
 
 const SPELLBOOK_NAME = "Standard Book of Spells Grade 1";
 
+// The spell_id for Alohomora from your spells table (from screenshot)
+const ALOHOMORA_SPELL_ID = "1b491583-19ab-4e24-bfe4-190c3a3257e8";
+
 interface Props {
   character: Character;
   setCharacter: (c: Character) => void;
@@ -48,16 +51,16 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
   // Award XP & spell function
   async function awardSpellAndXP() {
     setError(null);
-    // Double-check before calling
     if (alreadyLearned) {
       debugLog("Lesson already marked complete, skipping DB update.");
       return;
     }
     try {
-      debugLog("Attempting to upsert Alohomora spell...");
+      // Insert Alohomora spell by id
+      debugLog("Attempting to insert Alohomora spell by id...");
       const { error: spellError } = await supabase
         .from("character_spells")
-        .insert([{ character_id: character.id, spell: "Alohomora" }]);
+        .insert([{ character_id: character.id, spell_id: ALOHOMORA_SPELL_ID }]);
       if (spellError) {
         debugLog("Spell insert error", spellError);
         if (!String(spellError.message).includes("duplicate")) setError("Could not unlock spell.");
@@ -78,7 +81,6 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
       } else {
         debugLog("XP and lesson update successful");
       }
-      // Always update state if success
       setCharacter({
         ...character,
         completedLessons: newCompleted,
