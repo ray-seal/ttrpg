@@ -38,7 +38,6 @@ const RequireWandAndRobes: React.FC<{ characterId: string, children: React.React
         const hasRobes = data.some((item) => item.item_id === ROBES_ITEM_ID);
         setOk(hasWand && hasRobes);
         setLoading(false);
-        // Only navigate if requirements are not met
         if (!(hasWand && hasRobes)) {
           setTimeout(() => navigate("/diagon-alley"), 1200);
         }
@@ -48,9 +47,9 @@ const RequireWandAndRobes: React.FC<{ characterId: string, children: React.React
     };
   }, [characterId, navigate]);
 
-  if (loading) return <div>Checking your inventory...</div>;
+  if (loading) return <div style={{ padding: 32, textAlign: "center" }}>Checking your inventory...</div>;
   if (error) return (
-    <div style={{ color: "crimson", padding: "2rem", textAlign: "center" }}>
+    <div style={{ color: "crimson", padding: 32, textAlign: "center" }}>
       {error}
       <br />
       <button onClick={() => window.location.reload()} style={{marginTop:16}}>Retry</button>
@@ -58,7 +57,7 @@ const RequireWandAndRobes: React.FC<{ characterId: string, children: React.React
   );
   if (!ok) {
     return (
-      <div style={{ padding: "2rem", textAlign: "center" }}>
+      <div style={{ padding: 32, textAlign: "center" }}>
         You need both a wand and school robes before you can board the train.
         <br />
         Redirecting you to Diagon Alley...
