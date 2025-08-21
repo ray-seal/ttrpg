@@ -25,11 +25,13 @@ function App() {
           .single();
         if (error) {
           setError("Error loading character: " + error.message);
+        } else if (!data) {
+          setError("No character found in database.");
         } else {
           setActiveCharacter(data);
         }
       } catch (e: any) {
-        setError("Unexpected error: " + e.message);
+        setError("Unexpected error: " + (e?.message || e));
       } finally {
         setLoading(false);
       }
@@ -37,17 +39,19 @@ function App() {
     fetchCharacter();
   }, []);
 
-  if (loading) return <div>Loading character...</div>;
+  if (loading) return <div style={{ padding: 32, textAlign: "center" }}>Loading character...</div>;
+
   if (error) return (
-    <div style={{ color: "crimson", padding: "2rem", textAlign: "center" }}>
+    <div style={{ color: "crimson", padding: 32, textAlign: "center" }}>
       {error}
       <br />
-      <button onClick={() => window.location.reload()} style={{marginTop:16}}>Retry</button>
+      <button onClick={() => window.location.reload()} style={{ marginTop: 16 }}>Retry</button>
     </div>
   );
+
   if (!activeCharacter) return (
-    <div style={{ color: "crimson", padding: "2rem", textAlign: "center" }}>
-      No character found.
+    <div style={{ color: "crimson", padding: 32, textAlign: "center" }}>
+      No character loaded. Please create a character in your database.
     </div>
   );
 
@@ -78,7 +82,6 @@ function App() {
             </RequireWandAndRobes>
           }
         />
-        {/* Add more routes as needed */}
       </Routes>
     </Router>
   );
