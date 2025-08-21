@@ -6,6 +6,9 @@ import DiceButton from "../components/DiceButton";
 import SpellBook from "./Spellbook";
 import { supabase } from "../supabaseClient";
 
+// Timetable item id constant
+const YEAR_ONE_TIMETABLE_ID = "b7a8e1a9-bd62-4d50-8e2a-111111111111";
+
 const STANDARD_BOOK = "Standard Book of Spells Grade 1";
 const GRADE1_SPELLS = [
   "Alohomora",
@@ -25,6 +28,49 @@ type Step = "intro"|"select"|"feather"|"swish"|"resultFeather"|"cushionChoice"|"
 const WingardiumLeviosaLesson: React.FC<Props> = ({ character, setCharacter }) => {
   const theme = houseThemes[character.house];
   const navigate = useNavigate();
+
+  // --- GUARD: Require Year One Timetable to access lesson ---
+  if (
+    !character.items ||
+    !character.items.some((item) => item.item_id === YEAR_ONE_TIMETABLE_ID)
+  ) {
+    return (
+      <div
+        style={{
+          maxWidth: 400,
+          margin: "4rem auto",
+          padding: "2rem",
+          background: "#fffbe9",
+          borderRadius: 12,
+          textAlign: "center",
+          border: "2px solid #e3ce7d",
+          color: "#222",
+          fontSize: "1.3rem",
+        }}
+      >
+        <h2>Access Restricted</h2>
+        <p>
+          You need your <strong>Year One Timetable</strong> before you can attend this lesson.
+        </p>
+        <button
+          style={{
+            marginTop: "1.2rem",
+            padding: "0.6em 1.5em",
+            borderRadius: 8,
+            border: "2px solid #e3ce7d",
+            background: "#f8e7b8",
+            fontWeight: "bold",
+            cursor: "pointer",
+            fontSize: "1rem",
+          }}
+          onClick={() => navigate("/school")}
+        >
+          Return to School
+        </button>
+      </div>
+    );
+  }
+
   const completed = (character.completedLessons ?? []).includes("Wingardium Leviosa");
   const [step, setStep] = useState<Step>("intro");
   const [spellbookOpen, setSpellbookOpen] = useState(false);
