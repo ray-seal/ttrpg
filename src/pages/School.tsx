@@ -5,7 +5,7 @@ import { houseThemes, House } from "../themes";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 
-// IDs from your screenshot for scarf and timetable
+// IDs for scarf and timetable
 const HOUSE_SCARF_ID = "b5b1a2e6-0c74-4bfc-9c5d-555555555555";
 const YEAR_ONE_TIMETABLE_ID = "b7a8e1a9-bd62-4d50-8e2a-111111111111";
 
@@ -18,9 +18,8 @@ const School: React.FC<{
 
   const [showPopup, setShowPopup] = useState(false);
   const [givingItems, setGivingItems] = useState(false);
-  const [received, setReceived] = useState(false);
 
-  // You may want to fetch character items elsewhere and provide as prop, but for demo:
+  // Check ownership of scarf & timetable
   const ownsScarf = character.items?.some(item => item.item_id === HOUSE_SCARF_ID);
   const ownsTimetable = character.items?.some(item => item.item_id === YEAR_ONE_TIMETABLE_ID);
   const alreadyReceived = ownsScarf && ownsTimetable;
@@ -29,12 +28,14 @@ const School: React.FC<{
     setShowPopup(true);
     if (!alreadyReceived && !givingItems) {
       setGivingItems(true);
-      // Give scarf and timetable
-      await supabase.from("character_items").insert([
-        { character_id: character.id, item_id: HOUSE_SCARF_ID },
-        { character_id: character.id, item_id: YEAR_ONE_TIMETABLE_ID },
-      ]);
-      // Optionally, update the character object with new items
+      // Only insert if not already present
+      const newItems = [];
+      if (!ownsScarf) newItems.push({ character_id: character.id, item_id: HOUSE_SCARF_ID });
+      if (!ownsTimetable) newItems.push({ character_id: character.id, item_id: YEAR_ONE_TIMETABLE_ID });
+      if (newItems.length > 0) {
+        await supabase.from("character_items").insert(newItems);
+      }
+      // Update character's items
       if (setCharacter) {
         const { data: items } = await supabase
           .from("character_items")
@@ -42,7 +43,6 @@ const School: React.FC<{
           .eq("character_id", character.id);
         setCharacter({ ...character, items });
       }
-      setReceived(true);
       setGivingItems(false);
     }
   };
@@ -79,25 +79,33 @@ const School: React.FC<{
         Welcome to Hogwarts, {character.name}! Your magical education begins here. Attend classes, meet professors, make friends, and discover secrets hidden within the castle's ancient walls.
       </p>
 
-      <div style={{ textAlign: "center", marginBottom: "2em" }}>
-        <button
-          disabled={alreadyReceived || givingItems}
-          onClick={handleTalkToHead}
-          style={{
-            padding: "0.7em 1.6em",
-            fontWeight: "bold",
-            fontSize: "1.1em",
-            background: "#f6e8c0",
-            border: "2px solid #b79b5a",
-            borderRadius: 8,
-            cursor: alreadyReceived ? "not-allowed" : "pointer",
-            opacity: alreadyReceived ? 0.6 : 1,
-            marginBottom: "1em"
-          }}
-        >
-          {alreadyReceived ? "You've already met your Head of House" : "Talk to Head of House"}
-        </button>
-      </div>
+      {/* Head of House section */}
+      {!alreadyReceived && (
+        <div style={{ textAlign: "center", marginBottom: "2em" }}>
+          <button
+            disabled={givingItems}
+            onClick={handleTalkToHead}
+            style={{
+              padding: "0.7em 1.6em",
+              fontWeight: "bold",
+              fontSize: "1.1em",
+              background: "#f6e8c0",
+              border: "2px solid #b79b5a",
+              borderRadius: 8,
+              cursor: givingItems ? "not-allowed" : "pointer",
+              opacity: givingItems ? 0.7 : 1,
+              marginBottom: "1em"
+            }}
+          >
+            Talk to Head of House
+          </button>
+        </div>
+      )}
+      {alreadyReceived && (
+        <div style={{ marginBottom: "2em", fontWeight: "bold", color: "green", textAlign:"center" }}>
+          You have already received your {character.house} scarf and timetable.
+        </div>
+      )}
       {showPopup && (
         <div
           style={{
