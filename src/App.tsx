@@ -48,6 +48,7 @@ export default function App() {
     };
   }, []);
 
+  // Refetch on userId change
   useEffect(() => {
     if (!userId) {
       setLoading(false);
@@ -83,6 +84,8 @@ export default function App() {
     setCharacters((prev) => [...prev, newChar]);
     setActiveCharacterId(newChar.id);
   }
+
+  // This function keeps local state in sync with DB for all character updates (money, letter_read, etc)
   function handleUpdateCharacter(updatedChar: any) {
     setCharacters(chars => chars.map(c => (c.id === updatedChar.id ? updatedChar : c)));
     if (updatedChar.id === activeCharacterId) setActiveCharacterId(updatedChar.id);
@@ -208,7 +211,10 @@ export default function App() {
         path="/diagon-alley"
         element={
           activeCharacter ? (
-            <DiagonAlley character={activeCharacter} onComplete={() => window.location.href = "/hogwarts-express"} />
+            <DiagonAlley
+              character={activeCharacter}
+              onComplete={() => window.location.href = "/hogwarts-express"}
+            />
           ) : (
             <Navigate to="/" replace />
           )
@@ -218,7 +224,10 @@ export default function App() {
         path="/gringotts-bank"
         element={
           activeCharacter ? (
-            <GringottsBank character={activeCharacter} />
+            <GringottsBank
+              character={activeCharacter}
+              setCharacter={handleUpdateCharacter}
+            />
           ) : (
             <Navigate to="/" replace />
           )
@@ -228,7 +237,7 @@ export default function App() {
         path="/ollivanders"
         element={
           activeCharacter ? (
-            <Ollivanders character={activeCharacter} />
+            <Ollivanders character={activeCharacter} setCharacter={handleUpdateCharacter} />
           ) : (
             <Navigate to="/" replace />
           )
@@ -238,7 +247,7 @@ export default function App() {
         path="/madam-malkins"
         element={
           activeCharacter ? (
-            <MadamMalkins character={activeCharacter} />
+            <MadamMalkins character={activeCharacter} setCharacter={handleUpdateCharacter} />
           ) : (
             <Navigate to="/" replace />
           )
