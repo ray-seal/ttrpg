@@ -192,7 +192,7 @@ export default function App() {
         path="/hogwarts-letter"
         element={
           activeCharacter ? (
-            <HogwartsLetter character={activeCharacter} />
+            <HogwartsLetter character={activeCharacter} setCharacter={handleUpdateCharacter} />
           ) : (
             <Navigate to="/" replace />
           )
