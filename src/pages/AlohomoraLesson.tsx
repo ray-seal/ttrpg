@@ -37,8 +37,8 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
   const [rolling, setRolling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Already learned guard
-  const alreadyLearned = (character?.completedLessons ?? []).includes("Alohomora");
+  // Already learned guard (from local state only)
+  const alreadyCompletedLesson = (character?.completedLessons ?? []).includes("Alohomora");
 
   // Debug logging helper
   function debugLog(msg: string, data?: any) {
@@ -51,41 +51,65 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
   // Award XP & spell function
   async function awardSpellAndXP() {
     setError(null);
-    if (alreadyLearned) {
-      debugLog("Lesson already marked complete, skipping DB update.");
+
+    // Check if already has the spell in DB
+    let alreadyHasSpell = false;
+    try {
+      const { data: spellRows, error: fetchSpellError } = await supabase
+        .from("character_spells")
+        .select("id")
+        .eq("character_id", character.id)
+        .eq("spell_id", ALOHOMORA_SPELL_ID);
+      if (fetchSpellError) {
+        debugLog("Could not check for duplicate spell", fetchSpellError);
+        // Don't stop execution, but warn
+      }
+      alreadyHasSpell = (spellRows?.length ?? 0) > 0;
+    } catch (e) {
+      debugLog("Error checking for existing spell", e);
+    }
+
+    if (alreadyHasSpell && alreadyCompletedLesson) {
+      debugLog("Alohomora already awarded. Skipping DB update.");
       return;
     }
+
     try {
-      // Insert Alohomora spell by id
-      debugLog("Attempting to insert Alohomora spell by id...");
-      const { error: spellError } = await supabase
-        .from("character_spells")
-        .insert([{ character_id: character.id, spell_id: ALOHOMORA_SPELL_ID }]);
-      if (spellError) {
-        debugLog("Spell insert error", spellError);
-        if (!String(spellError.message).includes("duplicate")) setError("Could not unlock spell.");
+      if (!alreadyHasSpell) {
+        debugLog("Awarding Alohomora spell...");
+        const { error: spellError } = await supabase
+          .from("character_spells")
+          .insert([{ character_id: character.id, spell_id: ALOHOMORA_SPELL_ID }]);
+        if (spellError) {
+          debugLog("Spell insert error", spellError);
+          setError("Could not unlock spell.");
+          return;
+        }
       } else {
-        debugLog("Spell insert successful");
+        debugLog("Spell already present, not inserting.");
       }
 
-      debugLog("Attempting to update XP and completedLessons...");
-      const newExp = (character.experience ?? 0) + 10;
-      const newCompleted = Array.from(new Set([...(character.completedLessons ?? []), "Alohomora"]));
-      const { error: updateError } = await supabase
-        .from("characters")
-        .update({ completedLessons: newCompleted, experience: newExp })
-        .eq("id", character.id);
-      if (updateError) {
-        debugLog("Character update error", updateError);
-        setError("Could not award experience.");
+      if (!alreadyCompletedLesson) {
+        debugLog("Awarding experience and marking lesson complete...");
+        const newExp = (character.experience ?? 0) + 10;
+        const newCompleted = Array.from(new Set([...(character.completedLessons ?? []), "Alohomora"]));
+        const { error: updateError } = await supabase
+          .from("characters")
+          .update({ completedLessons: newCompleted, experience: newExp })
+          .eq("id", character.id);
+        if (updateError) {
+          debugLog("Character update error", updateError);
+          setError("Could not award experience.");
+          return;
+        }
+        setCharacter({
+          ...character,
+          completedLessons: newCompleted,
+          experience: newExp,
+        });
       } else {
-        debugLog("XP and lesson update successful");
+        debugLog("Lesson already marked complete, not awarding experience.");
       }
-      setCharacter({
-        ...character,
-        completedLessons: newCompleted,
-        experience: newExp,
-      });
     } catch (e) {
       debugLog("Exception in awardSpellAndXP", e);
       setError("Unexpected error. Try refreshing the page.");
@@ -159,7 +183,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
           setStep("result");
           debugLog("Rolled dice", { roll, magic: character.magic, total: totalRoll, pass: didPass });
           // If pass, award spell/xp (but only once)
-          if (didPass && !alreadyLearned) {
+          if (didPass && !(alreadyCompletedLesson && alreadyHasSpell)) {
             awardSpellAndXP();
           }
         }, 900);
@@ -264,7 +288,7 @@ const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
       </h2>
       <h3>Lesson: Alohomora</h3>
       {error && <div style={{ color: "crimson", marginBottom: 12 }}>{error}</div>}
-      {alreadyLearned && (
+      {alreadyCompletedLesson && (
         <div style={{ color: "#277827", marginBottom: 14 }}>
           You have already learned Alohomora. Practice makes perfect!
         </div>
