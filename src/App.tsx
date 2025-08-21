@@ -21,14 +21,13 @@ function App() {
         const { data, error } = await supabase
           .from("characters")
           .select("*")
-          .limit(1)
-          .single();
+          .limit(1);
         if (error) {
           setError("Error loading character: " + error.message);
-        } else if (!data) {
+        } else if (!data || data.length === 0) {
           setError("No character found in database.");
         } else {
-          setActiveCharacter(data);
+          setActiveCharacter(data[0]);
         }
       } catch (e: any) {
         setError("Unexpected error: " + (e?.message || e));
