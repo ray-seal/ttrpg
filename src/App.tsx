@@ -10,49 +10,65 @@ import { Character } from "./types";
 
 function App() {
   const [activeCharacter, setActiveCharacter] = useState<Character | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Fetch active character on mount or setup logic here
   useEffect(() => {
-    // For demo: fetch first character (replace with your own logic)
     async function fetchCharacter() {
-      const { data } = await supabase
-        .from("characters")
-        .select("*")
-        .limit(1)
-        .single();
-      setActiveCharacter(data);
+      setLoading(true);
+      setError(null);
+      try {
+        const { data, error } = await supabase
+          .from("characters")
+          .select("*")
+          .limit(1)
+          .single();
+        if (error) {
+          setError("Error loading character: " + error.message);
+        } else {
+          setActiveCharacter(data);
+        }
+      } catch (e: any) {
+        setError("Unexpected error: " + e.message);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchCharacter();
   }, []);
 
-  if (!activeCharacter) return <div>Loading character...</div>;
+  if (loading) return <div>Loading character...</div>;
+  if (error) return (
+    <div style={{ color: "crimson", padding: "2rem", textAlign: "center" }}>
+      {error}
+      <br />
+      <button onClick={() => window.location.reload()} style={{marginTop:16}}>Retry</button>
+    </div>
+  );
+  if (!activeCharacter) return (
+    <div style={{ color: "crimson", padding: "2rem", textAlign: "center" }}>
+      No character found.
+    </div>
+  );
 
   return (
     <Router>
       <Routes>
         <Route
           path="/"
-          element={
-            <Navigate to="/diagon-alley" replace />
-          }
+          element={<Navigate to="/diagon-alley" replace />}
         />
         <Route
           path="/diagon-alley"
-          element={
-            <DiagonAlley character={activeCharacter} />
-          }
+          element={<DiagonAlley character={activeCharacter} />}
         />
         <Route
           path="/ollivanders"
-          element={
-            <Ollivanders character={activeCharacter} setCharacter={setActiveCharacter} />
-          }
+          element={<Ollivanders character={activeCharacter} setCharacter={setActiveCharacter} />}
         />
         <Route
           path="/madam-malkins"
-          element={
-            <MadamMalkins character={activeCharacter} setCharacter={setActiveCharacter} />
-          }
+          element={<MadamMalkins character={activeCharacter} setCharacter={setActiveCharacter} />}
         />
         <Route
           path="/hogwarts-express"
