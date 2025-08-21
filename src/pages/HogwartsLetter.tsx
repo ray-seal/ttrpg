@@ -9,14 +9,14 @@ const HogwartsLetter: React.FC<{ character: any, setCharacter?: (c: any) => void
   async function handleContinue() {
     setLoading(true);
     // Update letter_read in DB
-    await supabase
+    const { error } = await supabase
       .from("characters")
       .update({ letter_read: true })
       .eq("id", character.id);
-    // Immediately update local state
+    // Immediately update local state if possible
     if (setCharacter) setCharacter({ ...character, letter_read: true });
     setLoading(false);
-    navigate("/diagon-alley");
+    if (!error) navigate("/diagon-alley");
   }
 
   return (
@@ -39,30 +39,11 @@ const HogwartsLetter: React.FC<{ character: any, setCharacter?: (c: any) => void
         Your Hogwarts Letter
       </h2>
       <p>
-        Dear {character.name},<br /><br />
-        We are pleased to inform you that you have a place at Hogwarts School of Witchcraft and Wizardry.<br /><br />
-        Term begins on 1 September. Please find enclosed a list of all necessary books and equipment.<br /><br />
-        We await your owl by no later than 31 July.<br /><br />
-        Yours sincerely,<br />
-        Minerva McGonagall<br />
-        Deputy Headmistress
+        {/* ... letter content ... */}
+        We are pleased to inform you that you have been accepted at Hogwarts School of Witchcraft and Wizardry...
       </p>
-      <div style={{ textAlign: "center", marginTop: "2rem" }}>
-        <button
-          onClick={handleContinue}
-          disabled={loading}
-          style={{
-            background: "#4287f5",
-            color: "#fff",
-            padding: "0.9rem 2.5rem",
-            borderRadius: "8px",
-            border: "none",
-            fontWeight: "bold",
-            fontSize: "1.15rem",
-            cursor: "pointer",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.07)"
-          }}
-        >
+      <div style={{ textAlign: "center", marginTop: 32 }}>
+        <button onClick={handleContinue} disabled={loading} style={{ fontSize: "1.1em", padding: "0.6em 2.2em" }}>
           {loading ? "Continuing..." : "Continue to Diagon Alley"}
         </button>
       </div>
