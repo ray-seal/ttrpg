@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";
-import DiagonAlley from "./pages/DiagonAlley";
-import Ollivanders from "./pages/Ollivanders";
-import MadamMalkins from "./pages/MadamMalkins";
-import HogwartsExpress from "./pages/HogwartsExpress";
-import RequireWandAndRobes from "./components/RequireWandAndRobes";
 import CharacterCreation from "./pages/CharacterCreation";
+import HogwartsLetter from "./pages/HogwartsLetter";
+import DiagonAlley from "./pages/DiagonAlley";
+import HogwartsExpress from "./pages/HogwartsExpress";
+import HomePage from "./pages/HomePage";
+import School from "./pages/School";
+import CharacterSheet from "./pages/CharacterSheet";
+import Inventory from "./pages/Inventory";
+import RequireWandAndRobes from "./components/RequireWandAndRobes";
 import { Character } from "./types";
 
 function App() {
@@ -23,6 +26,7 @@ function App() {
           .from("characters")
           .select("*")
           .limit(1);
+
         if (error) {
           setError("Error loading character: " + error.message);
         } else if (!data || data.length === 0) {
@@ -49,33 +53,37 @@ function App() {
     </div>
   );
 
-  // Show CharacterCreation if no character exists
-  if (!activeCharacter) return (
-    <CharacterCreation onCharacterCreated={setActiveCharacter} />
-  );
+  // If there's no character, direct to character creation
+  if (!activeCharacter) {
+    return (
+      <Router>
+        <Routes>
+          <Route path="/*" element={<Navigate to="/character-creation" replace />} />
+          <Route path="/character-creation" element={<CharacterCreation onCharacterCreated={setActiveCharacter} />} />
+        </Routes>
+      </Router>
+    );
+  }
 
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/diagon-alley" replace />} />
-        <Route path="/character-creation" element={
-          <CharacterCreation onCharacterCreated={setActiveCharacter} />
-        } />
-        <Route path="/diagon-alley" element={
-          <DiagonAlley character={activeCharacter} />
-        } />
-        <Route path="/ollivanders" element={
-          <Ollivanders character={activeCharacter} setCharacter={setActiveCharacter} />
-        } />
-        <Route path="/madam-malkins" element={
-          <MadamMalkins character={activeCharacter} setCharacter={setActiveCharacter} />
-        } />
-        <Route path="/hogwarts-express" element={
-          <RequireWandAndRobes characterId={activeCharacter.id}>
-            <HogwartsExpress character={activeCharacter} />
-          </RequireWandAndRobes>
-        } />
-        {/* Add more routes as needed */}
+        <Route path="/" element={<Navigate to="/hogwarts-letter" replace />} />
+        <Route path="/character-creation" element={<CharacterCreation onCharacterCreated={setActiveCharacter} />} />
+        <Route path="/hogwarts-letter" element={<HogwartsLetter character={activeCharacter} />} />
+        <Route path="/diagon-alley" element={<DiagonAlley character={activeCharacter} />} />
+        <Route
+          path="/hogwarts-express"
+          element={
+            <RequireWandAndRobes characterId={activeCharacter.id}>
+              <HogwartsExpress character={activeCharacter} />
+            </RequireWandAndRobes>
+          }
+        />
+        <Route path="/home" element={<HomePage character={activeCharacter} />} />
+        <Route path="/school" element={<School character={activeCharacter} />} />
+        <Route path="/character-sheet" element={<CharacterSheet character={activeCharacter} />} />
+        <Route path="/inventory" element={<Inventory character={activeCharacter} />} />
       </Routes>
     </Router>
   );
