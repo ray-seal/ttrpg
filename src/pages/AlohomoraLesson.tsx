@@ -1,141 +1,236 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Character } from "../types";
+import { houseThemes } from "../themes";
+import DiceButton from "../components/DiceButton";
+import SpellBook from "./Spellbook";
 import { supabase } from "../supabaseClient";
 
-const ALOHOMORA_SPELL = "Alohomora";
+// Timetable item id constant
+const YEAR_ONE_TIMETABLE_ID = "b7a8e1a9-bd62-4d50-8e2a-111111111111";
 
-const AlohomoraLesson: React.FC<{ character: any; setCharacter: (c: any) => void }> = ({
-  character,
-  setCharacter,
-}) => {
-  const [step, setStep] = useState<"intro" | "roll" | "result" | "complete">("intro");
-  const [success, setSuccess] = useState<boolean | null>(null);
-  const [rolling, setRolling] = useState(false);
+const STANDARD_BOOK = "Standard Book of Spells Grade 1";
+const GRADE1_SPELLS = [
+  "Alohomora",
+  "Lumos",
+  "Wingardium Leviosa",
+  "Incendio",
+  "Nox"
+];
+
+interface Props {
+  character: Character;
+  setCharacter: (c: Character) => void;
+}
+
+const AlohomoraLesson: React.FC<Props> = ({ character, setCharacter }) => {
+  const theme = houseThemes[character.house];
+  const navigate = useNavigate();
+
+  // --- GUARD: Require Year One Timetable to access lesson ---
+  if (
+    !character.items ||
+    !character.items.some((item) => item.item_id === YEAR_ONE_TIMETABLE_ID)
+  ) {
+    return (
+      <div
+        style={{
+          maxWidth: 400,
+          margin: "4rem auto",
+          padding: "2rem",
+          background: "#fffbe9",
+          borderRadius: 12,
+          textAlign: "center",
+          border: "2px solid #e3ce7d",
+          color: "#222",
+          fontSize: "1.3rem",
+        }}
+      >
+        <h2>Access Restricted</h2>
+        <p>
+          You need your <strong>Year One Timetable</strong> before you can attend this lesson.
+        </p>
+        <button
+          style={{
+            marginTop: "1.2rem",
+            padding: "0.6em 1.5em",
+            borderRadius: 8,
+            border: "2px solid #e3ce7d",
+            background: "#f8e7b8",
+            fontWeight: "bold",
+            cursor: "pointer",
+            fontSize: "1rem",
+          }}
+          onClick={() => navigate("/school")}
+        >
+          Return to School
+        </button>
+      </div>
+    );
+  }
+
+  const completed = (character.completedLessons ?? []).includes("Alohomora");
+  const [step, setStep] = useState<"intro"|"select"|"roll"|"result"|"wrong">("intro");
+  const [spellbookOpen, setSpellbookOpen] = useState(false);
+  const [diceModalOpen, setDiceModalOpen] = useState(false);
   const [rollResult, setRollResult] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean | null>(null);
 
-  // Helper for XP/spell upsert
   async function markSpellLearnt() {
-    setError(null);
-    try {
-      // 1. Upsert spell
-      await supabase.from("character_spells").upsert([
-        { character_id: character.id, spell: ALOHOMORA_SPELL }
+    // Add spell to character_spells if not already present
+    await supabase
+      .from("character_spells")
+      .upsert([
+        { character_id: character.id, spell: "Alohomora" }
       ], { onConflict: ["character_id", "spell"] });
 
-      // 2. Update completedLessons and experience
-      const newCompleted = Array.from(
-        new Set([...(character.completedLessons ?? []), ALOHOMORA_SPELL])
-      );
-      const newExp = (character.experience ?? 0) + 10;
+    // Update character experience and completedLessons
+    const newCompleted = Array.from(new Set([...(character.completedLessons ?? []), "Alohomora"]));
+    const newExp = (character.experience ?? 0) + 10;
+    setCharacter({
+      ...character,
+      completedLessons: newCompleted,
+      experience: newExp,
+    });
+    await supabase.from("characters").update({
+      completedLessons: newCompleted,
+      experience: newExp
+    }).eq("id", character.id);
+  }
 
-      await supabase
-        .from("characters")
-        .update({
-          completedLessons: newCompleted,
-          experience: newExp,
-        })
-        .eq("id", character.id);
-
-      // 3. Update local state (important for next renders!)
-      setCharacter({
-        ...character,
-        completedLessons: newCompleted,
-        experience: newExp,
-      });
-    } catch (e: any) {
-      setError("Error awarding XP or unlocking spell.");
+  function handleSpellClick(spell: string) {
+    if (spell === "Alohomora") {
+      setSpellbookOpen(false);
+      setStep("roll");
+    } else {
+      setSpellbookOpen(false);
+      setStep("wrong");
     }
   }
 
-  function rollDice() {
-    setRolling(true);
-    setTimeout(() => {
-      const roll = Math.ceil(Math.random() * 20);
-      setRollResult(roll);
-      const knowledge = character.knowledge || 0;
-      if (roll + knowledge >= 12) {
-        setSuccess(true);
-      } else {
-        setSuccess(false);
-      }
-      setStep("result");
-      setRolling(false);
-    }, 800);
+  async function handleDiceRoll(result: number, sides: number) {
+    if (sides !== 12) return;
+    setRollResult(result);
+    const total = result + character.knowledge;
+    const passed = total >= 12;
+    setSuccess(passed);
+    setDiceModalOpen(false);
+    setStep("result");
+    if (passed && !completed) {
+      await markSpellLearnt();
+    }
   }
 
-  // Only allow completion if spell not already unlocked
-  const alreadyCompleted = (character.completedLessons ?? []).includes(ALOHOMORA_SPELL);
-
   return (
-    <div style={{
-      maxWidth: 600,
-      margin: "3rem auto",
-      padding: "2.5rem",
-      background: "#e3eafc",
-      borderRadius: 14,
-      fontFamily: "serif",
-      color: "#19223b",
-      border: "2px solid #4287f5"
-    }}>
-      <h2 style={{
-        fontFamily: "cursive",
-        textAlign: "center",
-        marginBottom: "1.2rem",
-        color: "#1e1c17"
-      }}>
-        Charms Class: Alohomora
+    <div
+      style={{
+        border: `2px solid ${theme.secondary}`,
+        background: "rgba(255,255,255,0.60)",
+        color: theme.primary,
+        padding: "2rem",
+        borderRadius: "16px",
+        maxWidth: "420px",
+        margin: "2rem auto",
+        boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
+        fontFamily: "serif",
+        position: "relative"
+      }}
+    >
+      <h2 style={{ color: theme.secondary, marginBottom: "0.5rem" }}>
+        Professor Flitwick's Charms Class
       </h2>
-      {error && <div style={{ color: "crimson", marginBottom: 16 }}>{error}</div>}
+      <h3>Lesson: Alohomora</h3>
       {step === "intro" && (
         <>
           <p>
-            Professor Flitwick twinkles at you. "Today we'll learn <b>Alohomora</b>, the unlocking charm! It's very handy for opening locked doors. Let's give it a try. Roll a d20 and add your <b>Knowledge</b>."
+            Professor Flitwick beams, "Welcome! Today you'll learn <b>Alohomora</b>.<br />
+            Open your <b>{STANDARD_BOOK}</b> and select the unlocking charm!"
           </p>
           <div style={{ textAlign: "center", margin: "2em 0" }}>
             <button
               style={{
                 background: "#4287f5",
                 color: "#fff",
-                padding: "0.8rem 2rem",
+                padding: "0.7rem 2rem",
                 borderRadius: "8px",
                 fontWeight: "bold",
-                fontSize: "1.1rem",
+                fontSize: "1rem",
                 cursor: "pointer"
               }}
-              onClick={() => setStep("roll")}
-              disabled={rolling}
+              onClick={() => setSpellbookOpen(true)}
             >
-              Start Spell Attempt
+              Open Spellbook
             </button>
           </div>
         </>
       )}
-      {step === "roll" && (
+
+      {step === "select" && (
         <>
-          <div style={{ textAlign: "center", margin: "2.5em 0" }}>
+          <p>Select the spell for unlocking doors!</p>
+          <div style={{ textAlign: "center", margin: "2em 0" }}>
             <button
               style={{
                 background: "#4287f5",
                 color: "#fff",
-                padding: "1rem 2.5rem",
+                padding: "0.7rem 2rem",
                 borderRadius: "8px",
                 fontWeight: "bold",
-                fontSize: "1.3rem",
-                cursor: rolling ? "not-allowed" : "pointer",
-                opacity: rolling ? 0.6 : 1,
+                fontSize: "1rem",
+                cursor: "pointer"
               }}
-              disabled={rolling}
-              onClick={rollDice}
+              onClick={() => setSpellbookOpen(true)}
             >
-              {rolling ? "Rolling..." : "Roll d20"}
+              Open Spellbook
             </button>
           </div>
         </>
       )}
+
+      {step === "wrong" && (
+        <>
+          <p style={{ color: "#b71c1c", fontWeight: "bold" }}>
+            That's not the right spell for this lesson. Try again!
+          </p>
+          <div style={{ textAlign: "center", margin: "2em 0" }}>
+            <button
+              style={{
+                background: "#4287f5",
+                color: "#fff",
+                padding: "0.7rem 2rem",
+                borderRadius: "8px",
+                fontWeight: "bold",
+                fontSize: "1rem",
+                cursor: "pointer"
+              }}
+              onClick={() => setStep("select")}
+            >
+              Open Spellbook
+            </button>
+          </div>
+        </>
+      )}
+
+      {step === "roll" && (
+        <>
+          <p>
+            Roll a <b>d12</b> and add your <b>Knowledge</b>.<br />
+            You need a total of <b>12 or more</b> to succeed!
+          </p>
+          <div style={{ textAlign: "center", margin: "2em 0" }}>
+            <DiceButton
+              sides={12}
+              onRoll={handleDiceRoll}
+              disabled={diceModalOpen}
+            />
+          </div>
+        </>
+      )}
+
       {step === "result" && success !== null && (
-        <div style={{ textAlign: "center", margin: "2.5em 0" }}>
+        <div style={{ textAlign: "center", margin: "2em 0" }}>
           <div style={{ fontSize: "1.2em", marginBottom: 12 }}>
-            You rolled <b>{rollResult}</b> + Knowledge <b>{character.knowledge || 0}</b> = <b>{(rollResult || 0) + (character.knowledge || 0)}</b>
+            You rolled <b>{rollResult}</b> + Knowledge <b>{character.knowledge}</b> = <b>{(rollResult || 0) + character.knowledge}</b>
           </div>
           {success ? (
             <>
@@ -156,12 +251,9 @@ const AlohomoraLesson: React.FC<{ character: any; setCharacter: (c: any) => void
                   fontSize: "1.1rem",
                   cursor: "pointer"
                 }}
-                onClick={async () => {
-                  if (!alreadyCompleted) await markSpellLearnt();
-                  setStep("complete");
-                }}
+                onClick={() => navigate("/school")}
               >
-                Finish Lesson
+                Back to School
               </button>
             </>
           ) : (
@@ -190,29 +282,14 @@ const AlohomoraLesson: React.FC<{ character: any; setCharacter: (c: any) => void
           )}
         </div>
       )}
-      {step === "complete" && (
-        <div style={{ textAlign: "center", margin: "2.5em 0" }}>
-          <div style={{ color: "#277827", fontWeight: "bold", fontSize: "1.2em", marginBottom: 18 }}>
-            Lesson Complete!
-          </div>
-          <div style={{ marginBottom: 16 }}>
-            You've gained <b>10 experience</b> and unlocked <b>Alohomora</b>!
-          </div>
-          <button
-            style={{
-              background: "#7b2d26",
-              color: "#fff",
-              padding: "0.7rem 2.2rem",
-              borderRadius: "8px",
-              fontWeight: "bold",
-              fontSize: "1.1rem",
-              cursor: "pointer"
-            }}
-            onClick={() => window.location.href = "/school"}
-          >
-            Back to School
-          </button>
-        </div>
+
+      {spellbookOpen && (
+        <SpellBook
+          availableSpells={GRADE1_SPELLS}
+          onSelect={handleSpellClick}
+          onClose={() => setSpellbookOpen(false)}
+          highlight="Alohomora"
+        />
       )}
     </div>
   );
