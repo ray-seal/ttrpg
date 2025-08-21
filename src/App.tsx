@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import CharacterCreation from "./pages/CharacterCreation";
 import CharacterSheet from "./pages/CharacterSheet";
@@ -19,6 +19,7 @@ import MadamMalkins from "./pages/MadamMalkins";
 import SchoolGate from "./components/SchoolGate";
 import SortingHat from "./pages/SortingHat";
 import HogwartsExpress from "./pages/HogwartsExpress";
+import RequireWandAndRobes from "./components/RequireWandAndRobes";
 
 const CHARACTER_KEY = "activeCharacterId";
 
@@ -76,10 +77,20 @@ export default function App() {
     if (activeCharacterId) localStorage.setItem(CHARACTER_KEY, activeCharacterId);
   }, [activeCharacterId]);
 
-  function handleCreateCharacter(newChar: any) {
-    setCharacters((prev) => [...prev, newChar]);
-    setActiveCharacterId(newChar.id);
+  // After character creation, fetch the character again to ensure onboarding steps work
+  async function handleCreateCharacter(newChar: any) {
+    // Immediately fetch the up-to-date character from the DB
+    const { data } = await supabase
+      .from("characters")
+      .select("*")
+      .eq("id", newChar.id)
+      .single();
+    if (data) {
+      setCharacters((prev) => [...prev.filter(c => c.id !== data.id), data]);
+      setActiveCharacterId(data.id);
+    }
   }
+
   function handleUpdateCharacter(updatedChar: any) {
     setCharacters(chars => chars.map(c => (c.id === updatedChar.id ? updatedChar : c)));
     if (updatedChar.id === activeCharacterId) setActiveCharacterId(updatedChar.id);
@@ -251,7 +262,9 @@ export default function App() {
         path="/hogwarts-express"
         element={
           activeCharacter ? (
-            <HogwartsExpress character={activeCharacter} />
+            <RequireWandAndRobes characterId={activeCharacter.id}>
+              <HogwartsExpress character={activeCharacter} />
+            </RequireWandAndRobes>
           ) : (
             <Navigate to="/" replace />
           )
