@@ -2,17 +2,20 @@ import React, { useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
 
-const HogwartsLetter: React.FC<{ character: any }> = ({ character }) => {
+const HogwartsLetter: React.FC<{ character: any, setCharacter?: (c: any) => void }> = ({ character, setCharacter }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   async function handleContinue() {
     setLoading(true);
-    // Mark the letter as read in DB
-    await supabase.from("characters").update({ letter_read: true }).eq("id", character.id);
+    // Update letter_read in DB
+    await supabase
+      .from("characters")
+      .update({ letter_read: true })
+      .eq("id", character.id);
+    // Immediately update local state
+    if (setCharacter) setCharacter({ ...character, letter_read: true });
     setLoading(false);
-    // You can show supply list as next step if desired, otherwise go straight to Diagon Alley:
-    // navigate("/hogwarts-supply-list");
     navigate("/diagon-alley");
   }
 
