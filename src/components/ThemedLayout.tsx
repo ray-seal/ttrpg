@@ -2,16 +2,26 @@ import React from "react";
 import { houseThemes, House } from "../themes";
 import { Character } from "../types";
 
-// Helper for shield image location, adjust path as needed!
-const getShieldURL = (house: House) =>
-  `/assets/shields/${houseThemes[house].shield}`;
+// Neutral/default theme for unsorted students
+const defaultTheme = {
+  primary: "#423d35",
+  secondary: "#423d35",
+  accent: "#a0a0a0",
+  background: "#f5f5f5",
+  shield: "Hogwarts-Crest.png", // Use the official Hogwarts Crest for unsorted
+};
+
+const getShieldURL = (house: House | "Neutral") =>
+  house && houseThemes[house]
+    ? `/assets/shields/${houseThemes[house].shield}`
+    : `/assets/shields/${defaultTheme.shield}`;
 
 interface ThemedLayoutProps {
   character: Character;
   children: React.ReactNode;
 }
 
-export const boxStyle = (theme: typeof houseThemes.Gryffindor) => ({
+export const boxStyle = (theme: typeof houseThemes.Gryffindor | typeof defaultTheme) => ({
   maxWidth: 700,
   margin: "2rem auto",
   padding: "2.5rem",
@@ -26,8 +36,11 @@ export const boxStyle = (theme: typeof houseThemes.Gryffindor) => ({
 });
 
 const ThemedLayout: React.FC<ThemedLayoutProps> = ({ character, children }) => {
-  const theme = houseThemes[character.house as House] ?? houseThemes.Gryffindor;
-  const shieldUrl = getShieldURL(character.house as House);
+  const hasHouse = Boolean(character.house && houseThemes[character.house as House]);
+  const theme = hasHouse ? houseThemes[character.house as House] : defaultTheme;
+  const shieldUrl = hasHouse
+    ? getShieldURL(character.house as House)
+    : `/assets/shields/${defaultTheme.shield}`;
 
   return (
     <div
@@ -43,7 +56,7 @@ const ThemedLayout: React.FC<ThemedLayoutProps> = ({ character, children }) => {
       {/* Big faded shield in background */}
       <img
         src={shieldUrl}
-        alt={`${character.house} shield`}
+        alt={hasHouse ? `${character.house} shield` : "Hogwarts crest"}
         style={{
           position: "fixed",
           left: "50%",
