@@ -60,8 +60,9 @@ const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character
       .upsert([
         { character_id: character.id, item_id: WAND_ITEM_ID, quantity: 1 }
       ], { onConflict: ["character_id", "item_id"] });
+    console.log("wandError:", wandError);
     if (wandError) {
-      setError("Failed to add wand to inventory.");
+      setError("Failed to add wand to inventory: " + wandError.message);
       return;
     }
     // Deduct money
@@ -69,8 +70,9 @@ const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character
       .from("characters")
       .update({ wizarding_money: localCharacter.wizarding_money - WAND_COST })
       .eq("id", character.id);
+    console.log("moneyError:", moneyError);
     if (moneyError) {
-      setError("Failed to deduct galleons.");
+      setError("Failed to deduct galleons: " + moneyError.message);
       return;
     }
     setPurchased(true);
@@ -94,7 +96,7 @@ const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character
         <p>
           <b>Basic Wand</b>: {WAND_COST} Galleons
         </p>
-        {error && <div style={{ color: "crimson", marginBottom: 10 }}>{error}</div>}
+        {error && <div style={{ color: "crimson", marginBottom: 10, whiteSpace: "pre-wrap" }}>{error}</div>}
         {purchased || alreadyOwned ? (
           <div style={{ color: "#2d6a4f", fontWeight: "bold", margin: "1.5rem 0" }}>
             Congratulations! You have your wand.
