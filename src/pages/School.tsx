@@ -1,15 +1,51 @@
-import React from "react";
+import React, { useState } from "react";
 import { Character } from "../types";
 import ThemedLayout from "../components/ThemedLayout";
 import { houseThemes, House } from "../themes";
 import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
+
+// IDs from your screenshot for scarf and timetable
+const HOUSE_SCARF_ID = "b5b1a2e6-0c74-4bfc-9c5d-555555555555";
+const YEAR_ONE_TIMETABLE_ID = "b7a8e1a9-bd62-4d50-8e2a-111111111111";
 
 const School: React.FC<{
   character: Character;
   setCharacter: (c: Character) => void;
-}> = ({ character }) => {
+}> = ({ character, setCharacter }) => {
   const theme = houseThemes[character.house as House];
   const navigate = useNavigate();
+
+  const [showPopup, setShowPopup] = useState(false);
+  const [givingItems, setGivingItems] = useState(false);
+  const [received, setReceived] = useState(false);
+
+  // You may want to fetch character items elsewhere and provide as prop, but for demo:
+  const ownsScarf = character.items?.some(item => item.item_id === HOUSE_SCARF_ID);
+  const ownsTimetable = character.items?.some(item => item.item_id === YEAR_ONE_TIMETABLE_ID);
+  const alreadyReceived = ownsScarf && ownsTimetable;
+
+  const handleTalkToHead = async () => {
+    setShowPopup(true);
+    if (!alreadyReceived && !givingItems) {
+      setGivingItems(true);
+      // Give scarf and timetable
+      await supabase.from("character_items").insert([
+        { character_id: character.id, item_id: HOUSE_SCARF_ID },
+        { character_id: character.id, item_id: YEAR_ONE_TIMETABLE_ID },
+      ]);
+      // Optionally, update the character object with new items
+      if (setCharacter) {
+        const { data: items } = await supabase
+          .from("character_items")
+          .select("*")
+          .eq("character_id", character.id);
+        setCharacter({ ...character, items });
+      }
+      setReceived(true);
+      setGivingItems(false);
+    }
+  };
 
   const timetable = [
     { day: "Monday", lesson: "Charms: Wingardium Leviosa" },
@@ -42,6 +78,67 @@ const School: React.FC<{
       }}>
         Welcome to Hogwarts, {character.name}! Your magical education begins here. Attend classes, meet professors, make friends, and discover secrets hidden within the castle's ancient walls.
       </p>
+
+      <div style={{ textAlign: "center", marginBottom: "2em" }}>
+        <button
+          disabled={alreadyReceived || givingItems}
+          onClick={handleTalkToHead}
+          style={{
+            padding: "0.7em 1.6em",
+            fontWeight: "bold",
+            fontSize: "1.1em",
+            background: "#f6e8c0",
+            border: "2px solid #b79b5a",
+            borderRadius: 8,
+            cursor: alreadyReceived ? "not-allowed" : "pointer",
+            opacity: alreadyReceived ? 0.6 : 1,
+            marginBottom: "1em"
+          }}
+        >
+          {alreadyReceived ? "You've already met your Head of House" : "Talk to Head of House"}
+        </button>
+      </div>
+      {showPopup && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: "rgba(0,0,0,0.3)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              padding: "2em",
+              borderRadius: 12,
+              maxWidth: 380,
+              textAlign: "center",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.16)"
+            }}
+          >
+            <div style={{ marginBottom: "1.2em" }}>
+              Your head of house welcomes you to <b>{character.house}</b> and gives you a <b>{character.house} scarf</b> and <b>Year One Timetable</b>!
+            </div>
+            <button
+              onClick={() => setShowPopup(false)}
+              style={{
+                fontWeight: "bold",
+                padding: "0.5em 1.5em",
+                background: "#f6e8c0",
+                border: "2px solid #b79b5a",
+                borderRadius: 8,
+                cursor: "pointer"
+              }}
+            >
+              Thank you!
+            </button>
+          </div>
+        </div>
+      )}
 
       <h3 style={{
         marginTop: "2rem",
