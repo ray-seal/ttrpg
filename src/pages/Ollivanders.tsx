@@ -55,12 +55,11 @@ const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character
       setError("You already have a wand!");
       return;
     }
-    // Add wand to inventory (with quantity: 1)
+    // Insert the wand (quantity: 1)
     const { error: wandError } = await supabase.from("character_items")
-      .upsert([
+      .insert([
         { character_id: character.id, item_id: WAND_ITEM_ID, quantity: 1 }
-      ], { onConflict: ["character_id", "item_id"] });
-    console.log("wandError:", wandError);
+      ]);
     if (wandError) {
       setError("Failed to add wand to inventory: " + wandError.message);
       return;
@@ -70,7 +69,6 @@ const Ollivanders: React.FC<{ character: Character; setCharacter?: (c: Character
       .from("characters")
       .update({ wizarding_money: localCharacter.wizarding_money - WAND_COST })
       .eq("id", character.id);
-    console.log("moneyError:", moneyError);
     if (moneyError) {
       setError("Failed to deduct galleons: " + moneyError.message);
       return;
