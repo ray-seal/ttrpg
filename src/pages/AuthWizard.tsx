@@ -70,7 +70,7 @@ export default function AuthWizard() {
     }
     setLoading(false);
     setStep("ticket");
-    setTimeout(() => navigate("/campaign"), 3500); // auto-redirect after ticket
+    setTimeout(() => navigate("/hogwarts-letter"), 3500); // auto-redirect after ticket
   };
 
   // Wizard-like stepper UI
