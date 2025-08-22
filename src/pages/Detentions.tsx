@@ -71,7 +71,7 @@ const Detentions: React.FC<Props> = ({ character, setCharacter }) => {
     return (
       <div style={{ ...baseBox(theme) }}>
         <h2 style={{ color: theme.secondary }}>Detention Hall</h2>
-        <p style={{ fontWeight: "bold" }}>Professor Snape greets you with a sneer.</p>
+        <p style={{ fontWeight: "bold" }}>Professor Slughorn greets you with a sneer.</p>
         <p>
           "Since you seem to think rules are optional, you'll be cleaning cauldrons by hand. Three cauldrons, spotless."
         </p>
@@ -90,7 +90,7 @@ const Detentions: React.FC<Props> = ({ character, setCharacter }) => {
       <div style={{ ...baseBox(theme) }}>
         <h2 style={{ color: theme.secondary }}>Detention Failed</h2>
         <p style={{ color: "#b71c1c", fontWeight: "bold" }}>
-          Snape inspects your work and finds it lacking. “Do it again {character.name}!” With a flick of his wand the caudrons fill with leftovers again!
+          Slughorn inspects your work and finds it lacking. “Do it again {character.name}!” With a flick of his wand the caudrons fill with leftovers again!
         </p>
         <button onClick={handleTryAgain} style={mainBtn(theme)}>
           Try Again
@@ -104,7 +104,7 @@ const Detentions: React.FC<Props> = ({ character, setCharacter }) => {
       <div style={{ ...baseBox(theme) }}>
         <h2 style={{ color: theme.secondary }}>Detention Complete</h2>
         <p style={{ color: "#388e3c", fontWeight: "bold" }}>
-          You’ve impressed Snape (somehow). He grumbles, but waves you away. You are free from detention!
+          You’ve impressed Slughorn. He grumbles, but waves you away. You are free from detention!
         </p>
         <button
           onClick={finishDetention}
