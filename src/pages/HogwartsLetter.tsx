@@ -39,8 +39,14 @@ const HogwartsLetter: React.FC<{ character: any, setCharacter?: (c: any) => void
         Your Hogwarts Letter
       </h2>
       <p>
-        {/* ... letter content ... */}
-        We are pleased to inform you that you have been accepted at Hogwarts School of Witchcraft and Wizardry...
+       Dear {character.name},<br />
+      We are pleased to inform you that you have been accepted at Hogwarts School of Witchcraft and Wizardry. Please find enclosed a list of all necessary books and equipment.
+Term begins on 1 September. We await your owl by no later than 31 July.
+Yours sincerely,<br />
+        <br />
+        Headmistress,<br />
+        Minerva McGonagal
+      
       </p>
       <div style={{ textAlign: "center", marginTop: 32 }}>
         <button onClick={handleContinue} disabled={loading} style={{ fontSize: "1.1em", padding: "0.6em 2.2em" }}>
