@@ -10,7 +10,7 @@ const quests = [
     title: "Prove You're Worthy",
     description: (
       <>
-        Float a jug of water over the staff table and tip it on Professor Snape using <b>Wingardium Leviosa</b>.<br />
+        Float a jug of water over the staff table and tip it on Professor Slughorn using <b>Wingardium Leviosa</b>.<br />
         <span style={{ fontStyle: 'italic' }}>Are you bold enough to pull it off?</span>
       </>
     ),
@@ -135,8 +135,8 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
             </div>
             <div style={{ marginBottom: "1.2em", lineHeight: 1.5 }}>
               You take your seat in the Great Hall. Food appears with a flourish. The teachers all start conversing—now is your chance.<br /><br />
-              You clear your throat and, with a swish and a flick, the jug floats over the staff table, completely unnoticed by Professor Snape. It tips slowly, soaking his robes.<br /><br />
-              The students burst into uproarious laughter. Professor Snape is fuming. Now it is time to make your exit!
+              You clear your throat and, with a swish and a flick, the jug floats over the staff table, completely unnoticed by Professor Slughorn. It tips slowly, soaking his robes.<br /><br />
+              The students burst into uproarious laughter. Professor Slughorn is fuming. Now it is time to make your exit!
             </div>
             <button
               style={{
@@ -210,7 +210,7 @@ const PeevesPests: React.FC<Props> = ({ character, setCharacter }) => {
             ) : (
               <>
                 <div style={{ color: "#b71c1c", marginBottom: "0.9em", fontWeight: "bold" }}>
-                  Professor Snape catches you!<br />
+                  Professor Slughorn catches you!<br />
                   He gives you a detention and takes 10 points from {character.house}.<br />
                   (Peeves is disappointed, but you'll get another chance for mayhem!)
                   {isReplay && <div style={{ color: "#888", marginTop: 8 }}>(No house points lost on replay)</div>}
