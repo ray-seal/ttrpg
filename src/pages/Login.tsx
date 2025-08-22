@@ -19,7 +19,7 @@ export default function Login() {
       setError(error.message);
     } else {
       // Optionally fetch the character and redirect
-      navigate("/campaign");
+      navigate("/hogwarts-letter");
     }
   };
 
