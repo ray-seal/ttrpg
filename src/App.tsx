@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import HomePage from "./pages/HomePage";
 import CharacterCreation from "./pages/CharacterCreation";
@@ -80,10 +80,20 @@ const fetchCharacterWithItems = async (userId) => {
   return { ...character, items: items || [] };
 };
 
+// Helper to determine if the character still needs onboarding
+function isCharacterOnboardingIncomplete(character) {
+  if (!character) return false;
+  if (!character.letter_read) return "/hogwarts-letter";
+  if (!character.house) return "/sorting-hat";
+  // Add more checks for additional onboarding steps if needed
+  return false;
+}
+
 function App() {
   const { session, userId } = useSession();
   const [activeCharacter, setActiveCharacter] = useState(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   // Load character and items on login/session/userId change
   useEffect(() => {
@@ -101,7 +111,7 @@ function App() {
     loadCharacter();
   }, [session, userId]);
 
-  // Make sure to always refresh items after any character update
+  // Always refresh items after any character update
   const handleUpdateCharacter = async (newChar) => {
     const { data: items } = await supabase
       .from("character_items")
@@ -111,6 +121,25 @@ function App() {
   };
 
   if (loading) return <div style={{ textAlign: "center", marginTop: 60 }}>Loading...</div>;
+
+  // Onboarding guard: force redirect if onboarding not complete (except for onboarding pages)
+  const onboardingRedirect = activeCharacter ? isCharacterOnboardingIncomplete(activeCharacter) : false;
+  const onboardingPages = [
+    "/hogwarts-letter",
+    "/sorting-hat",
+    "/diagon-alley",
+    "/hogwarts-supply-list",
+    "/gringotts-bank",
+    "/ollivanders",
+    "/madam-malkins",
+    "/hogwarts-express"
+  ];
+  if (
+    onboardingRedirect &&
+    !onboardingPages.includes(location.pathname)
+  ) {
+    return <Navigate to={onboardingRedirect} replace />;
+  }
 
   return (
     <Routes>
@@ -125,6 +154,7 @@ function App() {
         }
       />
       <Route path="/signup" element={<AuthWizard />} />
+      <Route path="/authwizard" element={<AuthWizard />} />
       <Route path="/login" element={<Login />} />
       <Route
         path="/character-creation"
