@@ -20,7 +20,7 @@
       "id": "sleep_in",
       "text": "You pull the covers over your head and try to snooze a bit more. Eventually, you awake, you glance at the clock, you're late for class.",
       "choices": [
-        { "text": "Go to class", "action": gotoschool" }
+        { "text": "Go to class", "action": "gotoschool" }
       ]
     },
     {
@@ -45,5 +45,5 @@
       "choices": [
         { "text": "Go to class", "next": "goto_school" }
       ]
-    },
+    }
     
