@@ -1,0 +1,120 @@
+[
+  {
+    "id": "fly-flag",
+    "title": "Fly the House Flag",
+    "description": "A note has appeared on the common room notice board.",
+    "steps": [
+      {
+        "id": "notice-board",
+        "type": "info",
+        "text": "A note has appeared on the Ravenclaw common room notice board. Do you want to read it?",
+        "actions": [
+          { "label": "Read Note", "next": "read-note" }
+        ]
+      },
+      {
+        "id": "read-note",
+        "type": "info",
+        "text": "The note says: 'Ten house points will be granted to the student who successfully flies their house flag above the school entrance.' Do you accept the challenge?",
+        "actions": [
+          { "label": "Accept", "next": "equip-spells" },
+          { "label": "Decline", "result": "declined" }
+        ]
+      },
+      {
+        "id": "equip-spells",
+        "type": "equip-spells",
+        "maxSpells": 2,
+        "text": "Equip up to 2 spells you think you will need for this challenge.",
+        "actions": [
+          { "label": "Continue", "next": "choose-time" }
+        ]
+      },
+      {
+        "id": "choose-time",
+        "type": "choose",
+        "text": "When would you like to attempt the challenge?",
+        "choices": [
+          { "label": "Daytime", "next": "day-charisma" },
+          { "label": "Nighttime", "next": "night-agility" }
+        ]
+      },
+      {
+        "id": "day-charisma",
+        "type": "dice-check",
+        "attribute": "charisma",
+        "dice": 20,
+        "difficulty": 14,
+        "text": "It's busy at the entrance. Roll a Charisma check (d20 + Charisma) to talk your way through the crowd.",
+        "success": "day-magic",
+        "fail": "caught-day"
+      },
+      {
+        "id": "day-magic",
+        "type": "spell-check",
+        "text": "Now, it's time to fly the flag. Which spell will you use?",
+        "requiredSpell": "Wingardium Leviosa",
+        "dice": 20,
+        "attribute": "magic",
+        "difficulty": 12,
+        "success": "success",
+        "fail": "fail-magic"
+      },
+      {
+        "id": "caught-day",
+        "type": "info",
+        "text": "You were caught skipping class! Detention and loss of 5 house points.",
+        "actions": [
+          { "label": "Return to Common Room", "result": "fail" }
+        ]
+      },
+      {
+        "id": "night-agility",
+        "type": "dice-check",
+        "attribute": "agility",
+        "dice": 20,
+        "difficulty": 13,
+        "text": "You sneak through the castle after hours. Roll an Agility check (d20 + Agility) to avoid getting caught.",
+        "success": "night-magic",
+        "fail": "caught-night"
+      },
+      {
+        "id": "night-magic",
+        "type": "spell-check",
+        "text": "You made it to the entrance. Which spell will you use to fly the flag?",
+        "requiredSpell": "Wingardium Leviosa",
+        "dice": 20,
+        "attribute": "magic",
+        "difficulty": 12,
+        "success": "success",
+        "fail": "fail-magic"
+      },
+      {
+        "id": "caught-night",
+        "type": "info",
+        "text": "You were caught sneaking around after hours! Detention and loss of 5 house points.",
+        "actions": [
+          { "label": "Return to Common Room", "result": "fail" }
+        ]
+      },
+      {
+        "id": "fail-magic",
+        "type": "info",
+        "text": "Your spell fizzles! The flag does not fly. Maybe next time...",
+        "actions": [
+          { "label": "Return to Common Room", "result": "fail" }
+        ]
+      },
+      {
+        "id": "success",
+        "type": "info",
+        "text": "You successfully fly the Ravenclaw flag above the school entrance! Ten house points awarded.",
+        "actions": [
+          { "label": "Return to Common Room", "result": "success" }
+        ]
+      }
+    ]
+  }
+
+  // Add more quests below as needed, following the same structure
+]
