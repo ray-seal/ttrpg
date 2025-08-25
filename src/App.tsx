@@ -296,6 +296,16 @@ function App() {
         }
       />
       <Route
+  path="/school/classes"
+  element={
+    activeCharacter ? (
+      <Classes character={activeCharacter} />
+    ) : (
+      <Navigate to="/" replace />
+    )
+  }
+/>
+      <Route
         path="/spellbook"
         element={
           activeCharacter ? (
