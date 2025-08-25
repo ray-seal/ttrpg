@@ -26,13 +26,16 @@ import AuthWizard from "./pages/AuthWizard";
 import Login from "./pages/Login";
 import Classes from "./pages/Classes";
 
-// Import the common room pages
+// Common rooms
 import GryffindorCommonRoom from "./pages/commonrooms/Gryffindor";
 import HufflepuffCommonRoom from "./pages/commonrooms/Hufflepuff";
 import RavenclawCommonRoom from "./pages/commonrooms/Ravenclaw";
 import SlytherinCommonRoom from "./pages/commonrooms/Slytherin";
 
-// --- Real session hook using Supabase Auth ---
+// Ravenclaw side quests
+import RavenclawNoticeboard from "./pages/commonrooms/RavenclawNoticeboard";
+import QuestRunner from "./sidequests/QuestRunner";
+
 function useSession() {
   const [session, setSession] = useState(null);
   const [userId, setUserId] = useState(null);
@@ -40,13 +43,11 @@ function useSession() {
   useEffect(() => {
     let authListener;
     async function getCurrentSession() {
-      // For Supabase JS v2
       if (supabase.auth.getSession) {
         const { data: { session } } = await supabase.auth.getSession();
         setSession(session);
         setUserId(session?.user?.id || null);
       } else {
-        // For v1
         const session = supabase.auth.session();
         setSession(session);
         setUserId(session?.user?.id || null);
@@ -70,29 +71,23 @@ function useSession() {
 }
 
 const fetchCharacterWithItems = async (userId) => {
-  const { data: character, error } = await supabase
+  const { data: character } = await supabase
     .from("characters")
     .select("*")
     .eq("user_id", userId)
     .single();
-
   if (!character) return null;
-
-  // Fetch items
   const { data: items } = await supabase
     .from("character_items")
     .select("*")
     .eq("character_id", character.id);
-
   return { ...character, items: items || [] };
 };
 
-// Helper to determine if the character still needs onboarding
 function isCharacterOnboardingIncomplete(character) {
   if (!character) return false;
   if (!character.letter_read) return "/hogwarts-letter";
   if (!character.house) return "/sorting-hat";
-  // Add more checks for additional onboarding steps if needed
   return false;
 }
 
@@ -102,7 +97,6 @@ function App() {
   const [loading, setLoading] = useState(true);
   const location = useLocation();
 
-  // Load character and items on login/session/userId change
   useEffect(() => {
     async function loadCharacter() {
       if (session && userId) {
@@ -118,7 +112,6 @@ function App() {
     loadCharacter();
   }, [session, userId]);
 
-  // Always refresh items after any character update
   const handleUpdateCharacter = async (newChar) => {
     const { data: items } = await supabase
       .from("character_items")
@@ -129,7 +122,6 @@ function App() {
 
   if (loading) return <div style={{ textAlign: "center", marginTop: 60 }}>Loading...</div>;
 
-  // Onboarding guard: force redirect if onboarding not complete (except for onboarding pages)
   const onboardingRedirect = activeCharacter ? isCharacterOnboardingIncomplete(activeCharacter) : false;
   const onboardingPages = [
     "/hogwarts-letter",
@@ -297,15 +289,15 @@ function App() {
         }
       />
       <Route
-  path="/school/classes"
-  element={
-    activeCharacter ? (
-      <Classes character={activeCharacter} />
-    ) : (
-      <Navigate to="/" replace />
-    )
-  }
-/>
+        path="/school/classes"
+        element={
+          activeCharacter ? (
+            <Classes character={activeCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
       <Route
         path="/spellbook"
         element={
@@ -316,7 +308,7 @@ function App() {
           )
         }
       />
-      {/* Lessons: Always pass character and setCharacter */}
+      {/* Lessons */}
       <Route
         path="/wingardium-leviosa-lesson"
         element={
@@ -394,6 +386,28 @@ function App() {
         element={
           activeCharacter ? (
             <SlytherinCommonRoom character={activeCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+
+      {/* Ravenclaw Noticeboard and Side Quest Runner */}
+      <Route
+        path="/commonrooms/ravenclaw/noticeboard"
+        element={
+          activeCharacter ? (
+            <RavenclawNoticeboard character={activeCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/commonrooms/ravenclaw/noticeboard/:questId"
+        element={
+          activeCharacter ? (
+            <QuestRunner character={activeCharacter} house="ravenclaw" />
           ) : (
             <Navigate to="/" replace />
           )
