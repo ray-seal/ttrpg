@@ -8,6 +8,7 @@ import { updateHousePoints } from "../utils/housePoints";
 /**
  * QuestRunner handles Ravenclaw side quests.
  * completedLessons is used as the learned spell list.
+ * House points are updated in Supabase when a quest is completed or failed.
  */
 function getQuestById(id) {
   return quests.find(q => q.id === id);
@@ -26,14 +27,17 @@ export default function QuestRunner({ character, house }) {
   if (!quest) return <div>Quest not found.</div>;
   const step = quest.steps[stepIdx];
 
-  // Award/remove house points for certain quest steps (hardcoded for your sample quest)
+  // Handles awarding or removing house points
   async function handleAwardPoints(points) {
     setProcessingPoints(true);
-    await updateHousePoints(character.house, points);
+    const ok = await updateHousePoints(character.house, points);
+    if (!ok) {
+      alert("Failed to update house points. Check house name and Supabase connection!");
+    }
     setProcessingPoints(false);
   }
 
-  // Handle quest actions (next step or exit)
+  // Handles quest actions (next step or exit, plus awarding points if needed)
   async function handleAction(action) {
     if (action.result === "success") {
       await handleAwardPoints(10); // +10 for success
@@ -73,7 +77,7 @@ export default function QuestRunner({ character, house }) {
       alert("You haven't learned any spells yet! Attend some classes first.");
       return;
     }
-    // For now, auto-equip up to maxSpells (could implement modal selection)
+    // For now, auto-equip up to maxSpells
     setEquippedSpells(learnedSpells.slice(0, maxSpells));
     const idx = quest.steps.findIndex(s => s.id === nextId);
     setStepIdx(idx);
@@ -179,11 +183,15 @@ export default function QuestRunner({ character, house }) {
             Use {step.requiredSpell}
           </button>
         )}
-        {processingPoints && <div style={{marginTop:16, color:"#888"}}>Updating house points...</div>}
+        {processingPoints && (
+          <div style={{ marginTop: 16, color: "#888" }}>
+            Updating house points...
+          </div>
+        )}
       </div>
       {/* Dice Modal */}
       {showDice && <DiceButton {...diceProps} />}
-      <button style={{ marginTop: 20 }} onClick={() => navigate(-1)}>
+      <button style={{ marginTop: 20 }} onClick={() => navigate(-1)} disabled={processingPoints}>
         Back
       </button>
     </ThemedLayout>
