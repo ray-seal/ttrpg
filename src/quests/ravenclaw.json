@@ -44,7 +44,7 @@
         "type": "dice-check",
         "attribute": "charisma",
         "dice": 20,
-        "difficulty": 14,
+        "difficulty": 10,
         "text": "It's busy at the entrance. Roll a Charisma check (d20 + Charisma) to talk your way through the crowd.",
         "success": "day-magic",
         "fail": "caught-day"
@@ -73,7 +73,7 @@
         "type": "dice-check",
         "attribute": "agility",
         "dice": 20,
-        "difficulty": 13,
+        "difficulty": 10,
         "text": "You sneak through the castle after hours. Roll an Agility check (d20 + Agility) to avoid getting caught.",
         "success": "night-magic",
         "fail": "caught-night"
