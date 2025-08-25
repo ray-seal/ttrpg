@@ -25,6 +25,12 @@ import RequireWandAndRobes from "./components/RequireWandAndRobes";
 import AuthWizard from "./pages/AuthWizard";
 import Login from "./pages/Login";
 
+// Import the common room pages
+import GryffindorCommonRoom from "./pages/commonrooms/Gryffindor";
+import HufflepuffCommonRoom from "./pages/commonrooms/Hufflepuff";
+import RavenclawCommonRoom from "./pages/commonrooms/Ravenclaw";
+import SlytherinCommonRoom from "./pages/commonrooms/Slytherin";
+
 // --- Real session hook using Supabase Auth ---
 function useSession() {
   const [session, setSession] = useState(null);
@@ -340,6 +346,49 @@ function App() {
           )
         }
       />
+
+      {/* House Common Rooms */}
+      <Route
+        path="/commonrooms/gryffindor"
+        element={
+          activeCharacter ? (
+            <GryffindorCommonRoom character={activeCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/commonrooms/hufflepuff"
+        element={
+          activeCharacter ? (
+            <HufflepuffCommonRoom character={activeCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/commonrooms/ravenclaw"
+        element={
+          activeCharacter ? (
+            <RavenclawCommonRoom character={activeCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/commonrooms/slytherin"
+        element={
+          activeCharacter ? (
+            <SlytherinCommonRoom character={activeCharacter} />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
