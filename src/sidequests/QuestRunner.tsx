@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import quests from "../quests/ravenclaw.json";
 import ThemedLayout from "../components/ThemedLayout";
 import DiceButton from "../components/DiceButton";
+import { updateHousePoints } from "../utils/housePoints";
 
 /**
  * QuestRunner handles Ravenclaw side quests.
@@ -20,20 +21,30 @@ export default function QuestRunner({ character, house }) {
   const [equippedSpells, setEquippedSpells] = useState([]);
   const [showDice, setShowDice] = useState(false);
   const [diceProps, setDiceProps] = useState({});
+  const [processingPoints, setProcessingPoints] = useState(false);
 
   if (!quest) return <div>Quest not found.</div>;
   const step = quest.steps[stepIdx];
 
+  // Award/remove house points for certain quest steps (hardcoded for your sample quest)
+  async function handleAwardPoints(points) {
+    setProcessingPoints(true);
+    await updateHousePoints(character.house, points);
+    setProcessingPoints(false);
+  }
+
   // Handle quest actions (next step or exit)
-  function handleAction(action) {
-    if (action.next) {
+  async function handleAction(action) {
+    if (action.result === "success") {
+      await handleAwardPoints(10); // +10 for success
+      navigate("/commonrooms/ravenclaw/noticeboard");
+    } else if (action.result === "fail") {
+      await handleAwardPoints(-5); // -5 for fail
+      navigate("/commonrooms/ravenclaw/noticeboard");
+    } else if (action.next) {
       const idx = quest.steps.findIndex(s => s.id === action.next);
       setStepIdx(idx);
-    } else if (
-      action.result === "fail" ||
-      action.result === "success" ||
-      action.result === "declined"
-    ) {
+    } else if (action.result === "declined") {
       navigate("/commonrooms/ravenclaw/noticeboard");
     }
   }
@@ -98,16 +109,26 @@ export default function QuestRunner({ character, house }) {
         <p>{step.text}</p>
         {/* Action buttons */}
         {step.actions && step.actions.map((a, i) => (
-          <button key={i} style={{ margin: 8 }} onClick={() => handleAction(a)}>
+          <button
+            key={i}
+            style={{ margin: 8 }}
+            onClick={() => handleAction(a)}
+            disabled={processingPoints}
+          >
             {a.label}
           </button>
         ))}
         {/* Choices */}
         {step.choices && step.choices.map((c, i) => (
-          <button key={i} style={{ margin: 8 }} onClick={() => {
-            const idx = quest.steps.findIndex(s => s.id === c.next);
-            setStepIdx(idx);
-          }}>
+          <button
+            key={i}
+            style={{ margin: 8 }}
+            onClick={() => {
+              const idx = quest.steps.findIndex(s => s.id === c.next);
+              setStepIdx(idx);
+            }}
+            disabled={processingPoints}
+          >
             {c.label}
           </button>
         ))}
@@ -116,6 +137,7 @@ export default function QuestRunner({ character, house }) {
           <button
             onClick={() => handleSpellEquip(step.maxSpells, step.actions[0].next)}
             style={{ margin: 8 }}
+            disabled={processingPoints}
           >
             Equip Spells
           </button>
@@ -133,6 +155,7 @@ export default function QuestRunner({ character, house }) {
               )
             }
             style={{ margin: 8 }}
+            disabled={processingPoints}
           >
             Roll for {step.attribute.charAt(0).toUpperCase() + step.attribute.slice(1)}
           </button>
@@ -151,10 +174,12 @@ export default function QuestRunner({ character, house }) {
               )
             }
             style={{ margin: 8 }}
+            disabled={processingPoints}
           >
             Use {step.requiredSpell}
           </button>
         )}
+        {processingPoints && <div style={{marginTop:16, color:"#888"}}>Updating house points...</div>}
       </div>
       {/* Dice Modal */}
       {showDice && <DiceButton {...diceProps} />}
