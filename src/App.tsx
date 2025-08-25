@@ -24,6 +24,7 @@ import Detentions from "./pages/Detentions";
 import RequireWandAndRobes from "./components/RequireWandAndRobes";
 import AuthWizard from "./pages/AuthWizard";
 import Login from "./pages/Login";
+import Classes from "./pages/Classes";
 
 // Import the common room pages
 import GryffindorCommonRoom from "./pages/commonrooms/Gryffindor";
