@@ -1,6 +1,6 @@
 import React from "react";
 import ThemedLayout from "../../components/ThemedLayout";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 
 const RavenclawCommonRoom = ({ character }) => {
   if (!character) return <div>Loading...</div>;
@@ -16,7 +16,20 @@ const RavenclawCommonRoom = ({ character }) => {
       </p>
       <ul>
         <li>House Social Board: Discuss, debate, and discover</li>
-        <li>Side Quests: Ravenclaw challenges</li>
+        <li>
+          <Link
+            to="/commonrooms/ravenclaw/noticeboard"
+            style={{
+              color: "#222f5b",
+              fontWeight: "bold",
+              textDecoration: "none",
+              borderBottom: "2px solid #222f5b",
+              paddingBottom: "2px"
+            }}
+          >
+            🪧 Noticeboard (Side Quests)
+          </Link>
+        </li>
         <li>Compete for house points with your intellect</li>
       </ul>
     </ThemedLayout>
