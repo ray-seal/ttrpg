@@ -25,6 +25,8 @@ type HousePoints = {
 const CharacterSheet: React.FC<{ character: Character }> = ({ character }) => {
   const [housePoints, setHousePoints] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
   const navigate = useNavigate();
   const theme = houseThemes[character.house as House];
 
@@ -48,6 +50,37 @@ const CharacterSheet: React.FC<{ character: Character }> = ({ character }) => {
     }
     fetchHousePoints();
   }, [character.house]);
+
+  // Temporary: Add house point function
+  const addHousePoint = async () => {
+    setAddLoading(true);
+    setAddError(null);
+    if (!character.house) {
+      setAddError("No house selected.");
+      setAddLoading(false);
+      return;
+    }
+    // Increment house points for the current house
+    const { data, error } = await supabase.rpc("increment_house_points", {
+      house_name: character.house,
+      increment: 1,
+    });
+
+    if (error) {
+      setAddError(error.message);
+    } else {
+      // Refresh house points
+      const { data: refreshed, error: fetchError } = await supabase
+        .from<HousePoints>("house_points")
+        .select("points")
+        .eq("house", character.house)
+        .single();
+      if (!fetchError && refreshed) {
+        setHousePoints(refreshed.points);
+      }
+    }
+    setAddLoading(false);
+  };
 
   if (
     !character.house ||
@@ -114,6 +147,31 @@ const CharacterSheet: React.FC<{ character: Character }> = ({ character }) => {
           )}
         </li>
       </ul>
+      {/* Temporary Add House Point Button */}
+      <div style={{ margin: "1rem 0" }}>
+        <button
+          onClick={addHousePoint}
+          disabled={addLoading}
+          style={{
+            background: theme.secondary,
+            color: theme.primary,
+            padding: "0.6rem 1.5rem",
+            borderRadius: "6px",
+            fontWeight: "bold",
+            fontSize: "1rem",
+            border: "none",
+            cursor: addLoading ? "not-allowed" : "pointer",
+            marginRight: "1rem",
+            transition: "background 0.2s",
+          }}
+        >
+          {addLoading ? "Adding..." : "Add House Point (temp)"}
+        </button>
+        {addError && (
+          <span style={{ color: "red", marginLeft: "1rem" }}>{addError}</span>
+        )}
+      </div>
+      {/* End Temporary Button */}
       <div style={{ marginTop: "2rem" }}>
         <h3 style={{ marginBottom: "1rem" }}>Attributes</h3>
         <ul>
