@@ -289,7 +289,7 @@ function App() {
           )
         }
       />
-      <Route path="/adventure" element={activeCharacter ? <CampaignPage character={activeCharacter} setCharacter={handleUpdateCharacter} /> : <Navigate to="/" replace />} />
+      <Route path="/adventure" element={activeCharacter ? <SchoolGate character={activeCharacter}><CampaignPage character={activeCharacter} setCharacter={handleUpdateCharacter} /></SchoolGate> : <Navigate to="/" replace />} />
       <Route
         path="/school/classes"
         element={
