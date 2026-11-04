@@ -13,7 +13,7 @@ export interface Character {
   equippedSpells?: string[];
   completedLessons?: string[];
   hasTimetable?: boolean;
-  flags?: { [key: string]: boolean };
+  flags?: { [key: string]: boolean | string };
   items?: string[]; // Add this!
   currentSceneId?: string;
   wizarding_money?: number;
