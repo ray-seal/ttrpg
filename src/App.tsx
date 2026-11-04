@@ -217,7 +217,7 @@ function App() {
         path="/gringotts-bank"
         element={
           activeCharacter ? (
-            <GringottsBank character={activeCharacter} />
+            <GringottsBank character={activeCharacter} setCharacter={handleUpdateCharacter} />
           ) : (
             <Navigate to="/" replace />
           )
@@ -227,7 +227,7 @@ function App() {
         path="/ollivanders"
         element={
           activeCharacter ? (
-            <Ollivanders character={activeCharacter} />
+            <Ollivanders character={activeCharacter} setCharacter={handleUpdateCharacter} />
           ) : (
             <Navigate to="/" replace />
           )
