@@ -42,24 +42,42 @@ function useSession() {
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    let authListener;
+    let authEventReceived = false;
+
+    // Subscribe before reading the stored session. Otherwise a slow initial
+    // getSession() can resolve after a successful login event and overwrite
+    // the fresh session with a stale null value.
+    const authListener = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      authEventReceived = true;
+      setSession(nextSession);
+      setUserId(nextSession?.user?.id || null);
+    });
+
     async function getCurrentSession() {
-      if (supabase.auth.getSession) {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        setUserId(session?.user?.id || null);
-      } else {
-        const session = supabase.auth.session();
-        setSession(session);
-        setUserId(session?.user?.id || null);
+      try {
+        if (supabase.auth.getSession) {
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          if (!authEventReceived) {
+            setSession(currentSession);
+            setUserId(currentSession?.user?.id || null);
+          }
+        } else {
+          const currentSession = supabase.auth.session();
+          if (!authEventReceived) {
+            setSession(currentSession);
+            setUserId(currentSession?.user?.id || null);
+          }
+        }
+      } catch (error) {
+        console.error("Unable to restore authentication session:", error);
+        if (!authEventReceived) {
+          setSession(null);
+          setUserId(null);
+        }
       }
     }
-    getCurrentSession();
 
-    authListener = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUserId(session?.user?.id || null);
-    });
+    getCurrentSession();
 
     return () => {
       if (authListener?.data?.subscription) {
