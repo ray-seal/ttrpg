@@ -1,4 +1,5 @@
 export interface Character {
+  id?: string;
   name: string;
   house: string;
   experience: number;
@@ -15,4 +16,5 @@ export interface Character {
   flags?: { [key: string]: boolean };
   items?: string[]; // Add this!
   currentSceneId?: string;
+  wizarding_money?: number;
 }

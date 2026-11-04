@@ -76,6 +76,9 @@ const School: React.FC<{
         margin: "2.5rem auto 2rem auto",
         gap: "0.5rem",
       }}>
+        <Link to="/adventure" style={navItemStyle(theme)}>
+          <span role="img" aria-label="adventure">📜</span> Continue Your Adventure
+        </Link>
         <Link to="/school/classes" style={navItemStyle(theme)}>
           <span role="img" aria-label="books">📚</span> Classes
         </Link>

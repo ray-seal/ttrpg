@@ -2,48 +2,395 @@
   "scenes": [
     {
       "id": "wakeup",
-      "text": "You wake up in your house dormitory, the sun streaming through the window. It's your first morning at Hogwarts.",
+      "chapter": "The First Morning",
+      "text": "Morning light spills across the dormitory windows. Your first proper day at Hogwarts has begun. The castle is waking around you: footsteps on staircases, distant laughter and the clatter of breakfast being prepared.",
       "choices": [
-        { "text": "Go to the common room", "next": "common_room" },
-        { "text": "Make friends with a dormmate", "next": "make_friends", "setFlag": "madeFriend" },
-        { "text": "Stay in bed a bit longer", "next": "sleep_in" }
+        {
+          "text": "Explore the common room",
+          "next": "common_room"
+        },
+        {
+          "text": "Introduce yourself to a dormmate",
+          "next": "make_friends",
+          "setFlag": "madeFriend"
+        },
+        {
+          "text": "Steal five more minutes",
+          "next": "sleep_in"
+        }
       ]
     },
     {
       "id": "make_friends",
-      "text": "You strike up a conversation with a fellow first year. You feel a little less nervous about the day ahead.",
+      "text": "A fellow first year introduces themself with an easy smile. You agree to save each other a seat at breakfast. It is reassuring to have one familiar face in a castle this enormous.",
       "choices": [
-        { "text": "Go to the common room", "next": "common_room" }
+        {
+          "text": "Head to breakfast together",
+          "next": "breakfast"
+        }
       ]
     },
     {
       "id": "sleep_in",
-      "text": "You pull the covers over your head and try to snooze a bit more. Eventually, you awake, you glance at the clock, you're late for class.",
+      "text": "Five minutes becomes fifteen. You hurry downstairs, trying to look as though arriving late was entirely deliberate.",
       "choices": [
-        { "text": "Go to class", "action": "gotoschool" }
+        {
+          "text": "Make a dash for breakfast",
+          "next": "breakfast",
+          "setFlag": "lateForBreakfast"
+        }
+      ]
+    },
+    {
+      "id": "common_room",
+      "text": "Your common room is alive with first-day excitement. An older student points out a hand-drawn map of the castle. A staircase on the east side has been marked with a question mark.",
+      "choices": [
+        {
+          "text": "Study the map",
+          "next": "study_map",
+          "setFlag": "studiedMap"
+        },
+        {
+          "text": "Ask an older student for directions",
+          "next": "ask_directions"
+        },
+        {
+          "text": "Follow the smell of toast",
+          "next": "breakfast"
+        }
+      ]
+    },
+    {
+      "id": "study_map",
+      "text": "The map is incomplete, but you recognise the Great Hall, the library and a curious blank space labelled 'Do not investigate'. A question mark marks the east corridor.",
+      "choices": [
+        {
+          "text": "Fold the map away and head to breakfast",
+          "next": "breakfast"
+        }
+      ]
+    },
+    {
+      "id": "ask_directions",
+      "text": "An older student warns you that the staircases have a habit of changing their minds. 'If one moves, don't argue with it,' they advise. 'It never listens.'",
+      "choices": [
+        {
+          "text": "Thank them and head to breakfast",
+          "next": "breakfast"
+        }
       ]
     },
     {
       "id": "breakfast",
-      "text": "You enjoy a hearty breakfast and chat with some classmates. Peeves the poltergeist is gesturing to you to go talk to him away from your table.",
+      "text": "The Great Hall is a riot of clinking plates, floating candles and conversation. At the far end of the table, Peeves the poltergeist watches the first years with theatrical interest.",
       "choices": [
-        { "text": "Go to class", "next": "goto_school" },
-        { "text": "Talk to Peeves.", "next": "talkto_peeves" }
+        {
+          "text": "Eat breakfast and chat",
+          "next": "breakfast_chat"
+        },
+        {
+          "text": "Approach the poltergeist",
+          "next": "talkto_peeves"
+        }
+      ]
+    },
+    {
+      "id": "breakfast_chat",
+      "text": "You learn which professors are strict, which staircases are best avoided and that the library has a section older students whisper about. The poltergeist gives a dramatic sigh when nobody pays him attention.",
+      "choices": [
+        {
+          "text": "Go to your first Charms lesson",
+          "next": "charms_intro"
+        }
       ]
     },
     {
       "id": "talkto_peeves",
-      "text": "Peeves tells you he is looking for some mischief makers to join his secret club.",
+      "text": "Peeves asks whether you enjoy rules. He is recruiting for a secret society: the Peeves Pests. Membership apparently requires imagination, nerve and a willingness to clean up afterwards.",
       "choices": [
-        { "text": "Join the Peeves Pests.", "next": "peeves_pests", "action": "unlockPeevesPests", "setFlag": "peevesPest" },
-        { "text": "Politely decline and go to class.", "next": "goto_school" }
+        {
+          "text": "Join the Peeves Pests",
+          "next": "peeves_pests",
+          "setFlag": "peevesPest"
+        },
+        {
+          "text": "Politely decline and head to class",
+          "next": "charms_intro"
+        }
       ]
     },
     {
       "id": "peeves_pests",
-      "text": "You are now a proud member of the Peeves Pests! Peeves grins, 'I'll be in touch with your first mayhemous mission soon...'",
+      "text": "Peeves claps with delight. 'A new recruit! I'll be in touch when a suitably spectacular opportunity presents itself.' He vanishes in a burst of cold air and the faint smell of fireworks.",
       "choices": [
-        { "text": "Go to class", "next": "goto_school" }
+        {
+          "text": "Find your way to Charms",
+          "next": "charms_intro"
+        }
+      ]
+    },
+    {
+      "id": "charms_intro",
+      "chapter": "A Floating Start",
+      "text": "Professor Flitwick explains that good spellwork is a mixture of focus, practice and patience. Today you will attempt a simple levitation exercise. A feather rests on each desk.",
+      "choices": [
+        {
+          "text": "Listen carefully",
+          "next": "levitation_practice",
+          "setFlag": "listenedInCharms"
+        },
+        {
+          "text": "Ask about wand movement",
+          "next": "wand_question"
+        }
+      ]
+    },
+    {
+      "id": "wand_question",
+      "text": "Professor Flitwick beams. 'Precision, not force. A clear intention and a steady movement. And never poke your neighbour in the eye.' A few students laugh. Your feather twitches.",
+      "choices": [
+        {
+          "text": "Take your place and begin",
+          "next": "levitation_practice",
+          "setFlag": "askedAboutWandwork"
+        }
+      ]
+    },
+    {
+      "id": "levitation_practice",
+      "text": "You raise your wand. The feather trembles, then settles. Professor Flitwick repeats the movement and incantation. Roll a d12 and add your Magic attribute. You need 12 to lift the feather cleanly.",
+      "choices": [
+        {
+          "text": "Attempt Wingardium Leviosa",
+          "roll": {
+            "stat": "magic",
+            "target": 12,
+            "success": "levitation_success",
+            "fail": "levitation_fail"
+          }
+        }
+      ]
+    },
+    {
+      "id": "levitation_success",
+      "text": "The feather rises and floats steadily above your hand. Professor Flitwick gives an approving nod. It is a small achievement, but the first time magic has answered your call.",
+      "choices": [
+        {
+          "text": "Carefully lower the feather",
+          "next": "after_charms",
+          "awardExperience": 10,
+          "setFlag": "levitationSuccess"
+        }
+      ]
+    },
+    {
+      "id": "levitation_fail",
+      "text": "The feather gives a tiny hop, spins in a circle and lands on your shoe. Professor Flitwick encourages you to keep practising. At least you haven't set fire to anything.",
+      "choices": [
+        {
+          "text": "Try again",
+          "next": "levitation_practice"
+        },
+        {
+          "text": "Continue with the lesson",
+          "next": "after_charms",
+          "setFlag": "needsLevitationPractice"
+        }
+      ]
+    },
+    {
+      "id": "after_charms",
+      "text": "As students pack away their books, you notice a folded scrap of parchment beneath your desk. It has a rough sketch of a corridor and three words: 'Listen after dusk.'",
+      "choices": [
+        {
+          "text": "Keep the mysterious note",
+          "next": "mystery_note",
+          "setFlag": "foundMysteriousNote"
+        },
+        {
+          "text": "Hand it to Professor Flitwick",
+          "next": "hand_note"
+        }
+      ]
+    },
+    {
+      "id": "hand_note",
+      "text": "Professor Flitwick studies the parchment. 'Thank you for bringing this to me. Some corners of this castle are best explored with guidance.' He tucks it safely into his robes.",
+      "choices": [
+        {
+          "text": "Visit the library",
+          "next": "library"
+        }
+      ]
+    },
+    {
+      "id": "mystery_note",
+      "text": "You slip the parchment into your notebook. The sketch looks like the east corridor, though the castle map showed no door where the drawing suggests one should be.",
+      "choices": [
+        {
+          "text": "Visit the library for old castle plans",
+          "next": "library"
+        }
+      ]
+    },
+    {
+      "id": "library",
+      "chapter": "A Whisper in the Walls",
+      "text": "The library is cool and quiet. Madam Pince watches from her desk. You find a shelf of old Hogwarts histories, but a soft tapping comes from somewhere behind the books.",
+      "choices": [
+        {
+          "text": "Ask for old castle plans",
+          "next": "ask_librarian"
+        },
+        {
+          "text": "Investigate the tapping",
+          "next": "investigate_shelves"
+        }
+      ]
+    },
+    {
+      "id": "ask_librarian",
+      "text": "Madam Pince directs you to a public atlas. The east corridor is older than most of the school, and its layout has changed several times.",
+      "choices": [
+        {
+          "text": "Study the atlas",
+          "next": "atlas_clue",
+          "setFlag": "knowsEastCorridor"
+        }
+      ]
+    },
+    {
+      "id": "investigate_shelves",
+      "text": "You move carefully between the shelves, following the tapping. It stops whenever you stop. Roll a Knowledge check to work out where it is coming from.",
+      "choices": [
+        {
+          "text": "Search for the source",
+          "roll": {
+            "stat": "knowledge",
+            "target": 12,
+            "success": "hidden_shelf",
+            "fail": "librarian_catches"
+          }
+        }
+      ]
+    },
+    {
+      "id": "hidden_shelf",
+      "text": "A narrow gap reveals a loose panel, a tiny brass key and a scrap of parchment. The drawing shows the east corridor with a star marked beside a stone arch.",
+      "choices": [
+        {
+          "text": "Take the clue and leave everything else undisturbed",
+          "next": "east_corridor",
+          "setFlag": "foundBrassKey"
+        }
+      ]
+    },
+    {
+      "id": "librarian_catches",
+      "text": "A sharp 'Ahem!' makes you jump. Madam Pince reminds you that the library is for reading, not rummaging, and assigns you books to return.",
+      "choices": [
+        {
+          "text": "Apologise and return the books",
+          "next": "atlas_clue",
+          "setFlag": "libraryWarning"
+        }
+      ]
+    },
+    {
+      "id": "atlas_clue",
+      "text": "The atlas confirms that an old passage once ran behind the east corridor. It was sealed long ago. A star has been pencilled in the margin beside the page number.",
+      "choices": [
+        {
+          "text": "Go and look at the east corridor",
+          "next": "east_corridor",
+          "setFlag": "knowsEastCorridor"
+        }
+      ]
+    },
+    {
+      "id": "east_corridor",
+      "chapter": "The Sealed Passage",
+      "text": "The east corridor is quiet. Dust lies thick along the skirting boards. Near a stone arch, you find a narrow keyhole hidden beneath a carved star.",
+      "choices": [
+        {
+          "text": "Try the little brass key",
+          "next": "keyhole_success",
+          "requiredFlag": "foundBrassKey"
+        },
+        {
+          "text": "Examine the stonework",
+          "roll": {
+            "stat": "knowledge",
+            "target": 13,
+            "success": "keyhole_success",
+            "fail": "portrait_interrupts"
+          }
+        },
+        {
+          "text": "Decide this is enough adventure for one day",
+          "next": "chapter_end"
+        }
+      ]
+    },
+    {
+      "id": "portrait_interrupts",
+      "text": "A portrait clears its throat. 'Students are not supposed to be here, you know.' You retreat before the corridor becomes crowded.",
+      "choices": [
+        {
+          "text": "Return to your common room",
+          "next": "chapter_end",
+          "setFlag": "eastCorridorInterrupted"
+        }
+      ]
+    },
+    {
+      "id": "keyhole_success",
+      "text": "The key turns with a soft click. A narrow panel opens, revealing a dark space beyond. Cool air carries the scent of rain and old stone. You hear a distant bell.",
+      "choices": [
+        {
+          "text": "Look through the opening",
+          "next": "passage_clue",
+          "setFlag": "openedSealedPanel"
+        },
+        {
+          "text": "Close the panel and report what you found",
+          "next": "report_discovery"
+        }
+      ]
+    },
+    {
+      "id": "passage_clue",
+      "text": "On a stone ledge rests a tarnished silver token engraved with the Hogwarts crest and a date from more than a century ago. When you touch it, the distant bell rings again.",
+      "choices": [
+        {
+          "text": "Take the token and close the panel carefully",
+          "next": "chapter_end",
+          "setFlag": "foundSilverToken",
+          "awardExperience": 15
+        }
+      ]
+    },
+    {
+      "id": "report_discovery",
+      "text": "You report the discovery to a professor, who listens carefully and promises to investigate. You have done the sensible thing, even if curiosity is still tugging at you.",
+      "choices": [
+        {
+          "text": "Return to your common room",
+          "next": "chapter_end",
+          "setFlag": "reportedPassage"
+        }
+      ]
+    },
+    {
+      "id": "chapter_end",
+      "chapter": "End of Chapter One",
+      "text": "By the time you return to your common room, the castle has settled into evening. Your first day has brought new friends, spellwork and a mystery hidden in the stones of Hogwarts. Whatever lies behind that sealed passage, it has been waiting a very long time. This is only the beginning.",
+      "choices": [
+        {
+          "text": "Return to Hogwarts and continue exploring",
+          "action": "gotoSchool"
+        }
       ]
     }
-    
+  ]
+}

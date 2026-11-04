@@ -25,6 +25,7 @@ import RequireWandAndRobes from "./components/RequireWandAndRobes";
 import AuthWizard from "./pages/AuthWizard";
 import Login from "./pages/Login";
 import Classes from "./pages/Classes";
+import CampaignPage from "./pages/CampaignPage";
 
 // Common rooms
 import GryffindorCommonRoom from "./pages/commonrooms/Gryffindor";
@@ -288,6 +289,7 @@ function App() {
           )
         }
       />
+      <Route path="/adventure" element={activeCharacter ? <CampaignPage character={activeCharacter} setCharacter={handleUpdateCharacter} /> : <Navigate to="/" replace />} />
       <Route
         path="/school/classes"
         element={
@@ -302,7 +304,7 @@ function App() {
         path="/spellbook"
         element={
           activeCharacter ? (
-            <Spellbook character={activeCharacter} />
+            <Spellbook character={activeCharacter} setCharacter={handleUpdateCharacter} />
           ) : (
             <Navigate to="/" replace />
           )

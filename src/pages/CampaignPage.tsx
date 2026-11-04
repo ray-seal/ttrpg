@@ -1,240 +1,122 @@
-import React, { useState } from "react";
-import scenes from "../campaigns/year1-main.json";
-import { Character } from "../types";
+import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import ThemedLayout from "../components/ThemedLayout";
 import DiceButton from "../components/DiceButton";
-import ItemModal from "../components/ItemModal";
+import { Character } from "../types";
+import { houseThemes, House } from "../themes";
+import { supabase } from "../supabaseClient";
+import scenesData from "../campaigns/year1-main.json";
 
-interface CampaignPageProps {
-  character: Character;
-  setCharacter: (char: Character) => void;
+type RollRule = { stat: "magic" | "knowledge" | "courage" | "agility" | "charisma"; target: number; success: string; fail: string };
+type Choice = { text: string; next?: string; action?: string; setFlag?: string; requiredFlag?: string; requiredSpell?: string; requiredItem?: string; awardExperience?: number; awardItem?: string; roll?: RollRule };
+type Scene = { id: string; text: string; chapter?: string; choices: Choice[] };
+const scenes = (scenesData as { scenes: Scene[] }).scenes;
+
+export default function CampaignPage({ character, setCharacter }: { character: Character; setCharacter: (c: Character) => void }) {
+  const navigate = useNavigate();
+  const theme = houseThemes[character.house as House] || houseThemes.Gryffindor;
+  const [sceneId, setSceneId] = useState(character.currentSceneId || "wakeup");
+  const [rolling, setRolling] = useState<RollRule | null>(null);
+  const [showDice, setShowDice] = useState(false);
+  const [rollResult, setRollResult] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const scene = useMemo(() => scenes.find(item => item.id === sceneId) || scenes[0], [sceneId]);
+  const flags = character.flags || {};
+  const choices = scene.choices.filter(choice =>
+    (!choice.requiredFlag || !!flags[choice.requiredFlag]) &&
+    (!choice.requiredSpell || character.unlockedSpells?.includes(choice.requiredSpell)) &&
+    (!choice.requiredItem || character.items?.includes(choice.requiredItem))
+  );
+
+  async function moveTo(nextId: string, choice?: Choice) {
+    const nextFlags = { ...flags };
+    if (choice?.setFlag) nextFlags[choice.setFlag] = true;
+    const nextItems = choice?.awardItem ? Array.from(new Set([...(character.items || []), choice.awardItem])) : character.items || [];
+    const nextExperience = (character.experience || 0) + (choice?.awardExperience || 0);
+    const nextCharacter = { ...character, flags: nextFlags, items: nextItems, experience: nextExperience, currentSceneId: nextId };
+    setSaving(true);
+    setSaveError("");
+    if ((character as any).id) {
+      const { error } = await supabase.from("characters").update({
+        flags: nextFlags, items: nextItems, experience: nextExperience, currentSceneId: nextId
+      }).eq("id", (character as any).id);
+      if (error) setSaveError("Your choice is shown, but the save could not be confirmed. Please check your connection before leaving this page.");
+    }
+    setCharacter(nextCharacter);
+    setSceneId(nextId);
+    setSaving(false);
+  }
+
+  async function handleChoice(choice: Choice) {
+    if (choice.action === "gotoSchool") {
+      setSaving(true);
+      if ((character as any).id) {
+        const { error } = await supabase.from("characters").update({ currentSceneId: null, flags }).eq("id", (character as any).id);
+        if (error) setSaveError("You can return to school, but the campaign checkpoint may not have saved.");
+      }
+      setCharacter({ ...character, currentSceneId: undefined });
+      setSaving(false);
+      navigate("/school");
+      return;
+    }
+    if (choice.roll) {
+      setRolling(choice.roll);
+      setShowDice(true);
+      return;
+    }
+    if (choice.next) await moveTo(choice.next, choice);
+  }
+
+  async function handleRoll(result: number) {
+    if (!rolling) return;
+    const total = result + (Number((character as any)[rolling.stat]) || 0);
+    const destination = total >= rolling.target ? rolling.success : rolling.fail;
+    setRollResult(total);
+    setShowDice(false);
+    setRolling(null);
+    await moveTo(destination);
+  }
+
+  const completed = scene.id === "chapter_end";
+  const progress = Math.max(4, Math.round((scenes.findIndex(item => item.id === scene.id) + 1) / scenes.length * 100));
+  return (
+    <ThemedLayout character={character}>
+      <div style={{ maxWidth: 760, margin: "0 auto", paddingBottom: "2rem" }}>
+        <div style={{ textAlign: "center", marginBottom: "1.2rem" }}>
+          <div style={{ fontSize: "2rem" }}>🏰</div>
+          <h2 style={{ fontFamily: "Georgia, serif", color: theme.accent, margin: "0.25rem 0" }}>The Hogwarts Adventure</h2>
+          <p style={{ color: theme.primary, margin: 0 }}>Your first-year story · {character.house}</p>
+        </div>
+        <div style={{ background: "#fffdf5", border: "2px solid " + theme.accent, borderRadius: 18, padding: "clamp(1.1rem, 4vw, 2rem)", boxShadow: "0 8px 28px rgba(0,0,0,.09)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", color: theme.secondary, fontSize: ".88rem", fontWeight: 700 }}>
+            <span>{scene.chapter || "Your Hogwarts Story"}</span><span>{character.experience || 0} XP</span>
+          </div>
+          <div style={{ height: 3, background: "#e8dfc9", borderRadius: 4, margin: "1rem 0 1.4rem" }}>
+            <div style={{ width: progress + "%", height: "100%", background: theme.accent, borderRadius: 4 }} />
+          </div>
+          <p style={{ fontFamily: "Georgia, serif", fontSize: "1.12rem", lineHeight: 1.85, color: "#352b20", whiteSpace: "pre-line", margin: 0 }}>{scene.text}</p>
+          {rollResult !== null && <div style={{ marginTop: 16, padding: 12, background: "#edf5ed", borderRadius: 10, color: "#245b35", fontWeight: 700 }}>Your total: {rollResult} (including your attribute bonus)</div>}
+          {saveError && <p role="alert" style={{ color: "#a12b2b", background: "#fff0ed", borderRadius: 8, padding: 10 }}>{saveError}</p>}
+          <div style={{ display: "grid", gap: 10, marginTop: 24 }}>
+            {choices.map((choice, index) => (
+              <button key={scene.id + "-" + index} disabled={saving || showDice} onClick={() => handleChoice(choice)} style={{ textAlign: "left", padding: "1rem 1.1rem", borderRadius: 11, border: "1px solid " + theme.accent, background: "#f5efe0", color: "#352b20", fontSize: "1rem", fontWeight: 700, cursor: saving ? "wait" : "pointer" }}>
+                {choice.roll ? "🎲 " : "›  "}{choice.text}
+              </button>
+            ))}
+          </div>
+          {completed && <p style={{ marginTop: 18, color: theme.secondary, fontWeight: 700 }}>Chapter One complete. Your progress is saved to your character.</p>}
+          {saving && <p style={{ textAlign: "center", color: theme.secondary }}>Saving your adventure…</p>}
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
+          <button onClick={() => navigate("/spellbook")} style={secondaryButton}>📖 Spellbook</button>
+          <button onClick={() => navigate("/character-sheet")} style={secondaryButton}>🪄 Character sheet</button>
+          <button onClick={() => navigate("/school")} style={secondaryButton}>🏰 School</button>
+        </div>
+      </div>
+      {showDice && <DiceButton allowedDice={[12]} highlightDice={12} showModal={true} onRoll={handleRoll} onClose={() => { setShowDice(false); setRolling(null); }} />}
+    </ThemedLayout>
+  );
 }
 
-const CampaignPage: React.FC<CampaignPageProps> = ({ character, setCharacter }) => {
-  const [currentSceneId, setCurrentSceneId] = useState(character.currentSceneId || "wakeup");
-  const [rolling, setRolling] = useState<any>(null);
-  const [rollResult, setRollResult] = useState<number | null>(null);
-  const [showDice, setShowDice] = useState(false);
-  const [showItemModal, setShowItemModal] = useState(false);
-
-  const scene = scenes.scenes.find(s => s.id === currentSceneId);
-
-  function handleChoice(choice: any) {
-    let updatedCharacter = { ...character };
-
-    if (choice.setFlag) {
-      updatedCharacter.flags = { ...updatedCharacter.flags, [choice.setFlag]: true };
-    }
-    if (choice.awardExperience) {
-      updatedCharacter.experience = (updatedCharacter.experience || 0) + choice.awardExperience;
-    }
-    if (choice.awardItem) {
-      updatedCharacter.items = Array.from(new Set([...(updatedCharacter.items || []), choice.awardItem]));
-    }
-    if (choice.action === "gotoSchool") updatedCharacter.currentSceneId = undefined;
-
-    // End of content lock: if scene is "end_of_content", do not advance
-    if (choice.next === "end_of_content") {
-      setCurrentSceneId("end_of_content");
-      updatedCharacter.currentSceneId = "end_of_content";
-    } else if (choice.next === "END") {
-      // Lock campaign at end scene (do not restart)
-      setCurrentSceneId("end_of_content");
-      updatedCharacter.currentSceneId = "end_of_content";
-    } else {
-      setCurrentSceneId(choice.next);
-      updatedCharacter.currentSceneId = choice.next;
-    }
-    setCharacter(updatedCharacter);
-    setRollResult(null);
-    setShowDice(false);
-  }
-
-  function handleRollChoice(choice: any) {
-    setRolling(choice.roll);
-    setShowDice(true);
-  }
-
-  function handleRollResult(diceValue: number) {
-    if (typeof rolling === "object" && rolling !== null) {
-      const statValue = Number(character[rolling.stat]) || 0;
-      const total = diceValue + statValue;
-      setRollResult(total);
-      setShowDice(false);
-      setTimeout(() => {
-        handleChoice({ next: total >= rolling.target ? rolling.success : rolling.fail });
-        setRolling(null);
-      }, 1200);
-    }
-  }
-
-  const filteredChoices = (scene?.choices || []).filter(choice => {
-    if (choice.requiredSpell && !character.unlockedSpells?.includes(choice.requiredSpell)) {
-      return false;
-    }
-    if (choice.requiredEquippedSpell && !character.equippedSpells?.includes(choice.requiredEquippedSpell)) {
-      return false;
-    }
-    if (choice.requiredItem && !character.items?.includes(choice.requiredItem)) {
-      return false;
-    }
-    return true;
-  });
-
-  // Check if at end scene
-  const atEndOfContent = currentSceneId === "end_of_content";
-
-  return (
-    <div style={{ maxWidth: 660, margin: "2rem auto", background: "#fffbe9", borderRadius: 16, padding: "1.5rem 1.5rem 5rem 1.5rem", minHeight: 360, position: "relative" }}>
-      <h2 style={{ margin: 0, fontFamily: "serif" }}>Hogwarts Adventure</h2>
-      <div style={{ margin: "1.2rem 0", fontSize: "1.18em", minHeight: 120 }}>
-        {scene?.text || "Scene not found."}
-      </div>
-      <div>
-        {filteredChoices.length === 0 && atEndOfContent && (
-          <div style={{ marginTop: "2em", fontWeight: "bold", color: "#b71c1c", fontSize: "1.25em" }}>
-            Adventure complete! More coming soon.
-            <div style={{ marginTop: "2em" }}>
-              <a
-                href="/"
-                style={{
-                  display: "inline-block",
-                  padding: "0.8em 2.2em",
-                  fontSize: "1.1em",
-                  fontWeight: "bold",
-                  background: "#ece6da",
-                  color: "#155724",
-                  border: "2px solid #d3c56b",
-                  borderRadius: "12px",
-                  textDecoration: "none",
-                  boxShadow: "0 1px 6px rgba(0,0,0,0.08)",
-                  transition: "background 0.14s",
-                }}
-              >
-                Back to Home
-              </a>
-            </div>
-          </div>
-        )}
-        {filteredChoices.map((choice, idx) => {
-          if (choice.roll) {
-            return (
-              <button
-                key={idx}
-                style={{ margin: "0.7em 0", padding: "0.7em 1.8em", background: "#b7e4c7", borderRadius: 10, border: "none", fontWeight: "bold", fontSize: "1.07em", cursor: "pointer" }}
-                onClick={() => handleRollChoice(choice)}
-                disabled={showDice}
-              >
-                {choice.text}
-              </button>
-            );
-          }
-          return (
-            <button
-              key={idx}
-              style={{ margin: "0.7em 0", padding: "0.7em 1.8em", background: "#b7e4c7", borderRadius: 10, border: "none", fontWeight: "bold", fontSize: "1.07em", cursor: "pointer" }}
-              onClick={() => handleChoice(choice)}
-              disabled={showDice}
-            >
-              {choice.text}
-            </button>
-          );
-        })}
-      </div>
-      {showDice && (
-        <DiceButton
-          allowedDice={[12]}
-          showModal={true}
-          onRoll={handleRollResult}
-          onClose={() => setShowDice(false)}
-        />
-      )}
-      {rollResult !== null && (
-        <div style={{ margin: "1em 0", fontWeight: "bold", color: "#2a7b3e", fontSize: "1.2em" }}>
-          Roll result: {rollResult}
-        </div>
-      )}
-
-      {/* Spellbook (bottom left) */}
-      <a
-        href="/spellbook"
-        style={{
-          position: "fixed",
-          left: 24,
-          bottom: 24,
-          zIndex: 1200,
-          background: "#fff",
-          border: "2px solid #d3c56b",
-          borderRadius: "50%",
-          width: 60,
-          height: 60,
-          fontWeight: "bold",
-          fontSize: "1.5em",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.10)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          textDecoration: "none",
-          color: "#333"
-        }}
-        aria-label="Open spellbook"
-      >
-        📖
-      </a>
-
-      {/* Items Modal Button (above spellbook) */}
-      <button
-        style={{
-          position: "fixed",
-          left: 24,
-          bottom: 94,
-          zIndex: 1200,
-          background: "#fff",
-          border: "2px solid #d3c56b",
-          borderRadius: "50%",
-          width: 60,
-          height: 60,
-          fontWeight: "bold",
-          fontSize: "1.5em",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.10)"
-        }}
-        onClick={() => setShowItemModal(true)}
-        aria-label="Open items"
-      >
-        🎁
-      </button>
-      {showItemModal && (
-        <ItemModal
-          items={character.items || []}
-          onUseItem={item => {
-            setShowItemModal(false);
-          }}
-          onClose={() => setShowItemModal(false)}
-        />
-      )}
-
-      {/* Dice button (bottom right) */}
-      <button
-        style={{
-          position: "fixed",
-          right: 24,
-          bottom: 24,
-          zIndex: 1200,
-          background: "#fff",
-          border: "2px solid #d3c56b",
-          borderRadius: "50%",
-          width: 60,
-          height: 60,
-          fontWeight: "bold",
-          fontSize: "1.5em",
-          boxShadow: "0 2px 10px rgba(0,0,0,0.10)"
-        }}
-        onClick={() => setShowDice(true)}
-        aria-label="Roll dice"
-      >
-        🎲
-      </button>
-    </div>
-  );
-};
-
-export default CampaignPage;
+const secondaryButton: React.CSSProperties = { border: "1px solid #b79b5a", borderRadius: 9, background: "#fffdf5", color: "#49391f", padding: ".7rem 1rem", fontWeight: 700, cursor: "pointer" };
