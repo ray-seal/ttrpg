@@ -1,5 +1,6 @@
 import React from "react";
 import ThemedLayout from "../../components/ThemedLayout";
+import HouseCupBoard from "../../components/HouseCupBoard";
 import { Navigate } from "react-router-dom";
 
 const GryffindorCommonRoom = ({ character }) => {
@@ -10,6 +11,7 @@ const GryffindorCommonRoom = ({ character }) => {
 
   return (
     <ThemedLayout character={character}>
+      <HouseCupBoard />
       <h1 style={{ color: "#ae0001" }}>Gryffindor Common Room</h1>
       <p>
         Welcome to the cozy, lively Gryffindor Tower! Here, you can chat with fellow lions, share stories of bravery, and join house-only side quests like <b>Capture the Flag</b> or <b>Prank Wars</b> against Slytherin.

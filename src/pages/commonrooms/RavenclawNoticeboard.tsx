@@ -1,11 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import ThemedLayout from "../../components/ThemedLayout";
+import HouseCupBoard from "../../components/HouseCupBoard";
 import quests from "../../quests/ravenclaw.json";
 
 export default function RavenclawNoticeboard({ character }) {
   return (
     <ThemedLayout character={character}>
+      <HouseCupBoard />
       <h2>🪧 Ravenclaw Noticeboard</h2>
       <p>Check here for side quests and house announcements!</p>
       <ul>

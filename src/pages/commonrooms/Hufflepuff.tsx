@@ -1,5 +1,6 @@
 import React from "react";
 import ThemedLayout from "../../components/ThemedLayout";
+import HouseCupBoard from "../../components/HouseCupBoard";
 import { Navigate } from "react-router-dom";
 
 const HufflepuffCommonRoom = ({ character }) => {
@@ -10,6 +11,7 @@ const HufflepuffCommonRoom = ({ character }) => {
 
   return (
     <ThemedLayout character={character}>
+      <HouseCupBoard />
       <h1 style={{ color: "#ecb939" }}>Hufflepuff Common Room</h1>
       <p>
         Welcome to the cheerful Hufflepuff basement! Here, loyal badgers gather to support each other, swap tips for success, and embark on exclusive Hufflepuff adventures like <b>Teamwork Challenges</b> and <b>Kindness Drives</b>.

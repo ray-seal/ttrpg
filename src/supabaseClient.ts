@@ -1,6 +1,24 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseAuthAdapter } from "@neondatabase/neon-js";
 
-const supabaseUrl = 'https://iakxrzjfrbqekvywlnep.supabase.co'
-const supabaseKey = 'sb_publishable_yMUt80L1bEC7BPWDjv3cmg_jOZeL87_'
+// These are public branch-specific endpoints. Never put a database password
+// or a storage secret in VITE_* variables.
+const authUrl = import.meta.env.VITE_NEON_AUTH_URL;
+const dataApiUrl = import.meta.env.VITE_NEON_DATA_API_URL;
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+if (!authUrl || !dataApiUrl) {
+  throw new Error(
+    "Neon is not configured. Set VITE_NEON_AUTH_URL and VITE_NEON_DATA_API_URL."
+  );
+}
+
+// neon-js provides the Supabase-compatible auth and PostgREST APIs used by
+// the existing game, so the rest of the migration can happen incrementally.
+export const supabase = createClient({
+  auth: {
+    adapter: SupabaseAuthAdapter(),
+    url: authUrl,
+  },
+  dataApi: {
+    url: dataApiUrl,
+  },
+});

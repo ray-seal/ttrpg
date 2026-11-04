@@ -29,24 +29,33 @@ const CharacterSheet: React.FC<{ character: Character }> = ({ character }) => {
   const theme = houseThemes[character.house as House];
 
   useEffect(() => {
-    // Fetch house points from Supabase
+    let active = true;
+
     async function fetchHousePoints() {
-      setLoading(true);
-      if (character.house) {
-        const { data, error } = await supabase
-          .from<HousePoints>("house_points")
-          .select("points")
-          .eq("house", character.house)
-          .single();
-        if (!error && data) {
-          setHousePoints(data.points);
-        } else {
-          setHousePoints(null);
-        }
+      if (!character.house) {
+        if (active) setLoading(false);
+        return;
       }
+      const { data, error } = await supabase
+        .from<HousePoints>("house_points")
+        .select("points")
+        .eq("house", character.house)
+        .single();
+      if (!active) return;
+      if (!error && data) setHousePoints(data.points);
+      else setHousePoints(null);
       setLoading(false);
     }
-    fetchHousePoints();
+
+    setLoading(true);
+    void fetchHousePoints();
+    // Neon Data API does not provide Supabase Realtime. Polling keeps the
+    // shared scoreboard fresh without opening a permanent connection.
+    const timer = window.setInterval(() => void fetchHousePoints(), 15000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
   }, [character.house]);
 
   if (
