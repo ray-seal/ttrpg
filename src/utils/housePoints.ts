@@ -1,24 +1,29 @@
 import { supabase } from "../supabaseClient";
 
 /**
- * Updates house points by a delta (can be positive or negative).
- * @param {string} house - House name, e.g. "Ravenclaw"
- * @param {number} delta - Number of points to add or remove
- * @returns {Promise<boolean>} true if successful, false if error
+ * Apply a quest's house-point result through the database's atomic,
+ * idempotent function. The server verifies the signed-in user, character,
+ * house, allowed quest and one-time completion before changing the shared score.
  */
-export async function updateHousePoints(house, delta) {
-  // Fetch current points
-  const { data, error } = await supabase
-    .from("house_points")
-    .select("points")
-    .eq("house", house)
-    .single();
-  if (error || !data) return false;
-  const newPoints = (data.points || 0) + delta;
-  // Update
-  const { error: updateError } = await supabase
-    .from("house_points")
-    .update({ points: newPoints, updated_at: new Date().toISOString() })
-    .eq("house", house);
-  return !updateError;
+export async function updateHousePoints(
+  house: string,
+  delta: number,
+  characterId: string,
+  questId: string
+): Promise<boolean> {
+  if (!characterId || !questId) return false;
+
+  const reason = delta > 0
+    ? `Quest completed: ${questId}`
+    : `Quest failed: ${questId}`;
+
+  const { data, error } = await supabase.rpc("apply_house_points", {
+    p_house: house,
+    p_delta: delta,
+    p_reason: reason,
+    p_character_id: characterId,
+    p_quest_id: questId,
+  });
+
+  return !error && typeof data === "number";
 }
