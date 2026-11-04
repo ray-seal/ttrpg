@@ -52,10 +52,10 @@ export default function CampaignPage({ character, setCharacter }: { character: C
     if (choice.action === "gotoSchool") {
       setSaving(true);
       if ((character as any).id) {
-        const { error } = await supabase.from("characters").update({ currentSceneId: null, flags }).eq("id", (character as any).id);
+        const { error } = await supabase.from("characters").update({ currentSceneId: sceneId, flags }).eq("id", (character as any).id);
         if (error) setSaveError("You can return to school, but the campaign checkpoint may not have saved.");
       }
-      setCharacter({ ...character, currentSceneId: undefined });
+      setCharacter({ ...character, currentSceneId: sceneId });
       setSaving(false);
       navigate("/school");
       return;
