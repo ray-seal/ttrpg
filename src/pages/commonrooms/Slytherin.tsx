@@ -1,5 +1,6 @@
 import React from "react";
 import ThemedLayout from "../../components/ThemedLayout";
+import HouseCupBoard from "../../components/HouseCupBoard";
 import { Navigate } from "react-router-dom";
 
 const SlytherinCommonRoom = ({ character }) => {
@@ -10,6 +11,7 @@ const SlytherinCommonRoom = ({ character }) => {
 
   return (
     <ThemedLayout character={character}>
+      <HouseCupBoard />
       <h1 style={{ color: "#2a623d" }}>Slytherin Common Room</h1>
       <p>
         Welcome to the shadowy, sophisticated Slytherin dungeon! Strategize with cunning classmates and launch exclusive side quests like <b>Prank Wars</b> and <b>Secret Alliances</b> to outwit your rivals.
