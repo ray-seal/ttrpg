@@ -8,7 +8,7 @@ import { updateHousePoints } from "../utils/housePoints";
 /**
  * QuestRunner handles Ravenclaw side quests.
  * completedLessons is used as the learned spell list.
- * House points are updated in Supabase when a quest is completed or failed.
+ * House points are updated atomically in Neon when a quest is completed or failed.
  */
 function getQuestById(id) {
   return quests.find(q => q.id === id);
@@ -30,9 +30,9 @@ export default function QuestRunner({ character, house }) {
   // Handles awarding or removing house points
   async function handleAwardPoints(points) {
     setProcessingPoints(true);
-    const ok = await updateHousePoints(character.house, points);
+    const ok = await updateHousePoints(character.house, points, character.id, quest.id);
     if (!ok) {
-      alert("Failed to update house points. Check house name and Supabase connection!");
+      alert("House points could not be updated. Check your connection and try again.");
     }
     setProcessingPoints(false);
   }
