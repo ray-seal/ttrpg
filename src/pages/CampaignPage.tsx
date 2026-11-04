@@ -15,7 +15,7 @@ const scenes = (scenesData as { scenes: Scene[] }).scenes;
 export default function CampaignPage({ character, setCharacter }: { character: Character; setCharacter: (c: Character) => void }) {
   const navigate = useNavigate();
   const theme = houseThemes[character.house as House] || houseThemes.Gryffindor;
-  const [sceneId, setSceneId] = useState(character.currentSceneId || "wakeup");
+  const [sceneId, setSceneId] = useState(character.currentSceneId || (typeof character.flags?.campaignSceneId === "string" ? character.flags.campaignSceneId : "wakeup"));
   const [rolling, setRolling] = useState<RollRule | null>(null);
   const [showDice, setShowDice] = useState(false);
   const [rollResult, setRollResult] = useState<number | null>(null);
@@ -32,14 +32,14 @@ export default function CampaignPage({ character, setCharacter }: { character: C
   async function moveTo(nextId: string, choice?: Choice) {
     const nextFlags = { ...flags };
     if (choice?.setFlag) nextFlags[choice.setFlag] = true;
-    const nextItems = choice?.awardItem ? Array.from(new Set([...(character.items || []), choice.awardItem])) : character.items || [];
+    nextFlags.campaignSceneId = nextId;
     const nextExperience = (character.experience || 0) + (choice?.awardExperience || 0);
-    const nextCharacter = { ...character, flags: nextFlags, items: nextItems, experience: nextExperience, currentSceneId: nextId };
+    const nextCharacter = { ...character, flags: nextFlags, experience: nextExperience, currentSceneId: nextId };
     setSaving(true);
     setSaveError("");
     if ((character as any).id) {
       const { error } = await supabase.from("characters").update({
-        flags: nextFlags, items: nextItems, experience: nextExperience, currentSceneId: nextId
+        flags: nextFlags, experience: nextExperience
       }).eq("id", (character as any).id);
       if (error) setSaveError("Your choice is shown, but the save could not be confirmed. Please check your connection before leaving this page.");
     }
@@ -52,10 +52,10 @@ export default function CampaignPage({ character, setCharacter }: { character: C
     if (choice.action === "gotoSchool") {
       setSaving(true);
       if ((character as any).id) {
-        const { error } = await supabase.from("characters").update({ currentSceneId: sceneId, flags }).eq("id", (character as any).id);
+        const { error } = await supabase.from("characters").update({ flags: { ...flags, campaignSceneId: sceneId } }).eq("id", (character as any).id);
         if (error) setSaveError("You can return to school, but the campaign checkpoint may not have saved.");
       }
-      setCharacter({ ...character, currentSceneId: sceneId });
+      setCharacter({ ...character, flags: { ...flags, campaignSceneId: sceneId }, currentSceneId: sceneId });
       setSaving(false);
       navigate("/school");
       return;
