@@ -13,13 +13,30 @@ export default function Login() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      setError(error.message);
-    } else {
-      // Optionally fetch the character and redirect
-      navigate("/hogwarts-letter");
+
+    try {
+      const { data, error: loginError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (loginError) {
+        setError(loginError.message);
+        return;
+      }
+
+      if (!data?.session || !data?.user) {
+        setError("Sign-in completed, but no active session was returned. Please try again.");
+        return;
+      }
+
+      // Let the app's session listener load the character first. It will then
+      // route new students to the correct onboarding step.
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to sign in. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -95,7 +112,7 @@ export default function Login() {
             {loading ? "Logging in..." : "Log In"}
           </button>
         </form>
-        {error && <div style={{ color: "#b91c1c", marginTop: 8 }}>{error}</div>}
+        {error && <div role="alert" style={{ color: "#b91c1c", marginTop: 8 }}>{error}</div>}
         <div style={{ marginTop: 18 }}>
           <span style={{ color: "#333" }}>Don&apos;t have an account? </span>
           <a href="/signup" style={{ color: "#7cb518", fontWeight: "bold", textDecoration: "underline" }}>Sign up here</a>
